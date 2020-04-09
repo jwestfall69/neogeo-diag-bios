@@ -2,7 +2,16 @@
 	include "macros.inc"
 	include "sp1.inc"
 
+	; This stops vasm from doing a few optimizations
+	; which cause the resulting rom to not match
+	; the original (ie: cmp #0, d0 -> tst.b d0)
 	opt og-
+
+	; These are options to force the bios to do
+	; z80 or goto manual tests since its not
+	; practical to be holding down buttons on boot
+	; with mame.
+
 ;force_z80_tests 	equ 1
 ;force_manual_tests 	equ 1
 
@@ -40,11 +49,21 @@ VECTORS:
 ; stack.
 ;
 ; A psub should not touch a4, a5, a7, d7.  This will mean you can't
-; do any normal function call within a psub as the stack (a7) will
-; will not contain the stack location.  Ideally you should also
+; call normal subroutines within a psub as the stack (a7) will
+; will not contain a valid stack location.  Ideally you should also
 ; avoid using wram within a psub.
 ;
-; These are both usually used via the PSUB and PSUB_RETURN macros
+; Its common for there to be 2 versions of a given function, one thats
+; a normal subroutine and another that is the psub.  Because of this
+; all psub routine labels a appended with _psub.
+;
+; Macros are set to deal with calling psubs
+;  PSUB <function>
+;   This will deal with setting the return label, populating a2, a3
+;   and then calling psub_enter.  Note that the macro will automatically
+;   append _psub onto the supplied function name.
+; PSUB_RETURN
+;   When in a psub, PSUB_RETURN should be used to return from the function
 psub_enter:
 	subq.w	#4,d7
 	jmp	*+4(PC,d7.w)
@@ -146,33 +165,25 @@ print_xy_char:
 	move.w	d2, (a6)
 	rts
 
-; TODO add details about xpy struct
-
-;
 ; prints an array of xyp string structs until $00 is encountered
 ; params:
 ; a0 = start of array of xyp string structs
-;
 print_xyp_string_struct_multi:
 	bsr	print_xyp_string_struct
 	tst.b	(a0)
 	bne	print_xyp_string_struct_multi
 	rts
 
-;
 ; clears the line that an xyp string will be on, then falls through to print_xyp_string_struct
 ; params:
 ; a0 = start of xyp string struct
-;
 print_xyp_string_struct_clear:
 	move.b	(1,a0), d0
 	bsr	fix_clear_line
 
-;
 ; converts an xyp string struct into the format that print_xyp_string expects, then falls through to it
 ; params:
 ;  a0 = start of xyp string struct
-;
 print_xyp_string_struct:
 	move.b	(a0)+, d0
 	move.b	(a0)+, d1
@@ -682,9 +693,7 @@ fix_move_from_ext:
 	rts
 
 
-;
 ; start
-;
 _start:
 	WATCHDOG
 	clr.b	REG_POUTPUT
@@ -695,7 +704,7 @@ _start:
 	move.w	#7, REG_IRQACK
 	move.w	#$4000, REG_LSPCMODE
 	lea	REG_VRAMRW, a6			; a6 will always be REG_VRAMRW
-	moveq	#$c, d7			; init d7 for psub
+	moveq	#$c, d7				; init d7 for psub
 	move.l	#$7fff0000, PALETTE_RAM_START+$2
 	move.l	#$07770000, PALETTE_RAM_START+$22
 	clr.w	PALETTE_REFERENCE
@@ -1037,7 +1046,7 @@ z80_test_check_error:
 XYP_STR_Z80_ERROR_CODE:		XYP_STRING 4, 12, 0, "Z80 REPORTED ERROR CODE: "
 
 
-; see if z80 says its dont testing;
+; see if z80 says its done testing
 z80_test_check_done:
 	cmpi.b	#-$19, REG_SOUND
 	rts
@@ -1158,11 +1167,9 @@ fix_clear_line_27:
 
 
 
-;
 ; prints headers
 ; NEO DIAGNOSTICS v0.19 - BY SMKDAN
 ; ---------------------------------
-;
 print_header:
 	moveq	#0, d0
 	moveq	#4, d1
@@ -1177,11 +1184,9 @@ print_header:
 	bsr	print_xy_string_clear
 	rts
 
-;
 ; prints headers - psub version
 ; NEO DIAGNOSTICS v0.19 - BY SMKDAN
 ; ---------------------------------
-;
 print_header_psub:
 	moveq	#0, d0
 	moveq	#4, d1
@@ -1442,10 +1447,8 @@ copy_memory:
 	rts
 
 
-;
 ; params:
 ;  d0 = inverse byte mask for player1 inputs we care about
-;
 wait_p1_input:
 	WATCHDOG
 	move.b	REG_P1CNT, d1
@@ -1456,9 +1459,7 @@ wait_p1_input:
 	bsr	wait_frame
 	rts
 
-;
 ; wait for a full frame
-;
 wait_frame:
 	move.w	d0, -(a7)
 
@@ -2184,7 +2185,7 @@ auto_ram_oe_tests_psub:
 ; which would be part of the preceding move.b instruction.
 ; The "move.b (a0), d1" instruction translates to $1210 in
 ; machine code.  When doing an upper ram test if d1 contains
-; $12 its assumed the ram read didnt happen, likewise for 
+; $12 its assumed the ram read didnt happen, likewise for
 ; lower if d1 contains $10 for lower.
 ; params:
 ;  a0 = address
