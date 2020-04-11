@@ -1178,7 +1178,7 @@ print_header:
 	moveq	#40, d4
 	bsr	print_char_repeat			; $116 which is an overscore line
 
-	moveq	#4, d0
+	moveq	#2, d0
 	moveq	#3, d1
 	lea	STR_VERSION_HEADER, a0
 	bsr	print_xy_string_clear
@@ -1198,7 +1198,7 @@ print_header_psub:
 	moveq	#3, d0
 	PSUB	fix_clear_line
 
-	moveq	#4, d0
+	moveq	#2, d0
 	moveq	#3, d1
 	lea	STR_VERSION_HEADER, a0
 	PSUB	print_xy_string
@@ -4451,7 +4451,7 @@ STR_ADDRESS:			STRING "ADDRESS:"
 STR_COLON_SPACE:		STRING ": "
 STR_HOLD_SS_TO_RESET:		STRING "HOLD START/SELECT TO SOFT RESET"
 STR_RELEASE_SS:			STRING "RELEASE START/SELECT"
-STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19 - BY SMKDAN"
+STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a00 - BY SMKDAN"
 
 XYP_STR_PASSES:			XYP_STRING  4, 14,  0, "PASSES:"
 XYP_STR_Z80_WAITING:		XYP_STRING  4,  5,  0, "WAITING FOR Z80 TO FINISH TESTS..."
