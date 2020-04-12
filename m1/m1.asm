@@ -571,7 +571,7 @@ ram_address_tests_psub:
 ;  a = 0 (pass), 1 (fail)
 ;  Z = 1 (pass), 0 (fail)
 test_ram_data_psub:
-	ld	hl, $f800	; ram start
+	ld	hl, Z80_RAM_START	; ram start
 	ld	a, c
 
 .loop_next_address:
@@ -606,7 +606,7 @@ test_ram_address_psub:
 	ld	e, c
 	xor	a
 	ld	b, a
-	ld	hl, $f800	; ram start
+	ld	hl, Z80_RAM_START	; ram start
 .loop_next_address:
 	ld	(hl), a
 	cp	(hl)
