@@ -590,31 +590,39 @@ test_ram_data_psub:
 	inc	a
 	PSUB_RETURN
 
+
+; Write an incrementing data value at incrementing addresses, then
+; read them back to verify the data matches
 ; params:
-;  bc = incr amount per loop
+;  bc = incr address amount per loop
 ; returns:
 ;  a = 0 (pass), 1 (fail)
 ;  Z = 1 (pass), 0 (fail)
-; This test seems a little bugged, it really
-; should be writing out the data in one loop
-; then in a 2nd loop read it back.  As it is
-; now its writes an address and reads it back,
-; which is the same thing as the ram data
-; test is doing
 test_ram_address_psub:
 	ld	d, b
 	ld	e, c
 	xor	a
 	ld	b, a
-	ld	hl, Z80_RAM_START	; ram start
-.loop_next_address:
+	ld	hl, Z80_RAM_START
+
+.loop_next_write_address:
 	ld	(hl), a
+	inc	a
+	add	hl, de
+	jr	c, .loop_start_read_address	; loop exits if we hit top of ram
+	djnz	.loop_next_write_address	; or 256 iterations
+
+.loop_start_read_address:
+	xor	a
+	ld	b, a
+	ld	hl, Z80_RAM_START
+.loop_next_read_address:
 	cp	(hl)
 	jr	nz, .test_failed_abort
 	inc	a
 	add	hl, de
 	jr	c, .test_passed_done
-	djnz	.loop_next_address
+	djnz	.loop_next_read_address
 
 .test_passed_done:
 	xor  a
