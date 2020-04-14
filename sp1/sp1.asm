@@ -703,10 +703,10 @@ _start:
 	clr.b	p1_input_aux_edge
 	move.w	#7, REG_IRQACK
 	move.w	#$4000, REG_LSPCMODE
-	lea	REG_VRAMRW, a6			; a6 will always be REG_VRAMRW
-	moveq	#$c, d7				; init d7 for psub
-	move.l	#$7fff0000, PALETTE_RAM_START+$2
-	move.l	#$07770000, PALETTE_RAM_START+$22
+	lea	REG_VRAMRW, a6					; a6 will always be REG_VRAMRW
+	moveq	#$c, d7						; init d7 for psub
+	move.l	#$7fff0000, PALETTE_RAM_START+$2		; white on black for text
+	move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+$2	;  gray on black for text (disabled menu items)
 	clr.w	PALETTE_REFERENCE
 	clr.w	PALETTE_BACKDROP
 
@@ -1498,6 +1498,14 @@ wait_frame_psub:
 	bne	.loop_not_bottom_border
 	PSUB_RETURN
 
+; d0 = scanline to wait for
+wait_scanline:
+	WATCHDOG
+	move.w	(4,a6), d1
+	lsr.w	#$7, d1
+	cmp.w	d0, d1
+	bne	wait_scanline
+	rts
 
 p1p2_input_update:
 	bsr	p1_input_update
@@ -1687,7 +1695,7 @@ main_menu_loop:
 ; }
 MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_MM_CALENDAR_IO, manual_calendar_test, 1
-	MAIN_MENU_ITEM STR_MM_COLOR_BARS, manual_color_bars_test, 1
+	MAIN_MENU_ITEM STR_MM_COLOR_BARS, manual_color_bars_test, 0
 	MAIN_MENU_ITEM STR_MM_CONTROLER_TEST, manual_controller_test, 0
 	MAIN_MENU_ITEM STR_MM_WBRAM_TEST_LOOP, manual_wbram_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_PAL_RAM_TEST_LOOP, manual_palette_ram_test_loop, 0
@@ -1701,21 +1709,20 @@ vblank_interrupt:
 	WATCHDOG
 	move.w	#$4, REG_IRQACK
 	tst.b	$100000.l		; this seems like dead code since nothing
-	beq	.exit_int		; else touches $10000(0|2) as a variable..
+	beq	.exit_interrupt		; else touches $10000(0|2) as a variable..
 	movem.l	d0-d7/a0-a6, -(a7)
 	addq.w	#1, $100002.l
 	movem.l	(a7)+, d0-d7/a0-a6
 	clr.b	$100000.l
-.exit_int:
+.exit_interrupt:
 	rte
 
 timer_interrupt:
-	addq.w	#1, timer_count
-	move.w	#$2, ($a,A6)		; ack int
-        rte
+	addq.w	#$1, timer_count
+	move.w	#$2, ($a,a6)		; ack int
+	rte
 
-
-; parse through the array of error_code_print strucs below
+; parse through the array of error_code_print structs below
 ; and run the correct print error function
 ; params:
 ;  d0 = error code
@@ -3643,7 +3650,7 @@ rtc_update_hz:
 	bsr	fix_clear_line		; removes waiting for calendar pulse... line
 
 	move.l	(a7)+, ($6,a6)		; timer high
-	move.w	#$90, ($4,a6)		; time low
+	move.w	#$90, ($4,a6)		; lspcmode
 	move	#$2100, sr		; enable interrupts
 	moveq	#$0, d2			; zero out pulse counter
 	rts
@@ -3681,148 +3688,151 @@ rtc_print_data:
 	rts
 
 
+; Tiles 0x00 and 0x20 along with palette bank switching are used to
+; generate the 4 color bars.
+; tile 0x00 is a solid color1
+; tile 0x20 is a solid color2
+; color1 and color2 are also used for text foreground and background,
+; so we need to leave palette0 untouched to allow for drawing text.
+; This leaves palettes 1 to 15 for the color bars.
+;
+; red   = tile 0x00, palette bank0
+; green = tile 0x20, palette bank0
+; blue  = tile 0x00, palette bank1
+; white = tile 0x20, palette bank1
 manual_color_bars_test:
 	lea	XYP_STR_CT_D_MAIN_MENU, a0
 	bsr	print_xyp_string_struct_clear
-	bsr	color_bar_setup_palletes
-	bsr	color_bar_draw_bars
+	bsr	color_bar_setup_palettes
+	bsr	color_bar_draw_tiles
+
 .loop_run_test
-	WATCHDOG
+	move.w	#$180, d0		; between green and blue, swap
+	bsr	wait_scanline		; watchdog will happen in wait_scanline
+	move.b	d0, REG_PALBANK1
+
+	move.w	#$1e7, d0		; near bottom swap back
+	bsr	wait_scanline
+	move.b	d0, REG_PALBANK0
+
 	bsr	p1p2_input_update
 	btst	#$7, p1_input_edge	; D pressed?
 	beq	.loop_run_test
+
+	; palette1 was clobbered, restore our gray on black
+	move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+2
 	rts
 
 
-color_bar_setup_palletes:
-	lea	PALETTE_RAM_START, a0
-	move.w	#$100, d0
-	bsr	color_bar_setup_color_pallete		; red
-	lea	PALETTE_RAM_START + $80, a0
-	move.w	#$10, d0
-	bsr	color_bar_setup_color_pallete		; green
-	lea	PALETTE_RAM_START + $100, a0
-	move.w	#$1, d0
-	bsr	color_bar_setup_color_pallete		; blue
-	lea	PALETTE_RAM_START + $180, a0
-	move.w	#$111, d0			; white
-	bsr	color_bar_setup_color_pallete
+; setup color1&2 in palettes 1-15 for both banks.  Since the colors are
+; adjacent we can update them both at the same time with long writes
+color_bar_setup_palettes:
+
+	; bank1 may have never been initialized
+	move.b	d0, REG_PALBANK1
+	clr.w	PALETTE_REFERENCE
+	clr.w	PALETTE_BACKDROP
+	move.l  #$7fff0000, PALETTE_RAM_START+$2	; white on black for text
+
+	move.l	#$00010111, d0				; bluewhite
+	bsr	color_bar_setup_palette_bank
+
+	move.b	d0, REG_PALBANK0
+	move.l	#$01000010, d0				; redgreen
+	bsr	color_bar_setup_palette_bank
+
+	rts
+
+; setup an individual palette bank
+; d0 = start value and also increment amount for color1&2
+color_bar_setup_palette_bank:
+	move.l	d0, d1					; save for increment amount
+	moveq	#$e, d2					; 15 palettes to update
+	lea	PALETTE_RAM_START+PALETTE_SIZE+$2, a0	; goto palette1 color1
+
+.loop_next_palette
+	move.l	d0, (a0)
+	add.l	d1, d0
+	adda.l	#PALETTE_SIZE, a0			; next palette/color1
+	dbra	d2, .loop_next_palette
 	rts
 
 
-; d0 = increment value
-; a0 = start palette address
-color_bar_setup_color_pallete:
-	lea	COLOR_BAR_PALETTE_TABLE_START, a1
-	move.w	#$0, d1
-	moveq	#((COLOR_BAR_PALETTE_TABLE_END - COLOR_BAR_PALETTE_TABLE_START) / 4 - 1), d4
-.loop_next_entry:
-	move.w	(a1)+, d2
-	move.w	(a1)+, d3
-	lsl.w	#4, d3
-	add.w	d2, d3
-	add.w	d3, d3
-	move.w	d1, (a0,d3.w)
-	add.w	d0, d1
-	dbra	d4, .loop_next_entry
-	rts
-
-
-color_bar_draw_bars:
+color_bar_draw_tiles:
 	moveq	#$4, d0
 	moveq	#$7, d1
-	moveq	#$0, d2				; red
-	bsr	color_bar_draw_gradient
-	moveq	#$4, d0
-	moveq	#$c, d1
-	move.w	#$4000, d2			; green
-	bsr	color_bar_draw_gradient
-	moveq	#$4, d0
-	moveq	#$11, d1
-	move.w	#$8000, d2			; blue
-	bsr	color_bar_draw_gradient
-	moveq	#$4, d0
-	moveq	#$16, d1
-	move.w	#$c000, d2			; white
-	nop					; falls through
+	bsr	fix_seek_xy			; d0 on return will have current vram address
+	move.w	#$1, (2,a6)			; increment vram writes one at a time
 
-color_bar_draw_gradient:
-	lea	COLOR_BAR_PALETTE_TABLE_START, a0
-	move.b	d0, d4
-	move.b	d1, d5
-	move.w	#$1, ($2,a6)
-	moveq	#((COLOR_BAR_PALETTE_TABLE_END - COLOR_BAR_PALETTE_TABLE_START) / 4 - 1), d7
-.loop_draw_gradient:
-	move.w	(a0)+, d0
-	bsr	color_bar_lookup_fix_tile
+	moveq	#$e, d1				; 15 total shades in the gradients
+	move.w	#$1000, d4			; palette1, tile 0x00
+	move.w  #$1020, d5			; palette1, tile 0x20
 
-	move.w	(a0)+, d3
-	ror.w	#4, d3
-	or.w	d0, d3
-	or.w	d2, d3
-	moveq	#$1, d6
-.loop_draw_block:
-	move.b	d4, d0
-	move.b	d5, d1
-	bsr	fix_seek_xy
-	addq.b	#1, d4
-	move.w	d3, (a6)
+.loop_next_shade
+
+	moveq	#$1, d2				; each gradient shade is 2 tiles wide
+
+.loop_double_wide
+
+	; red
+	move.w	d4, (a6)
 	nop
-	move.w	d3, (a6)
+	move.w	d4, (a6)
 	nop
-	move.w	d3, (a6)
+	move.w	d4, (a6)
 	nop
-	move.w	d3, (a6)
+	move.w	d4, (a6)
 	nop
-	dbra	d6, .loop_draw_block
-	dbra	d7, .loop_draw_gradient
+	move.w	#$20, (a6)
+	nop
+
+	; green
+	move.w	d5, (a6)
+	nop
+	move.w	d5, (a6)
+	nop
+	move.w	d5, (a6)
+	nop
+	move.w	d5, (a6)
+	nop
+	move.w	#$20, (a6)
+	nop
+
+	; blue
+	move.w	d4, (a6)
+	nop
+	move.w	d4, (a6)
+	nop
+	move.w	d4, (a6)
+	nop
+	move.w	d4, (a6)
+	nop
+	move.w	#$20, (a6)
+	nop
+
+	; white
+	move.w	d5, (a6)
+	nop
+	move.w	d5, (a6)
+	nop
+	move.w	d5, (a6)
+	nop
+	move.w	d5, (a6)
+	nop
+	move.w	#$20, (a6)
+	nop
+
+	add.w	#$20, d0
+	move.w	d0, (-2,a6)			; move over a column
+	dbra	d2, .loop_double_wide
+
+	add.w	#$1000, d4			; next palette
+	add.w	#$1000, d5
+
+	dbra	d1, .loop_next_shade
+
 	rts
 
-color_bar_lookup_fix_tile:
-	move.l	a0, -(a7)
-	lea	(COLOR_BAR_LOOKUP_FIX_TILE_TABLE - 2), a0
-.loop_next_entry:
-	addq.l	#2, a0
-	cmp.w	(a0)+, d0
-	bne	.loop_next_entry
-	move.w	(a0), d0
-	movea.l	(a7)+, a0
-	rts
-
-; struct {
-;  word palette_offset_color;
-;  word intensity;
-; }
-COLOR_BAR_PALETTE_TABLE_START:
-	dc.w $0008, $0000
-	dc.w $0009, $0000
-	dc.w $000a, $0000
-	dc.w $000f, $0000
-	dc.w $0008, $0001
-	dc.w $0009, $0001
-	dc.w $000a, $0001
-	dc.w $000f, $0001
-	dc.w $0008, $0002
-	dc.w $0009, $0002
-	dc.w $000a, $0002
-	dc.w $000f, $0002
-	dc.w $0008, $0003
-	dc.w $0009, $0003
-	dc.w $000a, $0003
-	dc.w $000f, $0003
-COLOR_BAR_PALETTE_TABLE_END:
-
-; struct {
-;  word palette_offset_color;
-;  word fix_tile;
-; }
-; each fix_tile is a solid color using the corresponding
-; palete_offset_color with in the palette for its color
-COLOR_BAR_LOOKUP_FIX_TILE_TABLE:
-	dc.w $0008, $0779
-	dc.w $0009, $070b
-	dc.w $000a, $0108
-	dc.w $000f, $072c
 
 manual_controller_test:
 	moveq	#$5, d0
@@ -4577,7 +4587,7 @@ STR_MMIO_DEAD_OUTPUT:		STRING "MMIO DEAD OUTPUT"
 
 ; main menu items;
 STR_MM_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
-STR_MM_COLOR_BARS:		STRING "COLOR BARS (MVS ONLY)"
+STR_MM_COLOR_BARS:		STRING "COLOR BARS"
 STR_MM_CONTROLER_TEST:		STRING "CONTROLLER TEST"
 STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
 STR_MM_PAL_RAM_TEST_LOOP:	STRING "PALETTE RAM TEST LOOP"
