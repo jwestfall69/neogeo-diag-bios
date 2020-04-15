@@ -4041,14 +4041,14 @@ manual_wbram_test_loop:
 	moveq	#-$10, d0
 	and.b	REG_P1CNT, d0
 	bne	.loop_run_test			; if a+b+c+d not pressed keep running test
-	bra	loop_reset_check_psub		; never returns
 
-; code to make it so you can return to main menu..
-;	PSUB	fix_clear
-;	clr.b	main_menu_cursor
-;	movea.l	$0, a7
-;	move.l  #manual_tests, -(a7)
-;	rts
+	PSUB	fix_clear
+
+	; re-init stuff and return to menu
+	move.b	#3, main_menu_cursor
+	movea.l	$0, a7
+	moveq	#$c, d7
+	bra	manual_tests
 
 .test_failed_abort:
 	move.b	d0, d6
