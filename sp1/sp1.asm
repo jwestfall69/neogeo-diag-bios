@@ -3222,10 +3222,13 @@ vram_32k_data_tests:
 .test_passed_ffff				; check_vram_data will set d0 = 0 for us
 	rts
 
+; 2k (words) vram tests (data and address) only look at the
+; first 1536 (0x600) words, since the remaining 512 words
+; are used by the LSPC for buffers per dev wiki
 vram_2k_data_tests:
 	moveq	#-$80, d1
 	moveq	#0, d0
-	move.w	#$600, d2			; BUG? its setting the length to be $600 (1536; words > 2k)
+	move.w	#$600, d2
 	bsr	check_vram_data
 	beq	.test_passed_0000
 	moveq	#EC_VRAM_DATA_0000, d0
