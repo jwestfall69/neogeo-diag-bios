@@ -580,6 +580,17 @@ print_bit:
 	move.w	d2, (a6)
 	rts
 
+
+; prints a digit start at x,y
+; params:
+;  d0 = x
+;  d1 = y
+;  d2 = digit
+print_digit:
+	bsr	fix_seek_xy
+	moveq	#0, d1
+	bra	print_digits			; handles rts
+
 ; prints 3 digits starting at x,y
 ; params:
 ;  d0 = x
@@ -917,7 +928,7 @@ z80_slot_switch:
 	and.b	d1, d0
 	eor.b	d1, d0
 
-	moveq	#((Z80_SLOT_SELECT_END - Z80_SLOT_SELECT_START)/2 - 2), d1
+	moveq	#((Z80_SLOT_SELECT_END - Z80_SLOT_SELECT_START)/2 - 1), d1
 	lea	(Z80_SLOT_SELECT_START - 1), a0
 
 .loop_next_entry:
@@ -926,10 +937,21 @@ z80_slot_switch:
 	dbeq	d1, .loop_next_entry		; loop through struct looking for p1 input match
 	beq	.z80_do_slot_switch
 
-	addq.l	#1, a0				; nothing matched, use the last entry (slot 1)
+	addq.l	#2, a0				; nothing matched, use the last entry (slot 1)
 
 .z80_do_slot_switch:
-	move.b	(a0), REG_SLOT			; set slot
+
+	move.b	(a0), d3
+	lea	(XYP_STR_Z80_SLOT_NUM), a0	; "[S ]"
+	bsr	print_xyp_string_struct
+
+	move.b	#36, d0
+	moveq	#4, d1
+	move.b	d3, d2
+	bsr	print_digit			; print the slot number
+
+	subq	#1, d3				; convert to what REG_SLOT expects, 0 to 5
+	move.b	d3, REG_SLOT			; set slot
 	move.b	d0, REG_CRTFIX			; switch to carts m1/s1
 	move.b	#$3, REG_SOUND			; tell z80 to reset
 	move.l	#$186a0, d0
@@ -939,16 +961,16 @@ z80_slot_switch:
 
 ; struct {
 ; 	byte buttons_pressed; 	(up/down/left/right)
-;  	byte slot; 		(value to write to REG_SLOT, ie 0 - 5)
+;  	byte slot;
 ; }
 Z80_SLOT_SELECT_START:
-	dc.b	$01, $01			; up = slot 2
-	dc.b	$09, $02			; up+right = slot 3
-	dc.b	$08, $03			; right = slot 4
-	dc.b	$0a, $04			; down+right = slot 5
-	dc.b	$02, $05			; down = slot 6
-	dc.b	$00, $00			; none = slot 1
+	dc.b	$01, $02			; up = slot 2
+	dc.b	$09, $03			; up+right = slot 3
+	dc.b	$08, $04			; right = slot 4
+	dc.b	$0a, $05			; down+right = slot 5
+	dc.b	$02, $06			; down = slot 6
 Z80_SLOT_SELECT_END:
+	dc.b	$00, $01			; no match = slot 1
 
 
 z80_slot_switch_ignored:
@@ -4499,6 +4521,7 @@ XYP_STR_Z80_SKIP_TEST:		XYP_STRING  4, 24,  0, "TO SKIP Z80 TESTING, RELEASE"
 XYP_STR_Z80_PRESS_D_RESET:	XYP_STRING  4, 25,  0, "D BUTTON AND SOFT RESET."
 XYP_STR_Z80_MAKE_SURE:		XYP_STRING  4, 21,  0, "FOR Z80 TESTING, MAKE SURE TEST"
 XYP_STR_Z80_CART_CLEAN:		XYP_STRING  4, 22,  0, "CART IS CLEAN AND FUNCTIONAL."
+XYP_STR_Z80_SLOT_NUM:		XYP_STRING 34,  4,  0, "[S ]"
 
 STR_Z80_M1_CRC:			STRING "M1 CRC ERROR (fixed region)"
 STR_Z80_M1_UPPER_ADDRESS:	STRING "M1 UPPER ADDRESS (fixed region)"
