@@ -797,8 +797,8 @@ watchdog_stuck_test_psub:
 	lea	XY_STR_WATCHDOG_STUCK, a0
 	PSUB	print_xy_string_struct_clear
 
-	move.l	#$c930, d0
-	PSUB	watchdog_n_times
+	move.l	#$c930, d0		; 128760us / 128.76ms
+	PSUB	delay
 
 	moveq	#8, d0
 	PSUB	fix_clear_line
@@ -914,8 +914,8 @@ z80_slot_switch:
 
 	move.b	#$01, REG_SOUND				; tell z80 to prep for m1 switch
 
-	move.l	#$1388, d0
-	bsr	watchdog_n_times
+	move.l	#$1388, d0				; 12500us / 12.5ms
+	bsr	delay
 
 	cmpi.b	#$01, REG_SOUND
 	beq	.z80_slot_switch_ready
@@ -954,8 +954,8 @@ z80_slot_switch:
 	move.b	d3, REG_SLOT			; set slot
 	move.b	d0, REG_CRTFIX			; switch to carts m1/s1
 	move.b	#$3, REG_SOUND			; tell z80 to reset
-	move.l	#$186a0, d0
-	bsr	watchdog_n_times
+	move.l	#$186a0, d0			; 250000us / 250ms
+	bsr	delay
 	rts
 
 
@@ -1007,22 +1007,21 @@ z80_slot_switch_ignored:
 	rts
 
 
-; writes watch dog d0 times
 ; params:
-;  d0 = number of time
-watchdog_n_times:
-	move.b	d0, REG_WATCHDOG
-	subq.l	#1, d0
-	bne	watchdog_n_times
+;  d0 * 2.5us = how long to delay
+delay:
+	move.b	d0, REG_WATCHDOG	; 16 cycles
+	subq.l	#1, d0			; 4 cycles
+	bne	delay			; 10 cycles
 	rts
 
-; writes watch dog d0 times - psub version
 ; params:
-;  d0 = number of time
-watchdog_n_times_psub:
+;  d0 * 2.5us = how long to delay
+; never called
+delay_psub:
 	move.b	d0, REG_WATCHDOG
 	subq.l	#1, d0
-	bne	watchdog_n_times_psub
+	bne	delay_psub
 	PSUB_RETURN
 
 
@@ -1576,8 +1575,8 @@ send_p1p2_controller:
 	lsl.b	#3, d1
 	or.b	d1, d0
 	move.b	d0, REG_POUTPUT
-	move.l	#$1f4, d0
-	bsr	watchdog_n_times
+	move.l	#$1f4, d0		; 1250us / 1.25ms
+	bsr	delay
 	move.w	(a7)+, d1
 	rts
 
