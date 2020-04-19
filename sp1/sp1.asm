@@ -891,6 +891,11 @@ automatic_function_tests:
 	move.b	d0, REG_SOUND
 
 .skip_error_to_z80:
+	tst.b	REG_STATUS_B
+	bpl	.skip_error_to_credit_leds		; skip if aes
+	bsr	error_to_credit_leds
+
+.skip_error_to_credit_leds
 	bra	loop_reset_check
 
 .test_passed:
@@ -1046,7 +1051,7 @@ z80_test_check_error:
 	lea	XYP_STR_Z80_ERROR_CODE.l, a0
 	bsr	print_xyp_string_struct
 
-	move.w	(a7)+, d0
+	move.w	(a7), d0
 
 	bsr	get_error_description
 	moveq	#$4, d0
@@ -1057,6 +1062,14 @@ z80_test_check_error:
 	bsr	fix_clear_line
 	moveq	#$16, d0
 	bsr	fix_clear_line
+
+	move.w	(a7)+, d0
+
+	tst.b	REG_STATUS_B
+	bpl	.skip_error_to_credit_leds	; skip if aes
+	bsr	error_to_credit_leds
+
+.skip_error_to_credit_leds
 
 	bra	loop_reset_check
 
@@ -1423,6 +1436,68 @@ z80_send_command:
 .command_success:
 	rts
 
+; Display the error code on player1/2 credit leds.  Player 1 led contains
+; the upper 2 digits, and player 2 the lower 2 digits.  The neogeo
+; doesn't seem to allow having the left digit as 0 and instead it
+; will be empty
+;
+; Examples:
+; EC_VRAM_2K_DEAD_OUTPUT_LOWER = 0x6a = 106
+; Led: p1:  1, p2:  6
+;
+; EC_WRAM_UNWRITABLE_LOWER = 0x70 = 112
+; Led: p1:  1, p2: 12
+;
+; EC_Z80_RAM_DATA_00 = 0x04 = 4
+; Led: p1:  0, p2:  4
+;
+; params:
+;  d0 = error code
+error_to_credit_leds:
+	moveq	#3, d2
+	moveq	#0, d3
+	moveq	#0, d4
+
+; convert error code to bcd
+.loop_next_digit:
+	divu.w	#10, d0
+	swap	d0
+	move.b	d0, d3
+	and.l	d3, d3
+	or.w	d3, d4
+	clr.w	d0
+	swap	d0
+	ror.w	#4, d4
+	dbra	d2, .loop_next_digit
+
+	not.w	d4				; inverted per dev wiki
+
+	; player 2 led
+	move.b	#LED_NO_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	bsr	delay				; 40us
+
+	move.b	d4, REG_LEDDATA
+
+	move.b	#LED_P2_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	bsr	delay
+
+	move.b	#LED_NO_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	bsr	delay
+
+	; player 1 led
+	lsr.w	#8, d4
+	move.b	d4, REG_LEDDATA
+
+	move.b	#LED_P1_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	bsr	delay
+
+	move.b	#LED_P1_LATCH, REG_LEDLATCHES
+
+	rts
 
 ; backup palette ram to PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_backup:
