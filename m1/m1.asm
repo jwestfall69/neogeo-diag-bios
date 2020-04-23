@@ -33,6 +33,21 @@ psub_enter_ym2610_write_port0_rst:
 	ex	af, af'
 	cp	YM2610_IRQ_EXPECTED
 	jr	z, .expected_interrupt
+	cp	YM2610_IRQ_UNEXPECTED
+	jr	z, .unexpected_interrupt
+
+	; 'a' is in an unknown state, which implies we never even started the
+	; irq test.  This shouldn't normally happen if our _start function was
+	; run, since one of the first things it does is disable interrupts.
+	; The likely cause of this was a failed slot switch where the PC
+	; never got reset back up 0000 for us and the sm1 rom code still had
+	; interrupts enabled.  The PC prior to this interrupt was likely
+	; off in la la land, so in an effert to recover from the failed slot
+	; switch we call our _start function.
+	jp	_start
+
+
+.unexpected_interrupt:
 	ld	a, EC_YM2610_IRQ_UNEXPECTED
 	jp	play_z80_error_code_stall
 
@@ -730,7 +745,7 @@ ym2610_io_tests_psub:
 
 ym2610_init_irq_tests:
 	ex	af, af'
-	ld	a, YM2610_IRQ_NOT_EXPECTED
+	ld	a, YM2610_IRQ_UNEXPECTED
 	ex	af, af'
 	ei
 	nop
