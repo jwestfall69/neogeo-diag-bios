@@ -758,14 +758,14 @@ automatic_tests:
 
 skip_slot_switch:
 
-	bsr	z80_test_check_comm_port
+	bsr	z80_comm_test
 	lea	XYP_STR_Z80_WAITING, a0
 	bsr	print_xyp_string_struct_clear
 
 .loop_try_again:
 	WATCHDOG
-	bsr	z80_test_check_error
-	bsr	z80_test_check_done
+	bsr	z80_check_error
+	bsr	z80_check_done
 	bne	.loop_try_again
 
 skip_z80_test:
@@ -959,8 +959,6 @@ z80_slot_switch:
 	move.b	d3, REG_SLOT			; set slot
 	move.b	d0, REG_CRTFIX			; switch to carts m1/s1
 	move.b	#$3, REG_SOUND			; tell z80 to reset
-	move.l	#$186a0, d0			; 250000us / 250ms
-	bsr	delay
 	rts
 
 
@@ -1029,17 +1027,17 @@ delay_psub:
 	bne	delay_psub
 	PSUB_RETURN
 
-
-z80_test_check_error:
+; see if the z80 sent us an error
+z80_check_error:
 	moveq	#-$40, d0
 	and.b	REG_SOUND, d0
-	cmp.b	#$40, d0		; flag indicating a z80 error
+	cmp.b	#$40, d0		; 0x40 = flag indicating a z80 error
 	bne	.no_error
 
-	move.b	REG_SOUND, d0
+	move.b	REG_SOUND, d0		; get the error (again?)
 	move.b	d0, d2
 	move.l	#$100000, d1
-	bsr	z80_send_command
+	bsr	z80_ack_error		; ack the error by sending it back, and wait for z80 to ack or ack
 	bne	loop_reset_check
 
 	moveq	#$1d, d0
@@ -1080,39 +1078,60 @@ z80_test_check_error:
 XYP_STR_Z80_ERROR_CODE:		XYP_STRING 4, 12, 0, "Z80 REPORTED ERROR CODE: "
 
 
-; see if z80 says its done testing
-z80_test_check_done:
-	cmpi.b	#-$19, REG_SOUND
+; see if z80 says its done testing (with no issues)
+z80_check_done:
+	move.b	#Z80_RECV_TESTS_COMPLETED, d0
+	cmp.b	REG_SOUND, d0
 	rts
 
-
-z80_test_check_comm_port:
+z80_comm_test:
 	lea	XYP_STR_Z80_TESTING_COMM_PORT, a0
 	bsr	print_xyp_string_struct_clear
 
-	moveq	#-$3d, d0
-	move.w	#$1000, d1
+	move.b	#Z80_RECV_HELLO, d1
+	move.w  #500, d2
+	bra	.loop_start_wait_hello
 
-.loop_z80_response1:
-	WATCHDOG
-	cmp.b	REG_SOUND, d0
-	dbeq	d1, .loop_z80_response1
-	bne	z80_print_comm_error
+; wait up to 5 seconds for hello (10ms * 500 loops)
+.loop_wait_hello
+	move.w	#4000, d0
+	bsr	delay
+.loop_start_wait_hello
+	cmp.b	REG_SOUND, d1
+	dbeq	d2, .loop_wait_hello
+	bne	.z80_hello_timeout
 
-	move.b	#$5a, REG_SOUND
-	moveq	#$3c, d0
-	move.l	#$80000, d1
+	move.b	#Z80_SEND_HANDSHAKE, REG_SOUND
 
-.loop_z80_response2:
-	WATCHDOG
-	cmp.b	REG_SOUND, d0
-	beq	.test_passed
-	subq.l	#1, d1
-	bne	.loop_z80_response2
+	moveq	#Z80_RECV_ACK, d1
+	move.w	#100, d2
+	bra	.loop_start_wait_ack
+
+; Wait up to 1 second for ack response (10ms delay * 100 loops)
+; This is kinda long but the z80 has its own loop waiting for a
+; Z80_SEND_HANDSHAKE request.  We need our loop to last longer
+; so the z80 has a chance to timeout and give us an error,
+; otherwise we will just get the last thing to wrote (Z80_RECV_HELLO).
+.loop_wait_ack:
+	move.w	#4000, d0
+	bsr	delay
+.loop_start_wait_ack:
+	cmp.b	REG_SOUND, d1
+	dbeq	d2, .loop_wait_ack
+	bne	.z80_handshake_timeout
+	rts
+
+.z80_hello_timeout
+	lea	XYP_STR_Z80_COMM_HELLO, a0
+	bra	.print_error
+
+.z80_handshake_timeout
+	lea	XYP_STR_Z80_COMM_HANDSHAKE, a0
+
+.print_error
+	move.b	d1, d0
 	bra	z80_print_comm_error
 
-.test_passed:
-	rts
 
 
 ; loop forever checking for reset request;
@@ -1241,9 +1260,10 @@ print_header_psub:
 ; prints the z80 related communication error
 ; params:
 ;  d0 = expected response
+;  a0 = xyp_string_struct address for main error
 z80_print_comm_error:
 	move.w	d0, -(a7)
-	lea	XYP_STR_Z80_DEAD_ERROR, a0
+
 	bsr	print_xyp_string_struct_clear
 
 	moveq	#4, d0
@@ -1277,7 +1297,7 @@ z80_print_comm_error:
 	lea	XYP_STR_Z80_CART_CLEAN, a0
 	bsr	print_xyp_string_struct_clear
 
-	bsr	z80_test_check_error
+	bsr	z80_check_error
 	bra	loop_reset_check
 
 ; looks up the error code to find the corresponding description
@@ -1419,13 +1439,15 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_ITEM MMIO_DEAD_OUTPUT
 EC_LOOKUP_TABLE_END:
 
-; send a command to the z80 and wait for a response
+; ack an error sent to us by the z80 by sending
+; it back, and then waiting for the z80 to ack
+; our ack.
 ; params:
-;  d0 = command (expected response is !d0)
+;  d0 = error code z80 sent us
 ;  d1 = number of loops waiting for the response
-z80_send_command:
+z80_ack_error:
 	move.b	d0, REG_SOUND
-	not.b	d0
+	not.b	d0			; z80's ack back should be !d0
 .loop_try_again:
 	WATCHDOG
 	cmp.b	REG_SOUND, d0
@@ -4590,7 +4612,8 @@ XYP_STR_Z80_SM1_UNRESPONSIVE:	XYP_STRING  4,  7,  0, "SM1 OTHERWISE LOOKS UNRESP
 XYP_STR_Z80_MV1BC_HOLD_B:	XYP_STRING  4, 10,  0, "IF MV-1B/1C: SOFT RESET & HOLD B"
 XYP_STR_Z80_PRESS_START:	XYP_STRING  4, 12,  0, "PRESS START TO CONTINUE"
 XYP_STR_Z80_TESTING_COMM_PORT:	XYP_STRING  4,  5,  0, "TESTING Z80 COMM. PORT..."
-XYP_STR_Z80_DEAD_ERROR:		XYP_STRING  4,  5,  0, "Z80 DEAD / ERRORED / COMM. ISSUE"
+XYP_STR_Z80_COMM_HELLO:		XYP_STRING  4,  5,  0, "Z80 COMM ISSUE (HELLO)"
+XYP_STR_Z80_COMM_HANDSHAKE:	XYP_STRING  4,  5,  0, "Z80 COMM ISSUE (HANDSHAKE)"
 XYP_STR_Z80_SKIP_TEST:		XYP_STRING  4, 24,  0, "TO SKIP Z80 TESTING, RELEASE"
 XYP_STR_Z80_PRESS_D_RESET:	XYP_STRING  4, 25,  0, "D BUTTON AND SOFT RESET."
 XYP_STR_Z80_MAKE_SURE:		XYP_STRING  4, 21,  0, "FOR Z80 TESTING, MAKE SURE TEST"

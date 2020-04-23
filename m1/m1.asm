@@ -154,7 +154,7 @@ ym2610_make_noise_psub:
 	ld	bc, $ff07		; tone disable? (cha)
 	PSUB_YMWP0
 
-	ld   bc, $1000
+	ld	bc, $1000
 	PSUB	delay
 
 	exx
@@ -245,37 +245,39 @@ _start:
 	di
 	im	1
 	out	($18), a
-	ld	a, $c3
-	out	($0c), a
-	out	($00), a
 
 	PSUB	ym2610_make_noise
 
+	PSUB	m68k_comm_test
+	jr	z, .test_passed_comm_test
+	rst	play_z80_error_code_stall_rst
+
+.test_passed_comm_test
 	PSUB	rom_mirror_test
 	jr	z, .test_passed_rom_mirror
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_rom_mirror:
+.test_passed_rom_mirror
 	PSUB	rom_crc32_test
 	jr	z, .test_passed_rom_crc32
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_rom_crc32:
+.test_passed_rom_crc32
 	PSUB	ym2610_io_tests
 	jr	z, .test_passed_ym2610_io
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ym2610_io:
+.test_passed_ym2610_io
 	PSUB	ram_data_tests
 	jr	z, .test_passed_ram_data:
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ram_data:
+.test_passed_ram_data
 	PSUB	ram_address_tests
 	jr	z, .test_passed_ram_address
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ram_address:
+.test_passed_ram_address
 	jp	run_subroutine_tests
 
 
@@ -634,36 +636,40 @@ test_ram_address_psub:
 	PSUB_RETURN
 
 
-comm_68k_test:
+m68k_comm_test_psub:
+	ld	a, M68K_SEND_HELLO
+	out	($0c), a
+	out	($00), a
+
 	ld	bc,$8000
 .loop_again:
 	in	a, ($00)
-	cp	$5a
-	jr	z, .got_5a_from_68k
+	cp	M68K_RECV_HANDSHAKE
+	jr	z, .got_handshake
 	dec	bc
 	ld	a, c
 	or	b
 	jr	nz, .loop_again
 
 	or	$ff
-	ld	a, $0c
+	ld	a, EC_Z80_68K_COMM_ERROR_DATA
 	or	a
-	ret
+	PSUB_RETURN
 
-.got_5a_from_68k:
+.got_handshake:
 	out	($00), a
 	in	a, ($00)
 	and	a
 	jr	z, .test_passed
-	ld	a, $0d
+	ld	a, EC_Z80_68K_COMM_ERROR_CLEAR
 	or	a
-	ret
+	PSUB_RETURN
 
 .test_passed:
-	ld	a, $3c
+	ld	a, M68K_SEND_ACK
 	out	($0c), a
 	xor	a
-	ret
+	PSUB_RETURN
 
 ym2610_io_tests_psub:
 	in	a, (YM2610_PORT0_REGISTER)
@@ -840,11 +846,7 @@ ym2610_timer_init:
 
 run_subroutine_tests:
 	ld	sp, $fffd	; init stack pointer
-	call	comm_68k_test
-	jr	z, .test_passed_comm_68k
-	rst	play_z80_error_code_stall_rst
 
-.test_passed_comm_68k
 	call	ym2610_init_irq_tests
 	call	ym2610_timer_test_irqs_disabled
 	jr	z, .test_passed_ym2610_timer_test_irqs_disabled
@@ -857,10 +859,10 @@ run_subroutine_tests:
 
 .test_passed_ym2610_timer_test_irqs_enabled:
 
-	call	rom_bank_tests		; will call play_z80_error_code_stall itself
+	call	rom_bank_tests			; will call play_z80_error_code_stall itself
 	PSUB	ym2610_make_noise
 
-	ld	a, $e7			; tell 68k we are done with tests
+	ld	a, M68K_SEND_TESTS_COMPLETED	; tell 68k we are done with tests
 	out	($0c), a
 
 .loop_wait_68k_error_code:
