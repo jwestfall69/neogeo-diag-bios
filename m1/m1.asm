@@ -122,13 +122,13 @@ play_error_code_stall:
 	ld	bc, $fe07	; enable tone A? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $c000
+	ld	bc, $c000	; 319488us / 319ms
 	PSUB	delay
 
 	ld	bc, $ff07	; disable tone A? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $4000
+	ld	bc, $4000	; 106496us / 106ms
 	PSUB	delay
 
 	exx
@@ -163,13 +163,13 @@ ym2610_make_noise_psub:
 	ld	bc, $fe07		; tone enable? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $1000
+	ld	bc, $1000		; 26624us / 26ms
 	PSUB	delay
 
 	ld	bc, $ff07		; tone disable? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $1000
+	ld	bc, $1000		; 26624us / 26ms
 	PSUB	delay
 
 	exx
@@ -178,12 +178,12 @@ ym2610_make_noise_psub:
 
 
 ; params:
-;  bc = loops to run / delay
+;  bc * 6.5us = how long to delay
 delay_psub:
-	dec	bc
-	ld	a, c
-	or	b
-	jr	nz, delay_psub
+	dec	bc			; 6 cycles
+	ld	a, c			; 4 cycles
+	or	b			; 4 cycles
+	jr	nz, delay_psub		; 12 cycles
 	PSUB_RETURN
 
 ; params:
@@ -656,18 +656,37 @@ m68k_comm_test_psub:
 	out	($0c), a
 	out	($00), a
 
-	ld	bc,$8000
+	; Wait up to 5 seconds (500 * 10ms) for a response to our hello.
+	; If we were started at boot (AES or MV-1B/C) we need to allow a bit
+	; of time for the main bios to run its tests before it will respond
+	; to us.
+	; Using bc' for our loop, bc will be used for the delay psub call.
+	; We can't use de/hl because they are used to when setting up the
+	; PSUB delay call.
+	exx
+	ld	bc, 500
+	exx
+
+	jp	.loop_start
+
 .loop_again:
+	ld	bc, 1540		; 1540 * 6.5us = ~10ms
+	PSUB	delay
+
+.loop_start:
 	in	a, ($00)
 	cp	M68K_RECV_HANDSHAKE
 	jr	z, .got_handshake
+
+	exx
 	dec	bc
 	ld	a, c
 	or	b
+	exx
 	jr	nz, .loop_again
 
 	or	$ff
-	ld	a, EC_Z80_68K_COMM_ERROR_DATA
+	ld	a, EC_Z80_68K_COMM_NO_HANDSHAKE
 	or	a
 	PSUB_RETURN
 
@@ -676,7 +695,7 @@ m68k_comm_test_psub:
 	in	a, ($00)
 	and	a
 	jr	z, .test_passed
-	ld	a, EC_Z80_68K_COMM_ERROR_CLEAR
+	ld	a, EC_Z80_68K_COMM_NO_CLEAR
 	or	a
 	PSUB_RETURN
 
