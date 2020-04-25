@@ -833,6 +833,12 @@ automatic_psub_tests_psub:
 	moveq	#5, d1
 	PSUB	print_xy_string_clear
 
+	tst.b	REG_STATUS_B
+	bpl	.skip_error_to_credit_leds	; skip if aes
+	move.b	d6, d0
+	PSUB	error_to_credit_leds
+
+.skip_error_to_credit_leds
 	bra	loop_reset_check_psub
 
 .test_passed:
@@ -1521,6 +1527,52 @@ error_to_credit_leds:
 	move.b	#LED_P1_LATCH, REG_LEDLATCHES
 
 	rts
+
+error_to_credit_leds_psub:
+	moveq	#3, d2
+	moveq	#0, d3
+	moveq	#0, d4
+
+; convert error code to bcd
+.loop_next_digit:
+	divu.w	#10, d0
+	swap	d0
+	move.b	d0, d3
+	and.l	d3, d3
+	or.w	d3, d4
+	clr.w	d0
+	swap	d0
+	ror.w	#4, d4
+	dbra	d2, .loop_next_digit
+
+	not.w	d4				; inverted per dev wiki
+
+	; player 2 led
+	move.b	#LED_NO_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	PSUB	delay				; 40us
+
+	move.b	d4, REG_LEDDATA
+
+	move.b	#LED_P2_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	PSUB	delay
+
+	move.b	#LED_NO_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	PSUB	delay
+
+	; player 1 led
+	lsr.w	#8, d4
+	move.b	d4, REG_LEDDATA
+
+	move.b	#LED_P1_LATCH, REG_LEDLATCHES
+	move.w	#$10, d0
+	PSUB	delay
+
+	move.b	#LED_P1_LATCH, REG_LEDLATCHES
+
+	PSUB_RETURN
 
 ; backup palette ram to PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_backup:
