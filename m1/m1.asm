@@ -278,6 +278,11 @@ _start:
 	rst	play_z80_error_code_stall_rst
 
 .test_passed_ram_oe:
+	PSUB	ram_we_test
+	jr	z, .test_passed_ram_we
+	rst	play_z80_error_code_stall_rst
+
+.test_passed_ram_we:
 	PSUB	ram_data_tests
 	jr	z, .test_passed_ram_data
 	rst	play_z80_error_code_stall_rst
@@ -555,6 +560,30 @@ ram_oe_test_psub:
 
 .test_failed:
 	ld	a, EC_Z80_RAM_OE
+	or	a
+	PSUB_RETURN
+
+; returns:
+;  Z = 0 (error), 1 = (pass)
+;  a = error code or 0 if passed
+ram_we_test_psub:
+	ld	hl, Z80_RAM_START
+
+; read/save a byte from ram, write !byte back to the location,
+; re-read the location and error if it still the original byte
+	ld	a, (hl)
+	ld	b, a
+	xor	$ff
+	ld	(hl), a
+	ld	a, (hl)
+	cp	b
+	jr	z, .test_failed
+
+	xor	a
+	PSUB_RETURN
+
+.test_failed:
+	ld	a, EC_Z80_RAM_WE
 	or	a
 	PSUB_RETURN
 
