@@ -273,13 +273,13 @@ _start:
 	rst	play_z80_error_code_stall_rst
 
 .test_passed_rom_crc32:
-	PSUB	ym2610_io_tests
-	jr	z, .test_passed_ym2610_io
+	PSUB	ram_oe_test
+	jr	z, .test_passed_ram_oe
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ym2610_io:
+.test_passed_ram_oe:
 	PSUB	ram_data_tests
-	jr	z, .test_passed_ram_data:
+	jr	z, .test_passed_ram_data
 	rst	play_z80_error_code_stall_rst
 
 .test_passed_ram_data:
@@ -288,6 +288,11 @@ _start:
 	rst	play_z80_error_code_stall_rst
 
 .test_passed_ram_address:
+	PSUB	ym2610_io_tests
+	jr	z, .test_passed_ym2610_io
+	rst	play_z80_error_code_stall_rst
+
+.test_passed_ym2610_io:
 	PSUB	m68k_comm_test
 	jr	z, .test_passed_m68k_comm_test
 	rst	play_z80_error_code_stall_rst
@@ -520,6 +525,38 @@ test_rom_bank:
 	xor	a
 	inc	a
 	ret
+
+; returns:
+;  Z = 0 (error), 1 = (pass)
+;  a = error code or 0 if passed
+ram_oe_test_psub:
+	ld	hl, Z80_RAM_START
+	ld	de, Z80_RAM_START
+
+; When ram doesn't output anything on a read it usually results in the target
+; register, 'a' for us, containing the opcode of the ld.  Its not 100% and
+; will sometimes have $ff or other garbage, so we loop $64 times trying to
+; catch 2 in a row with different ld opcodes
+	ld	b, $64
+.loop_next:
+	ld	a, (hl)
+	cp	$7e		; ld a, (hl) opcode
+	jr	nz, .loop_pass
+
+	ld	a, (de)
+	cp	$1a		; ld a, (de) opcode
+	jr	z, .test_failed
+
+.loop_pass:
+	djnz	.loop_next
+
+	xor	a
+	PSUB_RETURN
+
+.test_failed:
+	ld	a, EC_Z80_RAM_OE
+	or	a
+	PSUB_RETURN
 
 ; returns:
 ;  Z = 0 (error), 1 = (pass)
