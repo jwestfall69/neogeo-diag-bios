@@ -263,36 +263,36 @@ _start:
 
 	PSUB	ym2610_make_noise
 
-	PSUB	m68k_comm_test
-	jr	z, .test_passed_comm_test
-	rst	play_z80_error_code_stall_rst
-
-.test_passed_comm_test
 	PSUB	rom_mirror_test
 	jr	z, .test_passed_rom_mirror
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_rom_mirror
+.test_passed_rom_mirror:
 	PSUB	rom_crc32_test
 	jr	z, .test_passed_rom_crc32
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_rom_crc32
+.test_passed_rom_crc32:
 	PSUB	ym2610_io_tests
 	jr	z, .test_passed_ym2610_io
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ym2610_io
+.test_passed_ym2610_io:
 	PSUB	ram_data_tests
 	jr	z, .test_passed_ram_data:
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ram_data
+.test_passed_ram_data:
 	PSUB	ram_address_tests
 	jr	z, .test_passed_ram_address
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ram_address
+.test_passed_ram_address:
+	PSUB	m68k_comm_test
+	jr	z, .test_passed_m68k_comm_test
+	rst	play_z80_error_code_stall_rst
+
+.test_passed_m68k_comm_test:
 	jp	run_subroutine_tests
 
 
