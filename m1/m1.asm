@@ -191,18 +191,31 @@ delay_psub:
 ym2610_write_port0:
 	ld	a, e
 	out	(YM2610_PORT0_REGISTER), a
+
+	ld	b, $ff
 .loop_busy_register_load:
 	in	a, (YM2610_PORT0_REGISTER)	; bit 8 will be 1 while ym is busy loading register
 	rlca
-	jr	c, .loop_busy_register_load
+	jr	nc, .register_loaded
+	djnz	.loop_busy_register_load
+	jr	.busy_timeout
 
+.register_loaded:
 	ld	a, d
 	out	(YM2610_PORT0_DATA), a
 
+	ld	b, $ff
 .loop_busy_data_load:
 	in	a, (YM2610_PORT0_REGISTER)
 	rlca
-	jr	c, .loop_busy_data_load
+	jr	nc, .register_data_loaded
+	djnz	.loop_busy_data_load
+
+.busy_timeout:
+	or	$ff
+	ret
+
+.register_data_loaded:
 	ret
 
 ; params:
@@ -768,6 +781,12 @@ m68k_comm_test_psub:
 .test_passed:
 	ld	a, M68K_SEND_ACK
 	out	($0c), a
+
+	; delay a little to avoid sending an error before the m68k has had
+	; time to consume our ACK
+	ld	bc, 1540
+	PSUB	delay
+
 	xor	a
 	PSUB_RETURN
 
@@ -843,6 +862,9 @@ ym2610_init_irq_tests:
 ; make sure we dont get irqs when they are disabled
 ym2610_timer_test_irqs_disabled:
 	call	ym2610_timer_init
+	ld	a, $ff
+	jr	nz, .timer_init_failed:
+
 	ld	bc, $0000
 	ld	de, $4000
 
@@ -856,6 +878,12 @@ ym2610_timer_test_irqs_disabled:
 	or	d
 	jr	nz, .loop_wait_timer_flag	; wait for the timer A flag to get set
 	di					; indicating the timer fired
+
+.timer_init_failed:
+	or	$ff
+	ld	a, EC_YM2610_TIMER_INIT_NOIRQ
+	or	a
+	ret
 
 .test_failed_abort:
 	or	$ff
@@ -883,6 +911,7 @@ ym2610_timer_test_irqs_disabled:
 
 ym2610_timer_test_irqs_enabled:
 	call	ym2610_timer_init
+	jr	nz, .timer_init_failed
 
 	ex	af, af'
 	ld	a, YM2610_IRQ_EXPECTED
@@ -904,6 +933,11 @@ ym2610_timer_test_irqs_enabled:
 	or	d
 	jr	nz, .loop_wait_int
 	di
+
+.timer_init_failed:
+	ld	a, EC_YM2610_TIMER_INIT_IRQ
+	or	a
+	ret
 
 .test_failed_abort:
 	ld	a, EC_YM2610_IRQ_TIMING_ERROR
@@ -932,17 +966,23 @@ ym2610_timer_test_irqs_enabled:
 ym2610_timer_init:
 	ld	de, $3027		; reset TA/TB flags
 	call	ym2610_write_port0
+	jr	nz, .init_timeout
 
 	ld	de, $0025		; clear TA counter LSBs
 	call	ym2610_write_port0
+	jr	nz, .init_timeout
 
 	ld	de, $8024		; set TBA MSBs to $80
 	call	ym2610_write_port0
+	jr	nz, .init_timeout
 
 	ld	de, $0527		; enable TA irq, load TA
 	call	ym2610_write_port0
+	jr	nz, .init_timeout
 	ret
 
+.init_timeout:
+	ret
 
 run_subroutine_tests:
 	ld	sp, $fffd	; init stack pointer

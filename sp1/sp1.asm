@@ -1110,16 +1110,16 @@ z80_comm_test:
 	move.b	#Z80_SEND_HANDSHAKE, REG_SOUND
 
 	moveq	#Z80_RECV_ACK, d1
-	move.w	#100, d2
+	move.w	#500, d2
 	bra	.loop_start_wait_ack
 
-; Wait up to 1 second for ack response (10ms delay * 100 loops)
+; Wait up to 5ms for ack response (10us delay * 500 loops)
 ; This is kinda long but the z80 has its own loop waiting for a
 ; Z80_SEND_HANDSHAKE request.  We need our loop to last longer
 ; so the z80 has a chance to timeout and give us an error,
 ; otherwise we will just get the last thing to wrote (Z80_RECV_HELLO).
 .loop_wait_ack:
-	move.w	#4000, d0
+	move.w	#5, d0
 	bsr	delay
 .loop_start_wait_ack:
 	cmp.b	REG_SOUND, d1
@@ -1368,6 +1368,8 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_ITEM YM2610_IRQ_FLAG_ERROR
 	EC_LOOKUP_ITEM YM2610_IRQ_TIMING_ERROR
 	EC_LOOKUP_ITEM YM2610_IRQ_UNEXPECTED
+	EC_LOOKUP_ITEM YM2610_TIMER_INIT_NOIRQ
+	EC_LOOKUP_ITEM YM2610_TIMER_INIT_IRQ
 
 	EC_LOOKUP_ITEM Z80_M1_BANK_ERROR_16K
 	EC_LOOKUP_ITEM Z80_M1_BANK_ERROR_8K
@@ -4691,6 +4693,8 @@ STR_YM2610_IO_ERROR:		STRING "YM2610 I/O ERROR"
 STR_YM2610_IRQ_FLAG_ERROR:	STRING "YM2610 IRQ FLAG TIMING ERROR"
 STR_YM2610_IRQ_TIMING_ERROR:	STRING "YM2610 IRQ TIMING ERROR"
 STR_YM2610_IRQ_UNEXPECTED:	STRING "YM2610 UNEXPECTED IRQ"
+STR_YM2610_TIMER_INIT_NOIRQ:	STRING "YM2610 TIMER INIT (NOIRQ TEST)"
+STR_YM2610_TIMER_INIT_IRQ:	STRING "YM2610 TIMER INIT (IRQ TEST)"
 
 STR_Z80_M1_BANK_ERROR_16K:	STRING "M1 BANK ERROR (16K)"
 STR_Z80_M1_BANK_ERROR_8K:	STRING "M1 BANK ERROR (8K)"
