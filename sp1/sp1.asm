@@ -752,7 +752,7 @@ automatic_tests:
 	bpl	skip_slot_switch		; skip slot switch if AES
 
 	btst	#5, REG_P1CNT
-	beq	skip_slot_switch		; skip slot switch if P1 "A" is pressed
+	beq	skip_slot_switch		; skip slot switch if P1 "B" is pressed
 
 	bsr	z80_slot_switch
 
