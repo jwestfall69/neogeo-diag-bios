@@ -34,17 +34,17 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 #### Z80 Error Codes:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :---------- |
+| ----: | -----: | --------: | :-----------: | :--------- |
 |  0x01 |      1 |    000001 |       x0 / x1 | [M1 CRC ERROR (fixed region)](tests/z80/m1_crc.md) |  
 |  0x02 |      2 |    000010 |       x0 / x2 | [M1 UPPER ADDRESS (fixed region)](tests/z80/m1_upper_address.md) |
-|  0x04 |      4 |    000100 |       x0 / x4 | RAM DATA (00) |
-|  0x05 |      5 |    000101 |       x0 / x5 | RAM DATA (55) |
-|  0x06 |      6 |    000110 |       x0 / x6 | RAM DATA (AA) |
-|  0x07 |      7 |    000111 |       x0 / x7 | RAM DATA (FF) |
-|  0x08 |      8 |    001000 |       x0 / x8 | RAM ADDRESS (A0-A7) |
-|  0x09 |      9 |    001001 |       x0 / x9 | RAM ADDRESS (A8-A10) |
-|  0x0a |     10 |    001010 |       x0 / 10 | RAM DEAD OUTPUT |
-|  0x0b |     11 |    001011 |       x0 / 11 | RAM UNWRITABLE |
+|  0x04 |      4 |    000100 |       x0 / x4 | [RAM DATA (00)](tests/z80/ram_data.md) |
+|  0x05 |      5 |    000101 |       x0 / x5 | [RAM DATA (55)](tests/z80/ram_data.md) |
+|  0x06 |      6 |    000110 |       x0 / x6 | [RAM DATA (AA)](tests/z80/ram_data.md) |
+|  0x07 |      7 |    000111 |       x0 / x7 | [RAM DATA (FF)](tests/z80/ram_data.md) |
+|  0x08 |      8 |    001000 |       x0 / x8 | [RAM ADDRESS (A0-A7)](tests/z80/ram_addres.md) |
+|  0x09 |      9 |    001001 |       x0 / x9 | [RAM ADDRESS (A8-A10)](tests/z80/ram_addres.md) |
+|  0x0a |     10 |    001010 |       x0 / 10 | [RAM DEAD OUTPUT](tests/z80/ram_dead_output.md) |
+|  0x0b |     11 |    001011 |       x0 / 11 | [RAM UNWRITABLE](tests/z80/ram_unwritable.md) |
 |  0x0c |     12 |    001100 |       x0 / 12 | 68k->Z80 COMM ISSUE (HANDSHAKE) |
 |  0x0d |     13 |    001101 |       x0 / 13 | 68k->Z80 COMM ISSUE (CLEAR) |
 |  0x10 |     16 |    010000 |       x0 / 16 | YM2610 I/O ERROR |
@@ -61,7 +61,7 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 #### 68k Error Codes:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :---------- |
+| ----: | -----: | --------: | :-----------: | :--------- |
 |  0x40 |     64 |  *1000000 |       x0 / 64 | BIOS CRC ERROR |
 |  0x41 |     65 |  *1000001 |       x0 / 65 | BIOS ADDRESS (A13-A15) |
 |  0x44 |     68 |  *1000100 |       x0 / 68 | WRAM DEAD OUTPUT (LOWER) |

@@ -12,5 +12,5 @@ the calculated CRC32 doesn't match up with the expected CRC32 value it will
 result in the following error.
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :---------- |
+| ----: | -----: | --------: | :-----------: | :--------- |
 |  0x01 |      1 |    000001 |       x0 / x1 | M1 CRC ERROR (fixed region) |  

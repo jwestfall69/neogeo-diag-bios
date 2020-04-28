@@ -12,5 +12,5 @@ copy number value.  If there is a mismatch it will result in the following
 error.
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :---------- |
+| ----: | -----: | --------: | :-----------: | :--------- |
 |  0x02 |      2 |    000010 |       x0 / x2 | M1 UPPER ADDRESS (fixed region) |

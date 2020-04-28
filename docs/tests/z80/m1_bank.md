@@ -28,7 +28,7 @@ within the 96KB.  If any of them end up not matching it will results in one of
 the following errors:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :---------- |
+| ----: | -----: | --------: | :-----------: | :--------- |
 |  0x14 |     20 |    010100 |       x0 / 20 | M1 BANK ERROR (16K) |
 |  0x15 |     21 |    010101 |       x0 / 21 | M1 BANK ERROR (8K) |
 |  0x16 |     22 |    010110 |       x0 / 22 | M1 BANK ERROR (4K) |
