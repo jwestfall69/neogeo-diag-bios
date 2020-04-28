@@ -107,13 +107,13 @@ play_error_code_stall:
 	ld	bc, $fe07	; enable tone A? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $c000
+	ld	bc, $c000	; 319488us / 319ms
 	PSUB	delay
 
 	ld	bc, $ff07	; disable tone A? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $4000
+	ld	bc, $4000	; 106496us / 106ms
 	PSUB	delay
 
 	exx
@@ -148,13 +148,13 @@ ym2610_make_noise_psub:
 	ld	bc, $fe07		; tone enable? (cha)
 	PSUB_YMWP0
 
-	ld	bc, $1000
+	ld	bc, $1000		; 26624us / 26ms
 	PSUB	delay
 
 	ld	bc, $ff07		; tone disable? (cha)
 	PSUB_YMWP0
 
-	ld   bc, $1000
+	ld   bc, $1000			; 26624us / 26ms
 	PSUB	delay
 
 	exx
@@ -163,12 +163,12 @@ ym2610_make_noise_psub:
 
 
 ; params:
-;  bc = loops to run / delay
+;  bc * 6.5us = how long to delay
 delay_psub:
-	dec	bc
-	ld	a, c
-	or	b
-	jr	nz, delay_psub
+	dec	bc			; 6 cycles
+	ld	a, c			; 4 cycles
+	or	b			; 4 cycles
+	jr	nz, delay_psub		; 12 cycles
 	PSUB_RETURN
 
 ; params:
