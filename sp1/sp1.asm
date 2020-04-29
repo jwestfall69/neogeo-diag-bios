@@ -12,7 +12,7 @@
 	; practical to be holding down buttons on boot
 	; with mame.
 
-force_z80_tests 	equ 1
+;force_z80_tests 	equ 1
 ;force_manual_tests 	equ 1
 
 	section	text
