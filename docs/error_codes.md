@@ -45,8 +45,8 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x09 |      9 |    001001 |       x0 / x9 | [RAM ADDRESS (A8-A10)](tests/z80/ram_addres.md) |
 |  0x0a |     10 |    001010 |       x0 / 10 | [RAM DEAD OUTPUT](tests/z80/ram_dead_output.md) |
 |  0x0b |     11 |    001011 |       x0 / 11 | [RAM UNWRITABLE](tests/z80/ram_unwritable.md) |
-|  0x0c |     12 |    001100 |       x0 / 12 | 68k->Z80 COMM ISSUE (HANDSHAKE) |
-|  0x0d |     13 |    001101 |       x0 / 13 | 68k->Z80 COMM ISSUE (CLEAR) |
+|  0x0c |     12 |    001100 |       x0 / 12 | [68k->Z80 COMM ISSUE (HANDSHAKE)](tests/comm_test.md) |
+|  0x0d |     13 |    001101 |       x0 / 13 | [68k->Z80 COMM ISSUE (CLEAR)](tests/comm_test.md) |
 |  0x10 |     16 |    010000 |       x0 / 16 | YM2610 I/O ERROR |
 |  0x11 |     17 |    010001 |       x0 / 17 | YM2610 IRQ FLAG TIMING ERROR |
 |  0x12 |     18 |    010010 |       x0 / 18 | YM2610 IRQ TIMING ERROR |
@@ -115,3 +115,20 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x7a |    122 |   1111010 |       x1 / 22 | VRAM 2K UNWRITABLE (LOWER) |
 |  0x7b |    123 |   1111011 |       x1 / 23 | VRAM 2K UNWRITABLE (UPPER) |
 |  0x7c |    124 |   1111100 |       x1 / 24 | MMIO DEAD OUTPUT |
+
+
+#### 68k Errors, No Code:
+The following are errors message do not generate an error code.
+
+```
+Z80 SLOT SWITCH IGNORED (SM1)
+SM1 OTHERWISE LOOKS UNRESPONSIVE
+```
+```
+Z80->68k COMM ISSUE (HELLO)
+```
+```
+Z80->68k COMM ISSUE (ACK)
+```
+
+These are all associated with the [68k <=> Z80 Comm Test](test/comm_test.md).

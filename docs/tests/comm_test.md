@@ -20,12 +20,13 @@ rom.  The m1 rom is now in control.
 
 More in depth details can be found on the [Z80 Communication](https://wiki.neogeodev.org/index.php?title=68k/Z80_communication) page of the [Neo-Geo Dev Wiki](https://wiki.neogeodev.org/index.php?title=Main_Page).
 
-The AES and MV-1B/C board do not have a built in sm1 rom and thus do not need
-a slot switch.  The diag bios is able to detect AES hardware and won't do a
-slot switch if you enable the comm test.  However its impossible to tell if
-a board is an MV-1B/C vs other 1 slot board, so its necessary you to let the
-diag bios know it shouldn't do a slot switch on those by pressing B+D during
-power on.
+The AES and MV-1B/C board do not have a built in sm1 rom and will directly
+boot the carts m1 rom.  Thus a slot switch is not needed for the diag bios
+to do the comm test for these boards.  The diag bios is able to detect AES
+hardware and won't do a slot switch if you enable the comm test.  However its
+impossible to tell if a board is an MV-1B/C vs other 1 slot board, so its
+necessary to let the diag bios know it shouldn't do a slot switch by pressing
+B+D during power on.
 
 **Slot Switch Ignored:**<br>
 One of the error messages you may encounter from the diag bios when enabling
@@ -65,13 +66,14 @@ Under nominal conditions the comm tests will go something like this
 4. bios -> m1: send HANDSHAKE (0x5a)
 5. m1: accept HANDSHAKE (0x5a)
 6. m1 -> bios: send ACK (0x3c)
-7. m1: test clearing the receive data port.
+7. bios: accept ACK (0x3c) message
+8. m1: test clearing the receive data port.
 
 <sup>1</sup>As mentioned above the diag m1 runs some tests before the comm test,
 if one of those tests fails the diag m1 will send the [error code] & 0x40
 instead of the HELLO message.  The diag bios is also looking for those error
-messages while waiting for the HELLO and will display them instead of
-continuing with the comm test if one is encountered.
+messages while waiting for the HELLO message. If one is encountered the error
+message will be displayed and the comm test will stop.
 
 If the diag bios doesn't receive the HELLO or ACK message it will result in the
 corresponding error message to indicate which one failed.  There is no error
@@ -81,7 +83,6 @@ code associated with these messages.
 Z80->68k COMM ISSUE (HELLO)
 80->68k COMM ISSUE (ACK)
 ```
-
 In addition it will print out the expected message (0xc3 or 0x3c) and the last
 received message from the Z80.
 
@@ -94,12 +95,12 @@ following error code:
 
 I believe its unlikely for the diag bios to ever get this error code, if it
 could you would think the comm test would have passed.  So you will like only
-hear a beep code for it.  Also note if you have the diag m1 rom cart installed
-in an AES or MV-1B/C board and don't enable the comm test, you will get this
+hear a beep code for it.  If you have the diag m1 rom cart installed in an
+AES or MV-1B/C board and don't enable the comm test, you will get this
 beep code.
 
 Additionally the diag m1 will attempt to clear the receive data port, if this
-fails it will results in the following error code:
+fails it will result in the following error code:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |
@@ -107,15 +108,15 @@ fails it will results in the following error code:
 
 **Post Comm Test:**<br>
 Once the comm test is successful the diag m1 will continue on with its remaining
-tests.  If the it encounters an error it will send the [error code] & 0x40 to
+tests.  If the it encounters an error, it will send the [error code] & 0x40 to
 the diag bios or 0xe7 to indicate all tests were successful.  While this is
-going the diag bios will be displaying
+going the diag bios will display
 
 ```
 WAITING FOR Z80 TO FINISH TESTS...
 ```
 
-and be in a holding pattern until the diag m1 provide an [error code] & 0x40 or
-the 0x7e message.  Once this happens the m1 will go into a holding pattern
+and be in a holding pattern until the diag m1 provides an [error code] & 0x40 or
+the 0x7e message.  Once this happens the diag m1 will go into a holding pattern
 waiting for the diag bios to send it an error code for beep code generation and
-the diag bios will continue with its remaining test.
+the diag bios continues with it's remaining tests.
