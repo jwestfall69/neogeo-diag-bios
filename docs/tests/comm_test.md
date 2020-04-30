@@ -39,7 +39,8 @@ PRESS START TO CONTINUE
 ```
 
 This message is indicating the diag bios requested the z80/sm1 prepare for the
-slot switch, but the z80/sm1 never replied back or replied with the response.
+slot switch, but the z80/sm1 never replied back or replied with the wrong
+response.
 
 Pressing start to continue will force the switch even though the Z80/sm1 might
 not be in the proper state to handle it.  Specifically the program counter (PC)
