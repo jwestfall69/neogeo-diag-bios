@@ -879,15 +879,15 @@ ym2610_timer_test_irqs_disabled:
 	jr	nz, .loop_wait_timer_flag	; wait for the timer A flag to get set
 	di					; indicating the timer fired
 
-.timer_init_failed:
-	or	$ff
-	ld	a, EC_YM2610_TIMER_INIT_NOIRQ
-	or	a
-	ret
-
 .test_failed_abort:
 	or	$ff
 	ld	a, EC_YM2610_IRQ_FLAG_ERROR
+	or	a
+	ret
+
+.timer_init_failed:
+	or	$ff
+	ld	a, EC_YM2610_TIMER_INIT_NOIRQ
 	or	a
 	ret
 
@@ -934,13 +934,13 @@ ym2610_timer_test_irqs_enabled:
 	jr	nz, .loop_wait_int
 	di
 
-.timer_init_failed:
-	ld	a, EC_YM2610_TIMER_INIT_IRQ
+.test_failed_abort:
+	ld	a, EC_YM2610_IRQ_TIMING_ERROR
 	or	a
 	ret
 
-.test_failed_abort:
-	ld	a, EC_YM2610_IRQ_TIMING_ERROR
+.timer_init_failed:
+	ld	a, EC_YM2610_TIMER_INIT_IRQ
 	or	a
 	ret
 
