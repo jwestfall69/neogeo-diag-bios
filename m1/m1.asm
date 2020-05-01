@@ -847,7 +847,7 @@ ym2610_io_tests_psub:
 	PSUB_RETURN
 
 
-ym2610_init_irq_tests:
+ym2610_init_timer_tests:
 	ex	af, af'
 	ld	a, YM2610_IRQ_UNEXPECTED
 	ex	af, af'
@@ -859,8 +859,9 @@ ym2610_init_irq_tests:
 	di
 	ret
 
-; make sure we dont get irqs when they are disabled
-ym2610_timer_test_irqs_disabled:
+; setup the timer with irq's disabled, poll it
+; and make sure it triggers within the expected range
+ym2610_timer_flag_test:
 	call	ym2610_timer_init
 	ld	a, $ff
 	jr	nz, .timer_init_failed:
@@ -871,7 +872,7 @@ ym2610_timer_test_irqs_disabled:
 .loop_wait_timer_flag:
 	in	a, (YM2610_PORT0_REGISTER)
 	rrca
-	jr	c, .timer_a_flag_set
+	jr	c, .timer_a_fired
 	inc	bc
 	dec	de
 	ld	a, e
@@ -881,19 +882,19 @@ ym2610_timer_test_irqs_disabled:
 
 .test_failed_abort:
 	or	$ff
-	ld	a, EC_YM2610_IRQ_FLAG_ERROR
+	ld	a, EC_YM2610_TIMER_TIMING_FLAG
 	or	a
 	ret
 
 .timer_init_failed:
 	or	$ff
-	ld	a, EC_YM2610_TIMER_INIT_NOIRQ
+	ld	a, EC_YM2610_TIMER_INIT_FLAG
 	or	a
 	ret
 
-; make sure bc is between $2a5 and $2af for how long
-; it took for the timer a flag to get set
-.timer_a_flag_set:
+; The timer fired now make sure it was within the
+; range we were expecting
+.timer_a_fired:
 	di
 	ld	hl, $02a5
 	cp	a
@@ -909,7 +910,9 @@ ym2610_timer_test_irqs_disabled:
 	xor	a
 	ret
 
-ym2610_timer_test_irqs_enabled:
+
+; Test the timer with irq's enabled
+ym2610_timer_irq_test:
 	call	ym2610_timer_init
 	jr	nz, .timer_init_failed
 
@@ -935,7 +938,7 @@ ym2610_timer_test_irqs_enabled:
 	di
 
 .test_failed_abort:
-	ld	a, EC_YM2610_IRQ_TIMING_ERROR
+	ld	a, EC_YM2610_TIMER_TIMING_IRQ
 	or	a
 	ret
 
@@ -987,17 +990,17 @@ ym2610_timer_init:
 run_subroutine_tests:
 	ld	sp, $fffd	; init stack pointer
 
-	call	ym2610_init_irq_tests
-	call	ym2610_timer_test_irqs_disabled
-	jr	z, .test_passed_ym2610_timer_test_irqs_disabled
+	call	ym2610_init_timer_tests
+	call	ym2610_timer_flag_test
+	jr	z, .test_passed_ym2610_timer_flag_test
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ym2610_timer_test_irqs_disabled:
-	call 	ym2610_timer_test_irqs_enabled
-	jr	z, .test_passed_ym2610_timer_test_irqs_enabled
+.test_passed_ym2610_timer_flag_test:
+	call 	ym2610_timer_irq_test
+	jr	z, .test_passed_ym2610_timer_irq_test
 	rst	play_z80_error_code_stall_rst
 
-.test_passed_ym2610_timer_test_irqs_enabled:
+.test_passed_ym2610_timer_irq_test:
 
 	call	rom_bank_tests			; will call play_z80_error_code_stall itself
 	PSUB	ym2610_make_noise
