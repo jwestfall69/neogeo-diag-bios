@@ -48,15 +48,15 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x0c |     12 |    001100 |       x0 / 12 | [68k->Z80 COMM ISSUE (HANDSHAKE)](tests/comm_test.md) |
 |  0x0d |     13 |    001101 |       x0 / 13 | [68k->Z80 COMM ISSUE (CLEAR)](tests/comm_test.md) |
 |  0x10 |     16 |    010000 |       x0 / 16 | YM2610 I/O ERROR |
-|  0x11 |     17 |    010001 |       x0 / 17 | YM2610 TIMING ERROR (FLAG) |
-|  0x12 |     18 |    010010 |       x0 / 18 | YM2610 TIMING ERROR (IRQ) |
-|  0x13 |     19 |    010011 |       x0 / 19 | YM2610 UNEXPECTED IRQ |
+|  0x11 |     17 |    010001 |       x0 / 17 | [YM2610 TiMER TIMING (FLAG)](tests/z80/ym2610_timer_flag.md) |
+|  0x12 |     18 |    010010 |       x0 / 18 | [YM2610 TIMER TIMING (IRQ)](tests/z80/ym2610_timer_irq.md) |
+|  0x13 |     19 |    010011 |       x0 / 19 | [YM2610 UNEXPECTED IRQ](tests/z80/ym2610_timer_flag.md) |
 |  0x14 |     20 |    010100 |       x0 / 20 | [M1 BANK ERROR (16K)](tests/z80/m1_bank.md) |
 |  0x15 |     21 |    010101 |       x0 / 21 | [M1 BANK ERROR (8K)](tests/z80/m1_bank.md) |
 |  0x16 |     22 |    010110 |       x0 / 22 | [M1 BANK ERROR (4K)](tests/z80/m1_bank.md) |
 |  0x17 |     23 |    010111 |       x0 / 23 | [M1 BANK ERROR (2K)](tests/z80/m1_bank.md) |
-|  0x18 |     24 |    011000 |       x0 / 24 | YM2610 TIMER INIT (FLAG) |
-|  0x19 |     25 |    011001 |       x0 / 25 | YM2610 TIMER INIT (IRQ) |
+|  0x18 |     24 |    011000 |       x0 / 24 | [YM2610 TIMER INIT (FLAG)](tests/z80/ym2610_timer_flag.md) |
+|  0x19 |     25 |    011001 |       x0 / 25 | [YM2610 TIMER INIT (IRQ)](tests/z80/ym2610_timer_irq.md) |
 
 #### 68k Error Codes:
 
