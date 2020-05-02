@@ -743,10 +743,19 @@ automatic_tests:
 
 	btst	#7, REG_P1CNT			; if P1 "D" was pressed at boot
 	seq	z80_test_flag			; set z80_test_flag to $ff, else $00
+	beq	.z80_user_enabled
+
+	; auto-detect m1 by checking for the HELLO message (ie diag m1 + AES or MV-1B/C)
+	move.b	#Z80_RECV_HELLO, d1
+	cmp.b	REG_SOUND, d1
+	seq	z80_test_flag
+	beq	skip_slot_switch
 
  	ifnd force_z80_tests
 		bne	skip_z80_test		; skip Z80 tests if "D" not pressed
  	endif
+
+.z80_user_enabled:
 
 	tst.b	REG_STATUS_B
 	bpl	skip_slot_switch		; skip slot switch if AES
@@ -953,10 +962,10 @@ z80_slot_switch:
 .z80_do_slot_switch:
 
 	move.b	(a0), d3
-	lea	(XYP_STR_Z80_SLOT_NUM), a0	; "[S ]"
+	lea	(XYP_STR_Z80_SLOT_SWITCH_NUM), a0	; "[SS ]"
 	bsr	print_xyp_string_struct
 
-	move.b	#36, d0
+	move.b	#32, d0
 	moveq	#4, d1
 	move.b	d3, d2
 	bsr	print_digit			; print the slot number
@@ -1091,6 +1100,10 @@ z80_check_done:
 	rts
 
 z80_comm_test:
+
+	lea	XYP_STR_Z80_M1_ENABLED, a0
+	bsr	print_xyp_string_struct
+
 	lea	XYP_STR_Z80_TESTING_COMM_PORT, a0
 	bsr	print_xyp_string_struct_clear
 
@@ -4674,7 +4687,8 @@ XYP_STR_Z80_SKIP_TEST:		XYP_STRING  4, 24,  0, "TO SKIP Z80 TESTING, RELEASE"
 XYP_STR_Z80_PRESS_D_RESET:	XYP_STRING  4, 25,  0, "D BUTTON AND SOFT RESET."
 XYP_STR_Z80_MAKE_SURE:		XYP_STRING  4, 21,  0, "FOR Z80 TESTING, MAKE SURE TEST"
 XYP_STR_Z80_CART_CLEAN:		XYP_STRING  4, 22,  0, "CART IS CLEAN AND FUNCTIONAL."
-XYP_STR_Z80_SLOT_NUM:		XYP_STRING 34,  4,  0, "[S ]"
+XYP_STR_Z80_M1_ENABLED:		XYP_STRING 34,  4,  0, "[M1]"
+XYP_STR_Z80_SLOT_SWITCH_NUM:	XYP_STRING 29,  4,  0, "[SS ]"
 
 STR_Z80_M1_CRC:			STRING "M1 CRC ERROR (fixed region)"
 STR_Z80_M1_UPPER_ADDRESS:	STRING "M1 UPPER ADDRESS (fixed region)"

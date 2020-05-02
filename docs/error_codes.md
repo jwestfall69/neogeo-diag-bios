@@ -131,4 +131,4 @@ Z80->68k COMM ISSUE (HELLO)
 Z80->68k COMM ISSUE (ACK)
 ```
 
-These are all associated with the [68k <=> Z80 Comm Test](test/comm_test.md).
+These are all associated with the [68k <=> Z80 Comm Test](tests/comm_test.md).

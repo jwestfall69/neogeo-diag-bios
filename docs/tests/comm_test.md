@@ -23,10 +23,25 @@ More in depth details can be found on the [Z80 Communication](https://wiki.neoge
 The AES and MV-1B/C board do not have a built in sm1 rom and will directly
 boot the carts m1 rom.  Thus a slot switch is not needed for the diag bios
 to do the comm test for these boards.  The diag bios is able to detect AES
-hardware and won't do a slot switch if you enable the comm test.  However its
+hardware and won't do a slot switch if you enable the comm test.  Its
 impossible to tell if a board is an MV-1B/C vs other 1 slot board, so its
 necessary to let the diag bios know it shouldn't do a slot switch by pressing
 B+D during power on.
+
+The diag bios will also attempt to auto-detect the diag m1 on AES and MV-1B/C
+boards by doing a quick check for the HELLO (0xc3) message from the diag m1.  If
+the message is seen it will auto enable the comm test.
+
+If the comm test is enabled it will print `[M1]` on the top right of the
+screen.  If a slot switch is performed it will also print `[SS#]` on the
+top right of the screen, where `#` is replaced with the slot number that was
+switched to.
+
+For example slot 2 (D+UP)
+```
+   NEO DIAGNOSTICS v0.19a00 - BY SMKDAN
+-----------------------------[SS2]-[M1]--
+```
 
 **Slot Switch Ignored:**<br>
 One of the error messages you may encounter from the diag bios when enabling
