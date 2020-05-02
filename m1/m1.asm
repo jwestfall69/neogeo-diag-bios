@@ -660,24 +660,24 @@ comm_68k_test:
 ym2610_io_tests_psub:
 	in	a, (YM2610_PORT0_REGISTER)
 	rlca
-	jr	c, .test_failed_abort	; ym2610 says its busy
+	jr	c, .test_failed_abort		; ym2610 says its busy
 
 	ld	a, $27
 	out	(YM2610_PORT0_REGISTER), a	; irq/timer related register
-	add	hl, hl			; delay
+	add	hl, hl				; delay
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
 
 	ld	a, $30
-	out	(YM2610_PORT0_DATA), a	; disable irqs?
-	add	hl, hl			; delay
+	out	(YM2610_PORT0_DATA), a		; disable irqs
+	add	hl, hl				; delay
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
 
 	in	a, (YM2610_PORT0_REGISTER)
-	and	$30			; check for bits shouldnt be set?
+	and	$30				; check we get back what we wrote
 	jr	nz, .test_failed_abort
 
 ; this next chunk of code writes $00/$55/$aa/$ff to reg $0 or ym2610 and
@@ -714,7 +714,10 @@ ym2610_io_tests_psub:
 	PSUB_RETURN
 
 
-ym2610_init_irq_tests:
+; ym2610_io_tests disables the timer and interrupt generation
+; on the ym2610.  Temp enable interrupts on the z80 to see
+; if we get one.
+ym2610_stuck_irq_test:
 	ex	af, af'
 	ld	a, YM2610_IRQ_NOT_EXPECTED
 	ex	af, af'
@@ -837,7 +840,7 @@ run_subroutine_tests:
 	rst	play_z80_error_code_stall_rst
 
 .test_passed_comm_68k
-	call	ym2610_init_irq_tests
+	call	ym2610_stuck_irq_test
 	call	ym2610_timer_test_irqs_disabled
 	jr	z, .test_passed_ym2610_timer_test_irqs_disabled
 	rst	play_z80_error_code_stall_rst
