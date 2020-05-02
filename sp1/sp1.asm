@@ -2,10 +2,10 @@
 	include "macros.inc"
 	include "sp1.inc"
 
-	; This stops vasm from doing a few optimizations
+	; This stops vasm from doing most optimizations
 	; which cause the resulting rom to not match
-	; the original (ie: cmp #0, d0 -> tst.b d0)
-	opt og-
+	; the original. (ie: cmp #0, d0 -> tst.b d0)
+	opt o-, o1+, o3+, a+
 
 	; These are options to force the bios to do
 	; z80 or goto manual tests since its not
@@ -1825,7 +1825,7 @@ print_error_hex_psub:
 
 	moveq	#14, d0
 	moveq	#12, d1
-	move.l	BIOS_CRC32_ADDR, d2
+	move.l	BIOS_CRC32_ADDR.l, d2
 	PSUB	print_hex_long
 
 
@@ -2015,7 +2015,7 @@ XYP_MMIO_ERROR_REG_VRAMRW:
 ;  d1 = actual value
 ;  d2 = expected value
 auto_bios_mirror_test_psub:
-	lea	$bffffb, a0
+	lea	$bffffb.l, a0
 	moveq	#7, d0
 	moveq	#-1, d2
 .loop_next_offset:
