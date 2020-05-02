@@ -6,12 +6,12 @@ MKDIR = mkdir
 DD = dd
 
 ${ODIR}/sp1.bin: gen-crc-mirror sp1.asm sp1.inc macros.inc neogeo.inc ${ODIR}
-	$(VASM) $(VASM_FLAGS) -o ${ODIR}/sp1.raw sp1.asm
+	${VASM} ${VASM_FLAGS} -o ${ODIR}/sp1.raw sp1.asm
 	./gen-crc-mirror ${ODIR}/sp1.raw
-	$(DD) if=${ODIR}/sp1.raw of=${ODIR}/sp1.bin conv=swab
+	${DD} if=${ODIR}/sp1.raw of=${ODIR}/sp1.bin conv=swab
 
 gen-crc-mirror: gen-crc-mirror.c
-	$(HOST_CC) gen-crc-mirror.c -o gen-crc-mirror
+	${HOST_CC} gen-crc-mirror.c -o gen-crc-mirror
 
 ${ODIR}:
 	${MKDIR} ${ODIR} debug

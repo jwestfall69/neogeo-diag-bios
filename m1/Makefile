@@ -5,11 +5,11 @@ ODIR = output
 MKDIR = mkdir
 
 ${ODIR}/m1.bin: gen-crc-mirror-bank m1.asm m1.inc macros.inc neogeo.inc ${ODIR}
-	$(VASM) $(VASM_FLAGS) -o ${ODIR}/m1.bin m1.asm
+	${VASM} ${VASM_FLAGS} -o ${ODIR}/m1.bin m1.asm
 	./gen-crc-mirror-bank ${ODIR}/m1.bin
 
 gen-crc-mirror-bank: gen-crc-mirror-bank.c
-	$(HOST_CC) gen-crc-mirror-bank.c -o gen-crc-mirror-bank
+	${HOST_CC} gen-crc-mirror-bank.c -o gen-crc-mirror-bank
 
 ${ODIR}:
 	${MKDIR} ${ODIR} debug
