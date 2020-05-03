@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   }
 
   crc32(buffer, INPUT_SIZE - 4, &crc);
-  printf("CRC: 0x%x\n", crc);
+  printf("Fill in CRC32: 0x%x\n", crc);
 
   // write crc
   fseek(rom, CRC32_OFFSET, SEEK_SET);

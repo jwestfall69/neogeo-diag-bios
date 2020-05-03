@@ -1,4 +1,6 @@
 	include "neogeo.inc"
+	include "../common/error_codes.inc"
+	include "../common/comm.inc"
 	include "macros.inc"
 	include "sp1.inc"
 
@@ -15,19 +17,15 @@
 ;force_z80_tests 	equ 1
 ;force_manual_tests 	equ 1
 
-	section	text
 	org	BIOS_ROM_START
 
 VECTORS:
 	dc.l	SP_INIT_ADDR
 	dc.l	_start
 
-	FILLTO BIOS_ROM_START + $64,$ff
-
+	rorg	$64, $ff
 	dc.l	vblank_interrupt
 	dc.l	timer_interrupt
-
-	FILLTO BIOS_ROM_START + $80,$ff
 
 ; psub_enter/psub_exit allows creating and using pseudo subroutines.  The
 ; purpose of which is to mimic jsr/bsr with out the need for touching
@@ -64,6 +62,7 @@ VECTORS:
 ;   append _psub onto the supplied function name.
 ; PSUB_RETURN
 ;   When in a psub, PSUB_RETURN should be used to return from the function
+	rorg	$80, $ff
 psub_enter:
 	subq.w	#4,d7
 	jmp	*+4(PC,d7.w)
@@ -746,7 +745,7 @@ automatic_tests:
 	beq	.z80_user_enabled
 
 	; auto-detect m1 by checking for the HELLO message (ie diag m1 + AES or MV-1B/C)
-	move.b	#Z80_RECV_HELLO, d1
+	move.b	#COMM_TEST_HELLO, d1
 	cmp.b	REG_SOUND, d1
 	seq	z80_test_flag
 	beq	skip_slot_switch
@@ -1095,7 +1094,7 @@ XYP_STR_Z80_ERROR_CODE:		XYP_STRING 4, 12, 0, "Z80 REPORTED ERROR CODE: "
 
 ; see if z80 says its done testing (with no issues)
 z80_check_done:
-	move.b	#Z80_RECV_TESTS_COMPLETED, d0
+	move.b	#COMM_Z80_TESTS_COMPLETE, d0
 	cmp.b	REG_SOUND, d0
 	rts
 
@@ -1107,7 +1106,7 @@ z80_comm_test:
 	lea	XYP_STR_Z80_TESTING_COMM_PORT, a0
 	bsr	print_xyp_string_struct_clear
 
-	move.b	#Z80_RECV_HELLO, d1
+	move.b	#COMM_TEST_HELLO, d1
 	move.w  #500, d2
 	bra	.loop_start_wait_hello
 
@@ -1120,9 +1119,9 @@ z80_comm_test:
 	dbeq	d2, .loop_wait_hello
 	bne	.z80_hello_timeout
 
-	move.b	#Z80_SEND_HANDSHAKE, REG_SOUND
+	move.b	#COMM_TEST_HANDSHAKE, REG_SOUND
 
-	moveq	#Z80_RECV_ACK, d1
+	moveq	#COMM_TEST_ACK, d1
 	move.w	#500, d2
 	bra	.loop_start_wait_ack
 
@@ -4643,7 +4642,7 @@ misc_input_print_static_items:
 	dbra	d7, .loop_next_entry
 	rts
 
-	FILLTO BIOS_ROM_START + $3000,$ff
+	rorg	$3000, $ff
 
 STR_ACTUAL:			STRING "ACTUAL:"
 STR_EXPECTED:			STRING "EXPECTED:"
@@ -4842,9 +4841,7 @@ STR_MI_CFG_B:			STRING "CFG-B"
 STR_MI_CFG_B_LOW:		STRING "(CFG-B LOW)"
 STR_MI_CFG_B_HIGH:		STRING "(CFG-B HIGH)"
 
-
-	FILLTO $c03ffb,$ff
-
+	rorg	$3ffb, $ff
 ; these get filled in by gen-crc-mirror
-	dc.b $00			; bios copy mirror.  mirror 1 (running copy) is $0, 2nd is $1, etc, up to $7
-	dc.b $00,$00,$00,$00		; bios crc32 value calculated from bios_start to $c03ffb
+	dc.b 	$00			; bios copy mirror.  mirror 1 (running copy) is $0, 2nd is $1, etc, up to $7
+	dc.b 	$00,$00,$00,$00		; bios crc32 value calculated from bios_start to $c03ffb

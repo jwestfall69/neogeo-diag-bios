@@ -67,8 +67,3 @@
 		dc.w \1
 		dc.l \2
 	endm
-
-	macro FILLTO
-\@:
-		blk.b \1 - \@, \2
-	endm

@@ -1,4 +1,6 @@
 	include "neogeo.inc"
+	include "../common/error_codes.inc"
+	include "../common/comm.inc"
 	include "m1.inc"
 	include "macros.inc"
 
@@ -6,30 +8,25 @@
 
 	jp	_start
 
-	FILLTO	$0008,$ff
-psub_enter_rst:
+	rorg	RST_PSUB_ENTER, $ff
 	jp	psub_enter
 
 
-	FILLTO	$0010,$ff
-psub_exit_rst:
+	rorg	RST_PSUB_EXIT, $ff
 	jp	psub_exit
 
 
-	FILLTO	$0018,$ff
-play_z80_error_code_stall_rst:
-	jp	play_z80_error_code_stall
+	rorg	RST_HANDLE_Z80_ERROR_CODE, $ff
+	jp	handle_z80_error_code
 
 
-	FILLTO	$0020,$ff
-psub_enter_ym2610_write_port0_rst:
+	rorg	RST_PSUB_YM2610_WRITE_PORT0, $ff
 	ld	hl, ym2610_write_port0_psub
 	jp	psub_enter
 
 
 ; interrupts from ym2610
-	FILLTO	$0038,$ff
-
+	rorg	RST_IRQ, $ff
 	ex	af, af'
 	cp	YM2610_IRQ_EXPECTED
 	jr	z, .expected_interrupt
@@ -49,7 +46,7 @@ psub_enter_ym2610_write_port0_rst:
 
 .unexpected_interrupt:
 	ld	a, EC_YM2610_IRQ_UNEXPECTED
-	jp	play_z80_error_code_stall
+	jp	handle_z80_error_code
 
 .expected_interrupt:
 	ex	af, af'
@@ -58,8 +55,7 @@ psub_enter_ym2610_write_port0_rst:
 
 
 ; NMIs from 68k
-	FILLTO	$0066,$ff
-
+	rorg	RST_NMI, $ff
 	nop
 	nop
 	nop
@@ -71,19 +67,19 @@ psub_enter_ym2610_write_port0_rst:
 
 
 ; z80 errors play 6 bits/tones
-play_z80_error_code_stall:
+handle_z80_error_code:
 	ld	b, $06
-	jr	play_error_code_stall
+	jr	handle_error_code
 
 ; 68k errors play 7 bits/tones
-play_68k_error_code_stall:
+handle_68k_error_code:
 	ld	b, $07
-	jr	play_error_code_stall
+	jr	handle_error_code
 
 ; params:
 ;  a = error code
 ;  b = number of bits to play
-play_error_code_stall:
+handle_error_code:
 	di			; disable ints
 	out	($18), a	; disable nmi
 
@@ -278,42 +274,42 @@ _start:
 
 	PSUB	rom_mirror_test
 	jr	z, .test_passed_rom_mirror
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_rom_mirror:
 	PSUB	rom_crc32_test
 	jr	z, .test_passed_rom_crc32
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_rom_crc32:
 	PSUB	ram_oe_test
 	jr	z, .test_passed_ram_oe
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ram_oe:
 	PSUB	ram_we_test
 	jr	z, .test_passed_ram_we
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ram_we:
 	PSUB	ram_data_tests
 	jr	z, .test_passed_ram_data
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ram_data:
 	PSUB	ram_address_tests
 	jr	z, .test_passed_ram_address
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ram_address:
 	PSUB	ym2610_io_tests
 	jr	z, .test_passed_ym2610_io
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ym2610_io:
 	PSUB	m68k_comm_test
 	jr	z, .test_passed_m68k_comm_test
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_m68k_comm_test:
 	jp	run_subroutine_tests
@@ -490,7 +486,7 @@ rom_bank_tests:
 	call	test_rom_bank
 	jr   	z, .test_passed_bank3
 	ld   	a, EC_Z80_M1_BANK_ERROR_16K
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_bank3:
 	ld	bc, $040a		; bank2 (8k)
@@ -499,7 +495,7 @@ rom_bank_tests:
 	call	test_rom_bank
 	jr	z, .test_passed_bank2
 	ld	a, EC_Z80_M1_BANK_ERROR_8K
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_bank2:
 	ld	bc, $0809		; bank1 (4k)
@@ -508,7 +504,7 @@ rom_bank_tests:
 	call	test_rom_bank
 	jr	z, .test_passed_bank1
 	ld	a, EC_Z80_M1_BANK_ERROR_4K
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_bank1:
 	ld	bc, $1008		; bank0 (2k)
@@ -517,7 +513,7 @@ rom_bank_tests:
 	call	test_rom_bank
 	jr	z, .test_passed_bank0
 	ld	a, EC_Z80_M1_BANK_ERROR_2K
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_bank0:
 	ret
@@ -731,7 +727,7 @@ test_ram_address_psub:
 
 
 m68k_comm_test_psub:
-	ld	a, M68K_SEND_HELLO
+	ld	a, COMM_TEST_HELLO
 	out	($0c), a
 	out	($00), a
 
@@ -754,7 +750,7 @@ m68k_comm_test_psub:
 
 .loop_start:
 	in	a, ($00)
-	cp	M68K_RECV_HANDSHAKE
+	cp	COMM_TEST_HANDSHAKE
 	jr	z, .got_handshake
 
 	exx
@@ -779,7 +775,7 @@ m68k_comm_test_psub:
 	PSUB_RETURN
 
 .test_passed:
-	ld	a, M68K_SEND_ACK
+	ld	a, COMM_TEST_ACK
 	out	($0c), a
 
 	; delay a little to avoid sending an error before the m68k has had
@@ -997,19 +993,19 @@ run_subroutine_tests:
 
 	call	ym2610_timer_flag_test
 	jr	z, .test_passed_ym2610_timer_flag_test
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ym2610_timer_flag_test:
 	call 	ym2610_timer_irq_test
 	jr	z, .test_passed_ym2610_timer_irq_test
-	rst	play_z80_error_code_stall_rst
+	rst	RST_HANDLE_Z80_ERROR_CODE
 
 .test_passed_ym2610_timer_irq_test:
 
 	call	rom_bank_tests			; will call play_z80_error_code_stall itself
 	PSUB	ym2610_make_noise
 
-	ld	a, M68K_SEND_TESTS_COMPLETED	; tell 68k we are done with tests
+	ld	a, COMM_Z80_TESTS_COMPLETE	; tell 68k we are done with tests
 	out	($0c), a
 
 .loop_wait_68k_error_code:
@@ -1020,11 +1016,10 @@ run_subroutine_tests:
 	in	a, ($00)
 	cp	c
 	jr	nz, .loop_wait_68k_error_code
-	jp	play_68k_error_code_stall
+	jp	handle_68k_error_code
 	jr	.loop_wait_68k_error_code
 
-	FILLTO	$07fb,$ff
-
+	rorg	$07fb, $ff
 ROM_MIRROR_OFFSET:
 	dc.b	$00
 ROM_CRC32_OFFSET:
