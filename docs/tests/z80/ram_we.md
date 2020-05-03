@@ -1,4 +1,4 @@
-### RAM Unwritable Test
+### RAM Write Enable Test
 ---
 
 This test consists of the following steps

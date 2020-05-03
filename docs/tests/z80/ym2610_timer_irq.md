@@ -1,4 +1,4 @@
-### YM2610 Timer Test (IRQ)
+### YM2610 Timer IRQ Test
 ----
 
 The YM2610 attached to the Z80 and has supports for 2 timers.  When a timer is

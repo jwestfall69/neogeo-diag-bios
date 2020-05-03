@@ -1,4 +1,4 @@
-### YM2610 Unexpected IRQ
+### YM2610 Stuck IRQ
 ----
 
 The [YM2610 io test](ym2610_io.md) disables the ym2610's timers and interrupt

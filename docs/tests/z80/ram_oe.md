@@ -1,4 +1,4 @@
-### RAM Dead Output Test
+### RAM Output Enable Test
 ---
 
 When trying to load data from the ram chip into a register and ram doesn't

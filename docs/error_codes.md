@@ -43,14 +43,14 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x07 |      7 |    000111 |       x0 / x7 | [RAM DATA (FF)](tests/z80/ram_data.md) |
 |  0x08 |      8 |    001000 |       x0 / x8 | [RAM ADDRESS (A0-A7)](tests/z80/ram_addres.md) |
 |  0x09 |      9 |    001001 |       x0 / x9 | [RAM ADDRESS (A8-A10)](tests/z80/ram_addres.md) |
-|  0x0a |     10 |    001010 |       x0 / 10 | [RAM DEAD OUTPUT](tests/z80/ram_dead_output.md) |
-|  0x0b |     11 |    001011 |       x0 / 11 | [RAM UNWRITABLE](tests/z80/ram_unwritable.md) |
+|  0x0a |     10 |    001010 |       x0 / 10 | [RAM DEAD OUTPUT](tests/z80/ram_oe.md) |
+|  0x0b |     11 |    001011 |       x0 / 11 | [RAM UNWRITABLE](tests/z80/ram_we.md) |
 |  0x0c |     12 |    001100 |       x0 / 12 | [68k->Z80 COMM ISSUE (HANDSHAKE)](tests/comm_test.md) |
 |  0x0d |     13 |    001101 |       x0 / 13 | [68k->Z80 COMM ISSUE (CLEAR)](tests/comm_test.md) |
 |  0x10 |     16 |    010000 |       x0 / 16 | [YM2610 I/O ERROR](tests/z80/ym2610_io.md) |
 |  0x11 |     17 |    010001 |       x0 / 17 | [YM2610 TIMER TIMING (FLAG)](tests/z80/ym2610_timer_flag.md) |
 |  0x12 |     18 |    010010 |       x0 / 18 | [YM2610 TIMER TIMING (IRQ)](tests/z80/ym2610_timer_irq.md) |
-|  0x13 |     19 |    010011 |       x0 / 19 | [YM2610 UNEXPECTED IRQ](tests/z80/ym2610_unexpected_irq.md) |
+|  0x13 |     19 |    010011 |       x0 / 19 | [YM2610 UNEXPECTED IRQ](tests/z80/ym2610_stuck_irq.md) |
 |  0x14 |     20 |    010100 |       x0 / 20 | [M1 BANK ERROR (16K)](tests/z80/m1_bank.md) |
 |  0x15 |     21 |    010101 |       x0 / 21 | [M1 BANK ERROR (8K)](tests/z80/m1_bank.md) |
 |  0x16 |     22 |    010110 |       x0 / 22 | [M1 BANK ERROR (4K)](tests/z80/m1_bank.md) |
