@@ -14,9 +14,8 @@ should happen as follows:
 2. z80/sm1: copies code into ram and jumps to it
 3. z80/sm1 -> bios: ready (0x01)
 4. bios: switches to the cartridges m1/s1 roms
-5. bios -> z80/sm1: switch is complete (0x03)
-6. z80/sm1: jumps execution to 0x0000, which is the start of the cartridge's m1
-rom.  The m1 rom is now in control.
+5. bios -> z80: switch is complete (0x03), triggers NMI for cart m1
+6. z80/cart m1: NMI triggers and the cart m1 takes control
 
 More in depth details can be found on the [Z80 Communication](https://wiki.neogeodev.org/index.php?title=68k/Z80_communication) page of the [Neo-Geo Dev Wiki](https://wiki.neogeodev.org/index.php?title=Main_Page).
 
