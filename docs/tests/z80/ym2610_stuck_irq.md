@@ -2,7 +2,7 @@
 ----
 
 The [YM2610 io test](ym2610_io.md) disables the ym2610's timers and interrupt
-generation.  The unexpected IRQ test temp enables interrupts on the Z80 and
+generation.  The stuck IRQ test temp enables interrupts on the Z80 and
 if one is received it will result in the following error.
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |

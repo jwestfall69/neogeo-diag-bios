@@ -1,10 +1,10 @@
 ### RAM Data Tests
 ---
 
-The RAM Data tests consists of writing a byte and reading it back from each
-memory location.  This is done using bytes 0x00, 0x55, 0xaa and 0xff bytes.
-Should the read byte not match the written byte it will result in one of the
-following errors:
+The RAM data tests consists of writing a byte and reading it back from each
+RAM location.  This is done using bytes 0x00, 0x55, 0xaa and 0xff.  Should the
+read byte not match the written byte it will result in one of the following
+errors:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |

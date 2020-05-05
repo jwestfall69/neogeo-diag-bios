@@ -32,7 +32,7 @@ This first chunk of tests are written such that they don't touch work ram.
 
 At this point work ram starts getting used.
 
-* 68k <=> Z80 Communication Test (if enabled)
+* [68k <=> Z80 Communication Test](tests/comm_test.md) (if enabled)
 * Backup RAM Tests (if MVS or force enabled on AES)
   * Backup RAM Data Tests
     * Pattern 0x0000
@@ -110,7 +110,7 @@ At this point work ram starts getting used.
  #### M1/Z80 Tests:
 
  This first chunk of tests are written such that they don't touch ram.
- * YM2610 Noise Maker
+ * [YM2610 Noise Maker](tests/z80/ym2610_noise_maker.md)
  * [M1 ROM Upper Address Test](tests/z80/m1_upper_address.md)
  * [M1 ROM CRC32 Test](tests/z80/m1_crc.md)
  * [RAM Output Enable Test](tests/z80/ram_oe.md)
@@ -143,4 +143,4 @@ At this point ram starts getting used.
    * Zone2 (8K)
    * Zone1 (4K)
    * Zone0 (2k)
- * YM2610 Noise Maker
+ * [YM2610 Noise Maker](tests/z80/ym2610_noise_maker.md)

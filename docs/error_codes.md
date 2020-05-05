@@ -118,7 +118,7 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 
 
 #### 68k Errors, No Code:
-The following are errors message do not generate an error code.
+The following are error messages do not generate an error code.
 
 ```
 Z80 SLOT SWITCH IGNORED (SM1)

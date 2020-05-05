@@ -61,9 +61,11 @@ Pressing start to continue will force the switch even though the Z80/sm1 might
 not be in the proper state to handle it.  Specifically the program counter (PC)
 of the Z80 maybe be within the rom space, which will get swapped out beneath
 it by the slot switch.  This can lead to a crash of the Z80 or execution of
-the diag m1 code starting a the current PC instead of 0x0000.  The diag m1 has
-code in it that attempts to recover from this situation if/when an IRQ/NMI is
-received by jumping to its expected entry point function.
+the diag m1 code starting at the current PC instead of 0x0000 or NMI.  The
+diag m1 has code in it that attempts to recover from this situation if/when an
+IRQ/NMI is received by jumping to its expected entry point function.  Also the
+diag m1's fill/pad byte is 0xff (rst #$38 instruction), which will cause it
+to jump to the IRQ handler.
 
 **Comm Test:**<br>
 The comm test requires both the diag bios and diag m1 to be running their
@@ -74,7 +76,7 @@ request from the other.
 
 Under nominal conditions the comm tests will go something like this
 
-1. bios: wait for HELLO (0xc3) messages<sup>1</sub>
+1. bios: wait for HELLO (0xc3) message<sup>1</sub>
 2. m1 -> bios: send HELLO (0xc3) message
 3. bios: accept HELLO (0xc3) message
 4. bios -> m1: send HANDSHAKE (0x5a)
