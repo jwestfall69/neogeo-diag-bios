@@ -33,14 +33,20 @@
 	cp	YM2610_IRQ_UNEXPECTED
 	jr	z, .unexpected_interrupt
 
-	; 'a' is in an unknown state, which implies we never even started the
-	; irq test.  This shouldn't normally happen if our _start function was
-	; run, since one of the first things it does is disable interrupts.
-	; The likely cause of this was a failed slot switch where the PC
-	; never got reset back up 0000 for us and the sm1 rom code still had
-	; interrupts enabled.  The PC prior to this interrupt was likely
-	; off in la la land, so in an effert to recover from the failed slot
-	; switch we call our _start function.
+	; a' is in an unknown state, which implies we are not in our irq test
+	; functions.  This shouldn't happen if the _start function was run,
+	; since one of the first things it does is disable interrupts.  The
+	; likely cause of this was a failed slot switch where we never got
+	; the NMI reset command (0x03).
+	;
+	; It seems like there are 2 possibilities that can cause this:
+	; 1. The sm1 had interrupts enabled and the ym2610 just triggered one.
+	; 2. When the slot switch happened the PC was at a rom location that
+	;    has our fill byte (0xff), which is instruction rst #$38 causing
+	;    a jump to our irq code.
+	;
+	; Our best course of action in either case is to run the _start function
+	; and attempt to recover.
 	jp	_start
 
 
