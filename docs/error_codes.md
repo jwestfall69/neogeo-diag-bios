@@ -62,8 +62,8 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |
-|  0x40 |     64 |  *1000000 |       x0 / 64 | BIOS CRC ERROR |
-|  0x41 |     65 |  *1000001 |       x0 / 65 | BIOS ADDRESS (A13-A15) |
+|  0x40 |     64 |  *1000000 |       x0 / 64 | [BIOS CRC ERROR](tests/68k/bios_crc.md |
+|  0x41 |     65 |  *1000001 |       x0 / 65 | [BIOS ADDRESS (A13-A15)](tests/68k/bios_upper_address.md) |
 |  0x44 |     68 |  *1000100 |       x0 / 68 | WRAM DEAD OUTPUT (LOWER) |
 |  0x45 |     69 |  *1000101 |       x0 / 69 | WRAM DEAD OUTPUT (UPPER) |
 |  0x46 |     70 |  *1000110 |       x0 / 70 | BRAM DEAD OUTPUT (LOWER) |

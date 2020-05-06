@@ -3,7 +3,7 @@
 
 The running diag m1 code is only 2048 (0x800) bytes, while the diag rom is
 128KB / 1Mbit.  The first 32KB of the rom is filled with copies of the running
-code and the rest is used by [bankswitch](m1_bank.md) tests.  At offset byte
+code and the rest is used by [bankswitch](m1_bank.md) tests.  At byte offset
 2043 (0x7fb) of each copy contains the copy number.  The running code will be
 0x0, first copy is 0x01, 2nd is 0x02, ... 15th is 0xf.
 
