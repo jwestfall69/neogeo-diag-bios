@@ -9,14 +9,14 @@ automatic testing.
 
 This first chunk of tests are written such that they don't touch work ram.
 * Watchdog Stuck Test
-* BIOS Upper Address
-* BIOS CRC32 Test
-* RAM Output Enable Tests
+* [BIOS Upper Address](tests/68k/bios_upper_address.md)
+* [BIOS CRC32 Test](tests/68k/bios_crc.md)
+* [Work + Backup RAM Output Enable Tests](tests/wbram_oe.md)
   * Work RAM Upper
   * Work RAM Lower
   * Backup RAM Upper (if MVS or force enabled on AES)
   * Backup RAM Lower (if MVS or force enabled on AES)
-* RAM Write Enable Tests
+* Work + Backup RAM Write Enable Tests
   * Work RAM Lower
   * Work RAM Upper
   * Backup RAM Lower (if MVS)

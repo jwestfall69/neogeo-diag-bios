@@ -64,10 +64,10 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 | ----: | -----: | --------: | :-----------: | :--------- |
 |  0x40 |     64 |  *1000000 |       x0 / 64 | [BIOS CRC ERROR](tests/68k/bios_crc.md |
 |  0x41 |     65 |  *1000001 |       x0 / 65 | [BIOS ADDRESS (A13-A15)](tests/68k/bios_upper_address.md) |
-|  0x44 |     68 |  *1000100 |       x0 / 68 | WRAM DEAD OUTPUT (LOWER) |
-|  0x45 |     69 |  *1000101 |       x0 / 69 | WRAM DEAD OUTPUT (UPPER) |
-|  0x46 |     70 |  *1000110 |       x0 / 70 | BRAM DEAD OUTPUT (LOWER) |
-|  0x47 |     71 |  *1000111 |       x0 / 71 | BRAM DEAD OUTPUT (UPPER) |
+|  0x44 |     68 |  *1000100 |       x0 / 68 | [WRAM DEAD OUTPUT (LOWER)](tests/68k/wbram_oe.md) |
+|  0x45 |     69 |  *1000101 |       x0 / 69 | [WRAM DEAD OUTPUT (UPPER)](tests/68k/wbram_oe.md) |
+|  0x46 |     70 |  *1000110 |       x0 / 70 | [BRAM DEAD OUTPUT (LOWER)](tests/68k/wbram_oe.md) |
+|  0x47 |     71 |  *1000111 |       x0 / 71 | [BRAM DEAD OUTPUT (UPPER)](tests/68k/wbram_oe.md) |
 |  0x48 |     72 |  *1001000 |       x0 / 72 | WRAM DATA (0000) |
 |  0x49 |     73 |  *1001001 |       x0 / 73 | WRAM DATA (5555) |
 |  0x4a |     74 |  *1001010 |       x0 / 74 | WRAM DATA (AAAA) |
