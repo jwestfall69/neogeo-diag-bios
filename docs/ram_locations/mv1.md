@@ -16,4 +16,4 @@ These RAM locations cover model numbers MV1, MV1-1, and MV1T.
 | Palette Upper  |      H10 |
 | Work Lower     |       H3 |
 | Work Upper     |       G3 |
-| Z80 RAM        |     H1-2 |
+| Z80 RAM        |     H1.5 |
