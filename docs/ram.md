@@ -20,9 +20,9 @@ MV1B<br>
 MV1B CHX<br>
 MV1B1<br>
 MV1C<br>
-MV1F<br>
-MV1FS<br>
-MV1FT<br>
+[MV1F](ram_locations/mv1f.md)<br>
+[MV1FS](ram_locations/mv1f.md)<br>
+[MV1FT](ram_locations/mv1ft.md)<br>
 MV1FZ<br>
 MV1FZS<br>
 MV1FZSB<br>
