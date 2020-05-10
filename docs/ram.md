@@ -19,7 +19,7 @@ address that had the error.
 MV1B<br>
 MV1B CHX<br>
 MV1B1<br>
-MV1C<br>
+[MV1C](ram_locations/mv1c.md)<br>
 [MV1F](ram_locations/mv1f.md)<br>
 [MV1FS](ram_locations/mv1f.md)<br>
 [MV1FT](ram_locations/mv1ft.md)<br>
