@@ -16,9 +16,9 @@ address that had the error.
 [MV1ACH](ram_locations/mv1a.md)<br>
 [MV1ACHX](ram_locations/mv1a.md)<br>
 [MV1AX](ram_locations/mv1a.md)<br>
-MV1B<br>
-MV1B CHX<br>
-MV1B1<br>
+[MV1B](ram_locations/mv1b.md)<br>
+[MV1B CHX](ram_locations/mv1b.md)<br>
+[MV1B1](ram_locations/mv1b.md)<br>
 [MV1C](ram_locations/mv1c.md)<br>
 [MV1F](ram_locations/mv1f.md)<br>
 [MV1FS](ram_locations/mv1f.md)<br>
