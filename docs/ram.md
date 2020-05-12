@@ -31,8 +31,8 @@ address that had the error.
 MV2<br>
 MV2-01<br>
 MV2B<br>
-MV2F<br>
-MV2FS<br>
+[MV2F](ram_locations/mv2f.md)<br>
+[MV2FS](ram_locations/mv2f.md)<br>
 [MV4](ram_locations/mv4.md)<br>
 [MV4F](ram_locations/mv4f.md)<br>
 [MV4FS](ram_locations/mv4ft.md)<br>
