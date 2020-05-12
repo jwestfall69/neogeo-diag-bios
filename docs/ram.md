@@ -23,10 +23,10 @@ address that had the error.
 [MV1F](ram_locations/mv1f.md)<br>
 [MV1FS](ram_locations/mv1f.md)<br>
 [MV1FT](ram_locations/mv1ft.md)<br>
-MV1FZ<br>
-MV1FZS<br>
-MV1FZSB<br>
-MV1FZSB-2<br>
+[MV1FZ](ram_locations/mv1fz.md)<br>
+[MV1FZS](ram_locations/mv1fz.md)<br>
+[MV1FZSB](ram_locations/mv1fz.md)<br>
+[MV1FZSB-2](ram_locations/mv1fz.md)<br>
 [MV1T](ram_locations/mv1.md)<br>
 MV2<br>
 MV2-01<br>
