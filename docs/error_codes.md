@@ -120,6 +120,8 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 #### 68k Errors, No Code:
 The following are error messages do not generate an error code.
 
+These are all associated with the [68k <=> Z80 Comm Test](tests/comm_test.md).
+
 ```
 Z80 SLOT SWITCH IGNORED (SM1)
 SM1 OTHERWISE LOOKS UNRESPONSIVE
@@ -131,4 +133,11 @@ Z80->68k COMM ISSUE (HELLO)
 Z80->68k COMM ISSUE (ACK)
 ```
 
-These are all associated with the [68k <=> Z80 Comm Test](tests/comm_test.md).
+This message is assoicated with the [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
+
+```
+WATCHDOG DELAY...
+
+IF THIS TEXT REMAINS HERE...
+THEN SYSTEM IS STUCK IN WATCHDOG
+```
