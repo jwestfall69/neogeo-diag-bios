@@ -15,6 +15,13 @@
 .\@
 	endm
 
+	; The call instruction uses an absolute address.  This
+	; macro adjusts this address for functions that we copied
+	; into ram for sm1 tests.
+	macro RCALL
+		call Z80_RAM_START + (\1 - SM1_TEST_CODE_START)
+	endm
+
 	macro STALL
 .\@
 		jp .\@
