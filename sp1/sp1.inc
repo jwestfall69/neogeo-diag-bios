@@ -19,4 +19,8 @@ p2_input_aux			equ $100012
 p1_input_aux_edge		equ $100014
 p2_input_aux_edge		equ $100016
 main_menu_cursor		equ $100018	; highlighted main menu item
-z80_test_flag			equ $10001a 
+z80_test_flags			equ $10001a
+
+; bits we can set/check in z80_test_flags
+Z80_TEST_FLAG_ENABLED		equ $0
+Z80_TEST_FLAG_SLOT_SWITCH	equ $1
