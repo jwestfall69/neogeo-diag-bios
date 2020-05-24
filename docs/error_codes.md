@@ -47,6 +47,8 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x0b |     11 |    001011 |       x0 / 11 | [RAM UNWRITABLE](tests/z80/ram_we.md) |
 |  0x0c |     12 |    001100 |       x0 / 12 | [68k->Z80 COMM ISSUE (HANDSHAKE)](tests/comm_test.md) |
 |  0x0d |     13 |    001101 |       x0 / 13 | [68k->Z80 COMM ISSUE (CLEAR)](tests/comm_test.md) |
+|  0x0e |     14 |    001110 |       x0 / 14 | [SM1 DEAD OUTPUT](tests/z80/sm1_oe.md) |
+|  0x0f |     15 |    001111 |       x0 / 15 | [SM1 CRC ERROR](tests/z80/sm1_crc.md) |
 |  0x10 |     16 |    010000 |       x0 / 16 | [YM2610 I/O ERROR](tests/z80/ym2610_io.md) |
 |  0x11 |     17 |    010001 |       x0 / 17 | [YM2610 TIMER TIMING (FLAG)](tests/z80/ym2610_timer_flag.md) |
 |  0x12 |     18 |    010010 |       x0 / 18 | [YM2610 TIMER TIMING (IRQ)](tests/z80/ym2610_timer_irq.md) |

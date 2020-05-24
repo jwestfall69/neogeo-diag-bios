@@ -132,6 +132,8 @@ At this point work ram starts getting used.
      * Pattern 0xaa
      * Pattern 0xff
  * [68k <=> Z80 Communication Test](tests/comm_test.md)
+ * [SM1 ROM Output Enable Test](tests/z80/sm1_oe.md) (if slot switch)
+ * [SM1 ROM CRC32 Test](tests/z80/sm1_crc.md) (if slot switch)
 
 At this point ram starts getting used.
 

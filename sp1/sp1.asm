@@ -740,14 +740,14 @@ automatic_tests:
 
 	movea.l	$0, a7				; re-init SP
 
+	clr.b	z80_test_flags
+
 	btst	#7, REG_P1CNT			; if P1 "D" was pressed at boot
-	seq	z80_test_flag			; set z80_test_flag to $ff, else $00
 	beq	.z80_user_enabled
 
 	; auto-detect m1 by checking for the HELLO message (ie diag m1 + AES or MV-1B/C)
 	move.b	#COMM_TEST_HELLO, d1
 	cmp.b	REG_SOUND, d1
-	seq	z80_test_flag
 	beq	skip_slot_switch
 
  	ifnd force_z80_tests
@@ -755,6 +755,8 @@ automatic_tests:
  	endif
 
 .z80_user_enabled:
+
+	bset.b	#Z80_TEST_FLAG_ENABLED, z80_test_flags
 
 	tst.b	REG_STATUS_B
 	bpl	skip_slot_switch		; skip slot switch if AES
@@ -773,6 +775,7 @@ skip_slot_switch:
 .loop_try_again:
 	WATCHDOG
 	bsr	z80_check_error
+	bsr	z80_check_sm1_test
 	bsr	z80_check_done
 	bne	.loop_try_again
 
@@ -782,7 +785,7 @@ skip_z80_test:
 	lea	XYP_STR_ALL_TESTS_PASSED, a0
 	bsr	print_xyp_string_struct_clear
 
-	tst.b	z80_test_flag
+	tst.b	z80_test_flags
 
 	bne	loop_reset_check
 
@@ -900,7 +903,7 @@ automatic_function_tests:
 	bsr	print_xy_string_clear
 
 	move.w	(a7)+, d0
-	tst.b	z80_test_flag			; if z80 test enabled, send error code to z80
+	tst.b	z80_test_flags			; if z80 test enabled, send error code to z80
 	beq	.skip_error_to_z80
 	move.b	d0, REG_SOUND
 
@@ -928,6 +931,9 @@ AUTOMATIC_FUNC_TEST_STRUCT_END:
 
 ; swiches to cart M1/S1 roms;
 z80_slot_switch:
+
+	bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
+
 	lea	XYP_STR_Z80_SWITCHING_M1, a0
 	bsr	print_xyp_string_struct_clear
 
@@ -1088,6 +1094,49 @@ z80_check_error:
 .no_error:
 	rts
 
+z80_check_sm1_test:
+
+	; diag m1 is asking us to swap m1 -> sm1
+	move.b	REG_SOUND, d0
+	cmp.b	#COMM_SM1_TEST_SWITCH_SM1, d0
+	bne	.check_swap_to_m1
+
+	btst	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags		; only allow if we did a slot switch
+	bne	.switch_sm1_allow
+
+	move.b  #COMM_SM1_TEST_SWITCH_SM1_DENY, REG_SOUND
+	bsr	z80_wait_clear
+	rts
+
+.switch_sm1_allow:
+	move.b	d0, REG_BRDFIX
+	move.b	#COMM_SM1_TEST_SWITCH_SM1_DONE, REG_SOUND
+
+	lea	(XYP_STR_Z80_SM1_TESTS), a0		; "[SM1]" to indicate m1 is running sm1 tests
+	bsr	print_xyp_string_struct
+
+	bsr	z80_wait_clear
+	rts
+
+.check_swap_to_m1:
+	; diag m1 asking us to swap sm1 -> m1
+	cmp.b	#COMM_SM1_TEST_SWITCH_M1, d0
+	bne	.no_swaps
+
+	move.b	d0, REG_CRTFIX
+	move.b	#COMM_SM1_TEST_SWITCH_M1_DONE, REG_SOUND
+
+	bsr	z80_wait_clear
+
+.no_swaps:
+	rts
+
+; d0 = loop until we stop getting this byte from z80
+z80_wait_clear:
+	WATCHDOG
+	cmp.b	REG_SOUND, d0
+	beq	z80_wait_clear
+	rts
 
 XYP_STR_Z80_ERROR_CODE:		XYP_STRING 4, 12, 0, "Z80 REPORTED ERROR CODE: "
 
@@ -1375,6 +1424,8 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_ITEM Z80_RAM_WE
 	EC_LOOKUP_ITEM Z80_68K_COMM_NO_HANDSHAKE
 	EC_LOOKUP_ITEM Z80_68K_COMM_NO_CLEAR
+	EC_LOOKUP_ITEM Z80_SM1_OE
+	EC_LOOKUP_ITEM Z80_SM1_CRC
 
 	EC_LOOKUP_ITEM YM2610_IO_ERROR
 	EC_LOOKUP_ITEM YM2610_TIMER_TIMING_FLAG
@@ -4688,6 +4739,7 @@ XYP_STR_Z80_MAKE_SURE:		XYP_STRING  4, 21,  0, "FOR Z80 TESTING, MAKE SURE TEST"
 XYP_STR_Z80_CART_CLEAN:		XYP_STRING  4, 22,  0, "CART IS CLEAN AND FUNCTIONAL."
 XYP_STR_Z80_M1_ENABLED:		XYP_STRING 34,  4,  0, "[M1]"
 XYP_STR_Z80_SLOT_SWITCH_NUM:	XYP_STRING 29,  4,  0, "[SS ]"
+XYP_STR_Z80_SM1_TESTS:		XYP_STRING 24,  4,  0, "[SM1]"
 
 STR_Z80_M1_CRC:			STRING "M1 CRC ERROR (fixed region)"
 STR_Z80_M1_UPPER_ADDRESS:	STRING "M1 UPPER ADDRESS (fixed region)"
@@ -4701,6 +4753,8 @@ STR_Z80_RAM_OE:			STRING "RAM DEAD OUTPUT"
 STR_Z80_RAM_WE:			STRING "RAM UNWRITABLE"
 STR_Z80_68K_COMM_NO_HANDSHAKE:	STRING "68k->Z80 COMM ISSUE (HANDSHAKE)"
 STR_Z80_68K_COMM_NO_CLEAR:	STRING "68k->Z80 COMM ISSUE (CLEAR)"
+STR_Z80_SM1_OE:			STRING "SM1 DEAD OUTPUT"
+STR_Z80_SM1_CRC:		STRING "SM1 CRC ERROR"
 
 STR_YM2610_IO_ERROR:		STRING "YM2610 I/O ERROR"
 STR_YM2610_TIMER_TIMING_FLAG:	STRING "YM2610 TIMER TIMING (FLAG)"
