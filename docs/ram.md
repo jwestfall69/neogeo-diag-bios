@@ -74,6 +74,7 @@ NEO-AES4-1<br>
 [MV1FS](ram_locations/mv1f.md)<br>
 [MV1FT](ram_locations/mv1ft.md)<br>
 [MV1FZ](ram_locations/mv1fz.md)<br>
+[MV1FZNB2](ram_locations/mv1fz.md)<br>
 [MV1FZS](ram_locations/mv1fz.md)<br>
 [MV1FZSB](ram_locations/mv1fz.md)<br>
 [MV1FZSB-2](ram_locations/mv1fz.md)<br>
