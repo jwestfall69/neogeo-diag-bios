@@ -24,3 +24,14 @@ z80_test_flags			equ $10001a
 ; bits we can set/check in z80_test_flags
 Z80_TEST_FLAG_ENABLED		equ $0
 Z80_TEST_FLAG_SLOT_SWITCH	equ $1
+
+; bits for p1/2_input_edge
+UP				equ $0
+DOWN				equ $1
+LEFT				equ $2
+RIGHT				equ $3
+A_BUTTON			equ $4
+B_BUTTON			equ $5
+C_BUTTON			equ $6
+D_BUTTON			equ $7
+

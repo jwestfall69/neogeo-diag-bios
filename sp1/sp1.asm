@@ -1873,7 +1873,7 @@ main_menu_loop:
 
 	move.b	main_menu_cursor, d1
 	move.b	p1_input_edge, d0
-	btst	#0, d0					; see if p1 up pressed
+	btst	#UP, d0					; see if p1 up pressed
 	beq	.up_not_pressed
 
 	subq.b	#1, d1
@@ -1881,7 +1881,7 @@ main_menu_loop:
 	clr.b	d1					; if went negative, force to 0
 
 .up_not_pressed:					; up wasnt pressed, see if down was
-	btst	#1, d0
+	btst	#DOWN, d0
 	beq	.check_a_pressed			; down not pressed either, see if 'a' is pressed
 
 	addq.b	#1, d1
@@ -1905,7 +1905,7 @@ main_menu_loop:
 	bsr	print_xy_char				; draw arrow at new location
 
 .check_a_pressed:
-	btst	#4, p1_input_edge			; 'a' pressed?
+	btst	#A_BUTTON, p1_input_edge		; 'a' pressed?
 	bne	.a_pressed
 	bsr	wait_frame
 	bra	.loop_run_menu
@@ -3970,7 +3970,7 @@ manual_color_bars_test:
 	move.b	d0, REG_PALBANK0
 
 	bsr	p1p2_input_update
-	btst	#$7, p1_input_edge	; D pressed?
+	btst	#D_BUTTON, p1_input_edge	; D pressed?
 	beq	.loop_run_test
 
 	; palette1 was clobbered, restore our gray on black
@@ -4525,7 +4525,7 @@ manual_misc_input_tests:
 	bsr	p1p2_input_update
 	bsr	misc_input_update_dynamic
 	bsr	wait_frame
-	btst	#$7, p1_input_edge
+	btst	#D_BUTTON, p1_input_edge
 	beq	.loop_run_test			; if d pressed, exit test
 	rts
 
