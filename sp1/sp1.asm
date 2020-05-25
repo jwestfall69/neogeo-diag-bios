@@ -785,9 +785,12 @@ skip_z80_test:
 	lea	XYP_STR_ALL_TESTS_PASSED, a0
 	bsr	print_xyp_string_struct_clear
 
+	lea	XYP_STR_ABCD_MAIN_MENU, a0
+	bsr	print_xyp_string_struct_clear
+
 	tst.b	z80_test_flags
 
-	bne	loop_reset_check
+	bne	.loop_user_input
 
 	lea	XYP_STR_Z80_TESTS_SKIPPED, a0
 	bsr	print_xyp_string_struct_clear
@@ -798,7 +801,18 @@ skip_z80_test:
 	lea	XYP_STR_Z80_RESET_WITH_CART, a0
 	bsr	print_xyp_string_struct_clear
 
-	bra	loop_reset_check
+.loop_user_input
+	WATCHDOG
+	bsr	check_reset_request
+
+	moveq	#-$10, d0
+	and.b	REG_P1CNT, d0
+	bne	.loop_user_input
+
+	movea.l	$0, a7
+	clr.b	main_menu_cursor
+	bsr	fix_clear
+	bra	manual_tests
 
 watchdog_stuck_test_psub:
 	lea	XY_STR_WATCHDOG_DELAY, a0
@@ -4706,6 +4720,7 @@ STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a00 - BY SMKDAN"
 XYP_STR_PASSES:			XYP_STRING  4, 14,  0, "PASSES:"
 XYP_STR_Z80_WAITING:		XYP_STRING  4,  5,  0, "WAITING FOR Z80 TO FINISH TESTS..."
 XYP_STR_ALL_TESTS_PASSED:	XYP_STRING  4,  5,  0, "ALL TESTS PASSED"
+XYP_STR_ABCD_MAIN_MENU:		XYP_STRING  4, 21,  0, "PRESS ABCD FOR MAIN MENU"
 XYP_STR_Z80_TESTS_SKIPPED:	XYP_STRING  4, 23,  0, "NOTE: Z80 TESTING WAS SKIPPED. TO"
 XYP_STR_Z80_HOLD_D_AND_SOFT:	XYP_STRING  4, 24,  0, "TEST Z80, HOLD BUTTON D AND SOFT"
 XYP_STR_Z80_RESET_WITH_CART:	XYP_STRING  4, 25,  0, "RESET WITH TEST CART INSERTED."
