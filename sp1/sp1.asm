@@ -806,7 +806,7 @@ skip_z80_test:
 	bsr	check_reset_request
 
 	moveq	#-$10, d0
-	and.b	REG_P1CNT, d0
+	and.b	REG_P1CNT, d0		; ABCD pressed?
 	bne	.loop_user_input
 
 	movea.l	$0, a7
