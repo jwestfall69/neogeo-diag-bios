@@ -16,7 +16,7 @@
 * SP1+M1: SM1 checksum test
 * M1: Fix broken ram address test
 * M1: Add ram output enable test
-* M1; Add ram write enable test
+* M1: Add ram write enable test
 * M1: Use rogue YM2610 IRQ as a way to recover from a failed slot switch
 * M1: Fix looping forever waiting on unset of YM2610's busy bit
 
