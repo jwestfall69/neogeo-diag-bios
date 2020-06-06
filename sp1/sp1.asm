@@ -1185,16 +1185,16 @@ z80_comm_test:
 	move.b	#COMM_TEST_HANDSHAKE, REG_SOUND
 
 	moveq	#COMM_TEST_ACK, d1
-	move.w	#500, d2
+	move.w	#100, d2
 	bra	.loop_start_wait_ack
 
-; Wait up to 5ms for ack response (10us delay * 500 loops)
+; Wait up to 1 second for ack response (10ms delay * 100 loops)
 ; This is kinda long but the z80 has its own loop waiting for a
 ; Z80_SEND_HANDSHAKE request.  We need our loop to last longer
 ; so the z80 has a chance to timeout and give us an error,
 ; otherwise we will just get the last thing to wrote (Z80_RECV_HELLO).
 .loop_wait_ack:
-	move.w	#5, d0
+	move.w	#4000, d0
 	bsr	delay
 .loop_start_wait_ack:
 	cmp.b	REG_SOUND, d1
