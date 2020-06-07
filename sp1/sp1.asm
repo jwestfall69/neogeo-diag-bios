@@ -879,7 +879,7 @@ AUTOMATIC_PSUB_TEST_STRUCT_START:
 	dc.l	auto_ram_oe_tests_psub, STR_TESTING_RAM_OE
 	dc.l	auto_ram_we_tests_psub, STR_TESTING_RAM_WE
 	dc.l	auto_wram_data_tests_psub, STR_TESTING_WRAM_DATA
-	dc.l	auto_wram_addreess_tests_psub, STR_TESTING_WRAM_ADDRESS
+	dc.l	auto_wram_address_tests_psub, STR_TESTING_WRAM_ADDRESS
 AUTOMATIC_PSUB_TEST_STRUCT_END:
 
 
@@ -2925,7 +2925,7 @@ check_ram_data_psub:
 	PSUB_RETURN
 
 
-auto_wram_addreess_tests_psub:
+auto_wram_address_tests_psub:
 	lea	WORK_RAM_START.l, a0
 	moveq	#2, d0
 	move.w	#$100, d1
@@ -4263,7 +4263,7 @@ manual_wbram_test_loop:
 	tst.b	d0
 	bne	.test_failed_abort
 
-	PSUB	auto_wram_addreess_tests
+	PSUB	auto_wram_address_tests
 	tst.b	d0
 	bne	.test_failed_abort
 
