@@ -106,10 +106,10 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x6d |    109 |   1101101 |       x1 / x9 | PALETTE RAM DEAD OUTPUT (UPPER) |
 |  0x6e |    110 |   1101110 |       x1 / 10 | PALETTE 74245 DEAD OUTPUT (LOWER) |
 |  0x6f |    111 |   1101111 |       x1 / 11 | PALETTE 74245 DEAD OUTPUT (UPPER) |
-|  0x70 |    112 |  *1110000 |       x1 / 12 | WRAM UNWRITABLE (LOWER) |
-|  0x71 |    113 |  *1110001 |       x1 / 13 | WRAM UNWRITABLE (UPPER) |
-|  0x72 |    114 |  *1110010 |       x1 / 14 | BRAM UNWRITABLE (LOWER) |
-|  0x73 |    115 |  *1110011 |       x1 / 15 | BRAM UNWRITABLE (UPPER) |
+|  0x70 |    112 |  *1110000 |       x1 / 12 | [WRAM UNWRITABLE (LOWER)](tests/68k/wbram_we.md) |
+|  0x71 |    113 |  *1110001 |       x1 / 13 | [WRAM UNWRITABLE (UPPER)](tests/68k/wbram_we.md) |
+|  0x72 |    114 |  *1110010 |       x1 / 14 | [BRAM UNWRITABLE (LOWER)](tests/68k/wbram_we.md) |
+|  0x73 |    115 |  *1110011 |       x1 / 15 | [BRAM UNWRITABLE (UPPER)](tests/68k/wbram_we.md) |
 |  0x74 |    116 |   1110100 |       x1 / 16 | PALETTE RAM UNWRITABLE (LOWER) |
 |  0x75 |    117 |   1110101 |       x1 / 17 | PALETTE RAM UNWRITABLE (UPPER) |
 |  0x78 |    120 |   1111000 |       x1 / 20 | VRAM 32K UNWRITABLE (LOWER) |
