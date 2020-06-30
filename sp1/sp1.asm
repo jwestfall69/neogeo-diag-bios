@@ -1947,6 +1947,7 @@ main_menu_loop:
 MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_MM_CALENDAR_IO, manual_calendar_test, 1
 	MAIN_MENU_ITEM STR_MM_COLOR_BARS, manual_color_bars_test, 0
+	MAIN_MENU_ITEM STR_MM_SMPTE_COLOR_BARS, manual_smpte_color_bars_test, 0
 	MAIN_MENU_ITEM STR_MM_CONTROLER_TEST, manual_controller_test, 0
 	MAIN_MENU_ITEM STR_MM_WBRAM_TEST_LOOP, manual_wbram_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_PAL_RAM_TEST_LOOP, manual_palette_ram_test_loop, 0
@@ -4088,6 +4089,141 @@ color_bar_draw_tiles:
 	rts
 
 
+manual_smpte_color_bars_test:
+	bsr	smpte_color_bar_setup_palettes
+	bsr	smpte_color_bar_draw_sections
+
+.loop_run_test
+	WATCHDOG
+	bsr	p1p2_input_update
+	btst	#D_BUTTON, p1_input_edge	; D pressed?
+	beq	.loop_run_test
+	rts
+
+SMPTE_COLORS:
+	dc.w	SMPTE_BLACK
+	dc.w	SMPTE_BLACK8
+	dc.w	SMPTE_BLACK16
+	dc.w	SMPTE_BLACK24
+	dc.w	SMPTE_BLUE
+	dc.w	SMPTE_CYAN
+	dc.w	SMPTE_DARK_BLUE
+	dc.w	SMPTE_GRAY
+	dc.w	SMPTE_GREEN
+	dc.w	SMPTE_MAGENTA
+	dc.w	SMPTE_PURPLE
+	dc.w	SMPTE_RED
+	dc.w	SMPTE_WHITE
+	dc.w	SMPTE_YELLOW
+SMPTE_COLORS_END:
+
+; We will be using tile #$00 for writing the smpte bars, which is a solid
+; color using color index 1.  Setup palettes 3 to 15 with the 13 needed
+; colors
+smpte_color_bar_setup_palettes:
+	moveq	#((SMPTE_COLORS_END - SMPTE_COLORS) / 2 - 1), d2
+	lea	SMPTE_COLORS, a0
+	lea	PALETTE_RAM_START+PALETTE_SIZE+PALETTE_SIZE+2, a1
+
+.loop_next_color
+	move.w	(a0)+, d0
+	move.w	d0, (a1)
+	adda.l	#PALETTE_SIZE, a1
+	dbra	d2, .loop_next_color
+	rts
+
+
+; struct {
+;	byte palette;
+;	byte width;
+; } smpte_color[]
+SMPTE_TOP_SECTION:
+	dc.b	SMPTE_PAL_BLACK, 2
+	dc.b	SMPTE_PAL_GRAY, 5
+	dc.b	SMPTE_PAL_YELLOW, 5
+	dc.b	SMPTE_PAL_CYAN, 5
+	dc.b	SMPTE_PAL_GREEN, 5
+	dc.b	SMPTE_PAL_MAGENTA, 5
+	dc.b	SMPTE_PAL_RED, 6
+	dc.b	SMPTE_PAL_BLUE, 5
+SMPTE_TOP_SECTION_END:
+
+SMPTE_MIDDLE_SECTION:
+	dc.b	SMPTE_PAL_BLACK, 2
+	dc.b	SMPTE_PAL_BLUE, 5
+	dc.b	SMPTE_PAL_BLACK16, 5
+	dc.b	SMPTE_PAL_MAGENTA, 5
+	dc.b	SMPTE_PAL_BLACK16, 5
+	dc.b	SMPTE_PAL_CYAN, 5
+	dc.b	SMPTE_PAL_BLACK16, 6
+	dc.b	SMPTE_PAL_GRAY, 5
+SMPTE_MIDDLE_SECTION_END:
+
+SMPTE_BOTTOM_SECTION:
+	dc.b	SMPTE_PAL_BLACK, 2
+	dc.b	SMPTE_PAL_DARK_BLUE, 6
+	dc.b	SMPTE_PAL_WHITE, 6
+	dc.b	SMPTE_PAL_PURPLE, 6
+	dc.b	SMPTE_PAL_BLACK16, 7
+	dc.b	SMPTE_PAL_BLACK8, 2
+	dc.b	SMPTE_PAL_BLACK16, 2
+	dc.b	SMPTE_PAL_BLACK24, 2
+	dc.b	SMPTE_PAL_BLACK16, 5
+SMPTE_BOTTOM_SECTION_END:
+
+smpte_color_bar_draw_sections:
+
+	move.w	#FIXMAP + 2, d1		; start 2nd row down
+	move.w	#$20, (2,a6)		; draw tiles left to right
+
+	lea	SMPTE_TOP_SECTION, a0
+	moveq	#((SMPTE_TOP_SECTION_END - SMPTE_TOP_SECTION) / 2), d0
+	moveq	#$14, d2
+	bsr	smpte_color_bar_draw_section
+
+	lea	SMPTE_MIDDLE_SECTION, a0
+	moveq	#((SMPTE_MIDDLE_SECTION_END - SMPTE_MIDDLE_SECTION) / 2), d0
+	moveq	#$2, d2
+	bsr	smpte_color_bar_draw_section
+
+	lea	SMPTE_BOTTOM_SECTION, a0
+	moveq	#((SMPTE_BOTTOM_SECTION_END - SMPTE_BOTTOM_SECTION) / 2), d0
+	moveq	#$7, d2
+	bsr	smpte_color_bar_draw_section
+	rts
+
+; a0 = address of smpte_color struct array
+; d0 = number of items in the array
+; d1 = fix address
+; d2 = height of the section
+smpte_color_bar_draw_section:
+	subq	#$1, d0
+	subq	#$1, d2
+	moveq	#$0, d3
+	moveq	#$c, d6
+
+.loop_next_row:
+	move.w	d1, (-2,a6)
+	moveq	#$0, d3
+	move.b	d0, d3
+	movea.l	a0, a1
+
+.loop_next_color:
+	moveq	#$0, d4
+	move.b	(a1)+, d5		; palette
+	move.b	(a1)+, d4		; width
+	subq	#$1, d4
+	lsl.w	d6, d5			; using tile #$00, so just shift pal over
+
+.loop_next_char:
+	move.w	d5, (a6)
+	dbra	d4, .loop_next_char
+	dbra	d3, .loop_next_color
+
+	addq	#$1, d1
+	dbra	d2, .loop_next_row
+	rts
+
 manual_controller_test:
 	moveq	#$5, d0
 	bsr	fix_clear_line
@@ -4853,6 +4989,7 @@ STR_MMIO_DEAD_OUTPUT:		STRING "MMIO DEAD OUTPUT"
 ; main menu items;
 STR_MM_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
 STR_MM_COLOR_BARS:		STRING "COLOR BARS"
+STR_MM_SMPTE_COLOR_BARS:	STRING "SMPTE COLOR BARS"
 STR_MM_CONTROLER_TEST:		STRING "CONTROLLER TEST"
 STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
 STR_MM_PAL_RAM_TEST_LOOP:	STRING "PALETTE RAM TEST LOOP"
