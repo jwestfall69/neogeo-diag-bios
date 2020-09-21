@@ -11,7 +11,7 @@ This first chunk of tests are written such that they don't touch work ram.
 * [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
 * [BIOS Upper Address](tests/68k/bios_upper_address.md)
 * [BIOS CRC32 Test](tests/68k/bios_crc.md)
-* [Work + Backup RAM Output Enable Tests](tests/wbram_oe.md)
+* [Work + Backup RAM Output Enable Tests](tests/68k/wbram_oe.md)
   * Work RAM Upper
   * Work RAM Lower
   * Backup RAM Upper (if MVS or force enabled on AES)
