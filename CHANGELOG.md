@@ -3,6 +3,7 @@
 
 #### v0.19a00 (master/unreleased)
 * SP1: Re-implement color bars so they work on AES
+* SP1: Add SMPTE color bars
 * SP1: Go back to main menu after manual work/backup ram test
 * SP1: Send error code to credit leds on MVS hardware
 * SP1: Attempt to auto-detect if M1 is active (ie: on AES & MV1-B/C)
@@ -12,7 +13,7 @@
 * SP1: Pressing ABCD after automatic tests will goto the main menu
 * SP1+M1: Make 68k <=> Z80 communication test less finicky about timings
 * SP1+M1: Split 68k <=> Z80 communication into 2 error codes (HELLO vs ACK)
-* SP1+M1: SM1 outout enable test
+* SP1+M1: SM1 output enable test
 * SP1+M1: SM1 checksum test
 * M1: Fix broken ram address test
 * M1: Add ram output enable test
