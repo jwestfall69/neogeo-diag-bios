@@ -58,12 +58,12 @@
 		bra .loop_stall
 	endm
 
-	macro EC_LOOKUP_ITEM
-		dc.b $0, EC_\1
+	macro EC_LOOKUP_STRUCT
+		dc.b EC_\1, \2
 		dc.l STR_\1
 	endm
 
-	macro ECT_DATA_LOOKUP_ITEM
-		dc.w \1
+	macro PRINT_ERROR_STRUCT
+		dc.b $00, \1
 		dc.l \2
 	endm

@@ -849,14 +849,8 @@ automatic_psub_tests_psub:
 	beq	.test_passed
 
 	move.b	d0, d6
-	PSUB	print_error_data
-
+	PSUB	print_error
 	move.b	d6, d0
-	PSUB	get_error_description
-
-	moveq	#4, d0
-	moveq	#5, d1
-	PSUB	print_xy_string_clear
 
 	tst.b	REG_STATUS_B
 	bpl	.skip_error_to_credit_leds	; skip if aes
@@ -906,17 +900,9 @@ automatic_function_tests:
 	beq	.test_passed
 
 	move.w	d0, -(a7)
-	bsr	print_error_data
-
-	move.w	(a7), d0
-	bsr	get_error_description
-
-	movea.l	a0, a0
-	moveq	#4, d0
-	moveq	#5, d1
-	bsr	print_xy_string_clear
-
+	bsr	print_error
 	move.w	(a7)+, d0
+
 	tst.b	z80_test_flags			; if z80 test enabled, send error code to z80
 	beq	.skip_error_to_z80
 	move.b	d0, REG_SOUND
@@ -1065,36 +1051,24 @@ delay_psub:
 z80_check_error:
 	moveq	#-$40, d0
 	and.b	REG_SOUND, d0
-	cmp.b	#$40, d0		; 0x40 = flag indicating a z80 error
+	cmp.b	#$40, d0		; 0x40 = flag indicating a z80 error code
 	bne	.no_error
 
 	move.b	REG_SOUND, d0		; get the error (again?)
 	move.b	d0, d2
 	move.l	#$100000, d1
-	bsr	z80_ack_error		; ack the error by sending it back, and wait for z80 to ack or ack
+	bsr	z80_ack_error		; ack the error by sending it back, and wait for z80 to ack our ack
 	bne	loop_reset_check
 
-	moveq	#$1d, d0
-	moveq	#$c, d1
-	and.b	#$3f, d2		; drop the flag to get the actual error code
-	move.w	d2, -(a7)
-	bsr	print_hex_byte
+	move.b	d2, d0
+	and.b	#$3f, d0		; drop the error flag to get the actual error code
 
-	lea	XYP_STR_Z80_ERROR_CODE.l, a0
-	bsr	print_xyp_string_struct
-
-	move.w	(a7), d0
-
-	bsr	get_error_description
-	moveq	#$4, d0
-	moveq	#$e, d1
-	bsr	print_xyp_string
-
-	moveq	#$15, d0
-	bsr	fix_clear_line
-	moveq	#$16, d0
-	bsr	fix_clear_line
-
+	; bypassing the normal print_error call here since the
+	; z80 might have sent a corrupt error code which we
+	; still want to print with print_error_z80
+	move.w	d0, -(a7)
+	bsr	error_code_lookup
+	bsr	print_error_z80
 	move.w	(a7)+, d0
 
 	tst.b	REG_STATUS_B
@@ -1204,12 +1178,12 @@ z80_comm_test:
 
 .z80_hello_timeout
 	lea	XYP_STR_Z80_COMM_NO_HELLO, a0
-	bra	.print_error
+	bra	.print_comm_error
 
 .z80_ack_timeout
 	lea	XYP_STR_Z80_COMM_NO_ACK, a0
 
-.print_error
+.print_comm_error
 	move.b	d1, d0
 	bra	z80_print_comm_error
 
@@ -1381,150 +1355,597 @@ z80_print_comm_error:
 	bsr	z80_check_error
 	bra	loop_reset_check
 
-; looks up the error code to find the corresponding description
-; from the EC_LOOKUP_TABLE below
+; struct ec_lookup {
+;  byte error_code;
+;  byte print_error_function_id;
+;  long error_code_description_string;  // macro fills in for us
+; }
+EC_LOOKUP_TABLE:
+	; The code for handling errors from the z80 does not use the print function
+	; provided by ec_lookup, but will instead directly call print_error_z80.
+	; This allows handling a bad error code from the z80 differently then the 68k.
+	; If the 68k somehow ended up with a z80 error code it will cause the
+	; print_error_invalid function to be called
+	EC_LOOKUP_STRUCT Z80_M1_CRC, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_M1_UPPER_ADDRESS, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_DATA_00, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_DATA_55, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_DATA_AA, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_DATA_FF, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_ADDRESS_A0_A7, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_ADDRESS_A8_A10, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_OE, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_RAM_WE, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_68K_COMM_NO_HANDSHAKE, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_68K_COMM_NO_CLEAR, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_SM1_OE, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_SM1_CRC, PRINT_ERROR_INVALID
+
+	EC_LOOKUP_STRUCT YM2610_IO_ERROR, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT YM2610_TIMER_TIMING_FLAG, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT YM2610_TIMER_TIMING_IRQ, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT YM2610_IRQ_UNEXPECTED, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT YM2610_TIMER_INIT_FLAG, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT YM2610_TIMER_INIT_IRQ, PRINT_ERROR_INVALID
+
+	EC_LOOKUP_STRUCT Z80_M1_BANK_ERROR_16K, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_M1_BANK_ERROR_8K, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_M1_BANK_ERROR_4K, PRINT_ERROR_INVALID
+	EC_LOOKUP_STRUCT Z80_M1_BANK_ERROR_2K, PRINT_ERROR_INVALID
+
+	EC_LOOKUP_STRUCT BIOS_MIRROR, PRINT_ERROR_HEX_BYTE
+	EC_LOOKUP_STRUCT BIOS_CRC32, PRINT_ERROR_BIOS_CRC32
+
+	EC_LOOKUP_STRUCT WRAM_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT WRAM_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT BRAM_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT BRAM_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT WRAM_UNWRITABLE_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT WRAM_UNWRITABLE_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT BRAM_UNWRITABLE_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT BRAM_UNWRITABLE_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT WRAM_DATA_0000, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT WRAM_DATA_5555, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT WRAM_DATA_AAAA, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT WRAM_DATA_FFFF, PRINT_ERROR_MEMORY
+
+	EC_LOOKUP_STRUCT BRAM_DATA_0000, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT BRAM_DATA_5555, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT BRAM_DATA_AAAA, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT BRAM_DATA_FFFF, PRINT_ERROR_MEMORY
+
+	EC_LOOKUP_STRUCT WRAM_ADDRESS_A0_A7, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT WRAM_ADDRESS_A8_A14, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT BRAM_ADDRESS_A0_A7, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT BRAM_ADDRESS_A8_A14, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT PAL_245_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT PAL_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT PAL_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT PAL_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT PAL_UNWRITABLE_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT PAL_UNWRITABLE_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_0000, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_5555, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_AAAA, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_FFFF, PRINT_ERROR_MEMORY
+
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_0000, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_5555, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_AAAA, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_FFFF, PRINT_ERROR_MEMORY
+
+	EC_LOOKUP_STRUCT PAL_ADDRESS_A0_A7, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT PAL_ADDRESS_A0_A12, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT VRAM_DATA_0000, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_DATA_5555, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_DATA_AAAA, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_DATA_FFFF, PRINT_ERROR_MEMORY
+
+	EC_LOOKUP_STRUCT VRAM_ADDRESS_A0_A7, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_ADDRESS_A8_A14, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT VRAM_32K_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_32K_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_2K_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_2K_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT VRAM_32K_UNWRITABLE_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_32K_UNWRITABLE_UPPER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_2K_UNWRITABLE_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT VRAM_2K_UNWRITABLE_UPPER, PRINT_ERROR_STRING
+
+	EC_LOOKUP_STRUCT MMIO_DEAD_OUTPUT, PRINT_ERROR_MMIO
+EC_LOOKUP_TABLE_END:
+
+; struct print_error {
+;  byte padding; 0x00;
+;  byte function_id;
+;  long function_address;
+;}
+PRINT_ERROR_PSUB_TABLE:
+	PRINT_ERROR_STRUCT PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_psub
+	PRINT_ERROR_STRUCT PRINT_ERROR_HEX_BYTE, print_error_hex_byte_psub
+	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory_psub
+	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string_psub
+PRINT_ERROR_PSUB_TABLE_END:
+
+PRINT_ERROR_FUNC_TABLE:
+	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory
+	PRINT_ERROR_STRUCT PRINT_ERROR_MMIO, print_error_mmio
+	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string
+PRINT_ERROR_FUNC_TABLE_END:
+
+STR_INVALID_ERROR_CODE:		STRING "INVALID ERROR CODE"
+; figure out error description and print error function
+; params;
+;  d0 = error code
+;  d1 = error data
+;  d2 = error data
+;  a0 = error data
+; returns
+;  a1 = error description string
+;  a2 = print error function
+;  d0-d2, a0 are unmodified
+error_code_lookup:
+	lea	(EC_LOOKUP_TABLE), a1
+	moveq	#((EC_LOOKUP_TABLE_END - EC_LOOKUP_TABLE)/6 - 1), d3
+	bra	.loop_ec_lookup_start
+
+.loop_ec_lookup_next_entry:
+	addq.l	#6, a1
+.loop_ec_lookup_start:
+	cmp.b 	(a1), d0
+	dbeq	d3, .loop_ec_lookup_next_entry
+	beq	.ec_found
+
+	; error code not found
+	lea	print_error_invalid, a2
+	lea	STR_INVALID_ERROR_CODE, a1
+	move.b	#PRINT_ERROR_INVALID, d1
+	bra	.not_found
+
+.ec_found:
+	move.b	(1, a1), d4	; print error data function id
+	and.w	#$ff, d4
+	movea.l (2, a1), a1	; error description string
+
+	lea	(PRINT_ERROR_FUNC_TABLE), a2
+	moveq	#((PRINT_ERROR_FUNC_TABLE_END - PRINT_ERROR_FUNC_TABLE)/6 - 1), d3
+	bra	.loop_print_error_start
+
+.loop_print_error_next_entry:
+	addq.l	#6, a2
+.loop_print_error_start
+	cmp.w	(a2), d4
+	dbeq	d3, .loop_print_error_next_entry
+	beq	.function_found
+
+	; no function was found
+	lea	print_error_invalid, a2
+	move.b	d4, d1
+	bra	.not_found
+
+.function_found:
+	movea.l	(2, a2), a2	; print error data function
+.not_found
+	rts
+
+; figure out error description and print error psub
 ; params:
 ;  d0 = error code
-; returns:
-;  a0 = string address
-get_error_description:
-	lea	(EC_LOOKUP_TABLE - 4), a0
-	moveq	#((EC_LOOKUP_TABLE_END - EC_LOOKUP_TABLE)/6 - 1), d1
-	and.w	#$ff, d0
-.loop_next_entry:
-	addq.l	#4, a0
-	cmp.w	(a0)+, d0
-	dbeq	d1, .loop_next_entry
-	beq	.match_found
-	lea	STR_UNKNOWN_ERROR_CODE.l, a0
-	rts
-.match_found:
-	movea.l	(a0), a0
-	rts
+;  d1 = error data
+;  d2 = error data
+;  a0 = error data
+; returns
+;  a1 = error code description
+;  a2 = print error psub
+;  d0-d2, a0 are unmodified
+error_code_lookup_psub:
+	lea	(EC_LOOKUP_TABLE), a1
+	moveq	#((EC_LOOKUP_TABLE_END - EC_LOOKUP_TABLE)/6 - 1), d3
+	bra	.loop_ec_lookup_start
 
+.loop_ec_lookup_next_entry:
+	addq.l	#6, a1
+.loop_ec_lookup_start:
+	cmp.b 	(a1), d0
+	dbeq	d3, .loop_ec_lookup_next_entry
+	beq	.ec_found
 
-STR_UNKNOWN_ERROR_CODE:		STRING "UNKNOWN ERROR CODE"
+	; error code not found
+	lea	print_error_invalid_psub, a2
+	lea	STR_INVALID_ERROR_CODE, a1
+	move.b	#PRINT_ERROR_INVALID, d1
+	bra	.not_found
 
-get_error_description_psub:
-	lea	(EC_LOOKUP_TABLE - 4),a0
-	moveq	#((EC_LOOKUP_TABLE_END - EC_LOOKUP_TABLE)/6 - 1), d1
-	and.w	#$ff, d0
-.loop_next_entry:
-	addq.l	#4, a0
-	cmp.w	(a0)+, d0
-	dbeq	d1, .loop_next_entry
-	beq	.match_found
+.ec_found:
+	move.b	(1, a1), d4	; print error data code block id
+	and.w	#$ff, d4
+	movea.l (2, a1), a1	; error description string
 
-	lea	STR_UNKNOWN_ERROR_CODE_NS.l, a0
+	lea	(PRINT_ERROR_PSUB_TABLE), a2
+	moveq	#((PRINT_ERROR_PSUB_TABLE_END - PRINT_ERROR_PSUB_TABLE)/6), d3
+	bra	.loop_print_error_start
+
+.loop_print_error_next_entry:
+	addq.l	#6, a2
+.loop_print_error_start
+	cmp.w	(a2), d4
+	dbeq	d3, .loop_print_error_next_entry
+	beq	.function_found
+
+	; no function was found
+	lea	print_error_invalid_psub, a2
+	move.b	d4, d1
+	bra	.not_found
+
+.function_found:
+	movea.l	(2, a2), a2
+
+.not_found:
 	PSUB_RETURN
 
-.match_found:
+; lookup/print error
+print_error:
+	bsr	error_code_lookup
+	jmp	(a2)
+
+; lookup/print error
+print_error_psub:
+	PSUB	error_code_lookup
+	jmp	(a2)
+
+; prints error for bad bios crc32
+; params:
+;  d0 = error code
+;  d1 = actual value
+;  a1 = error description
+print_error_bios_crc32_psub:
+	move.l	d1, d2
+	moveq	#14, d0
+	moveq	#10, d1
+	PSUB	print_hex_long
+
+	moveq	#14, d0
+	moveq	#12, d1
+	move.l	BIOS_CRC32_ADDR, d2
+	PSUB	print_hex_long
+
+	lea	STR_EXPECTED.l, a0
+	moveq	#4, d0
+	moveq	#12, d1
+	PSUB	print_xy_string
+
+	lea	STR_ACTUAL.l, a0
+	moveq	#4, d0
+	moveq	#10, d1
+	PSUB	print_xy_string
+
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	jmp	print_xy_string_clear_psub	; error description and PSUB_RETURN
+
+; print error for generic hex byte
+; params:
+;  d0 = error code
+;  d1 = actual value
+;  d2 = expected value
+;  a1 = error description
+print_error_hex_byte_psub:
+	move.b	d2, d3
+	move.b	d1, d2
+
+	moveq	#14, d0
+	moveq	#10, d1
+	PSUB	print_hex_byte
+
+	move.b	d3, d2
+	moveq	#14, d0
+	moveq	#12, d1
+	PSUB	print_hex_byte
+
+	lea	STR_EXPECTED.l, a0
+	moveq	#4, d0
+	moveq	#12, d1
+	PSUB	print_xy_string
+
+	lea	STR_ACTUAL.l, a0
+	moveq	#4, d0
+	moveq	#10, d1
+	PSUB	print_xy_string
+
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	jmp	print_xy_string_clear_psub	; error description and PSUB_RETURN
+
+; prints actual/expected data for a memory address
+; params:
+;  d0 = error code
+;  d1 = expected data
+;  d2 = actual data
+;  a0 = address location
+;  a1 = error description
+print_error_memory:
+	move.w	d1, d3
+	move.w	d2, d4
+	moveq	#14, d0
+	moveq	#8, d1
+	move.l	a0, d2
+	bsr	print_hex_3_bytes		; address
+
+	moveq	#14, d0
+	moveq	#12, d1
+	move.w	d3, d2
+	bsr	print_hex_word			; expected
+
+	moveq	#14, d0
+	moveq	#10, d1
+	move.w	d4, d2
+	bsr	print_hex_word			; actual
+
+	lea	STR_ADDRESS.l, a0
+	moveq	#4, d0
+	moveq	#8, d1
+	bsr	print_xy_string
+
+	lea	STR_EXPECTED.l, a0
+	moveq	#4, d0
+	moveq	#12, d1
+	bsr	print_xy_string
+
+	lea	STR_ACTUAL.l, a0
+	moveq	#4, d0
+	moveq	#10, d1
+	bsr	print_xy_string
+
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	bsr	print_xy_string_clear		; error description
+	rts
+
+; prints actual/expected data for a memory address
+; params:
+;  d0 = error code
+;  d1 = expected data
+;  d2 = actual data
+;  a0 = address location
+;  a1 = error description
+print_error_memory_psub:
+	move.w	d1, d3
+	move.w	d2, d4
+
+	moveq	#14, d0
+	moveq	#8, d1
+	move.l	a0, d2
+	PSUB	print_hex_3_bytes		; address
+
+	moveq	#14, d0
+	moveq	#12, d1
+	move.w	d3, d2
+	PSUB	print_hex_word			; expected
+
+	moveq	#14, d0
+	moveq	#10, d1
+	move.w	d4, d2
+	PSUB	print_hex_word			; actual
+
+	lea	STR_ADDRESS.l, a0
+	moveq	#4, d0
+	moveq	#8, d1
+	PSUB	print_xy_string
+
+	lea	STR_EXPECTED.l, a0
+	moveq	#4, d0
+	moveq	#12, d1
+	PSUB	print_xy_string
+
+	lea	STR_ACTUAL.l, a0
+	moveq	#4, d0
+	moveq	#10, d1
+	PSUB	print_xy_string
+
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	jmp	print_xy_string_clear_psub	; error description and PSUB_RETURN
+
+; print error for mmio
+; params:
+;  a0 = mmio address
+;  a1 = error description
+print_error_mmio:
+	move.l	a0, d3
+	moveq	#13, d0
+	moveq	#8, d1
+	move.l	a0, d2
+	bsr	print_hex_3_bytes
+
+	lea	STR_ADDRESS.l, a0
+	moveq	#4, d0
+	moveq	#8, d1
+	bsr	print_xy_string
+
+	lea	(MMIO_ERROR_LOOKUP_TABLE_START - 4), a0
+.loop_next_entry:
+	addq.l	#4, a0
+	cmp.l	(a0)+, d3
+	bne	.loop_next_entry
 	movea.l	(a0), a0
-	PSUB_RETURN
+	bsr	print_xyp_string_struct_multi
+
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	bsr	print_xy_string_clear
+	rts
+
+MMIO_ERROR_LOOKUP_TABLE_START:
+	dc.l REG_DIPSW, XYP_MMIO_ERROR_C1_1_TO_F0_47
+	dc.l REG_SYSTYPE, XYP_MMIO_ERROR_C1_1_TO_F0_47
+	dc.l REG_STATUS_A, XYP_MMIO_ERROR_REG_STATUS_A
+	dc.l REG_P1CNT, XYP_MMIO_ERROR_GENERIC_C1
+	dc.l REG_SOUND, XYP_MMIO_ERROR_GENERIC_C1
+	dc.l REG_P2CNT, XYP_MMIO_ERROR_GENERIC_C1
+	dc.l REG_STATUS_B, XYP_MMIO_ERROR_GENERIC_C1
+	dc.l REG_VRAMRW, XYP_MMIO_ERROR_REG_VRAMRW
+
+XYP_MMIO_ERROR_C1_1_TO_F0_47:
+	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
+	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
+	XYP_STRING_MULTI_END
+XYP_MMIO_ERROR_REG_STATUS_A:
+	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
+	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
+	XYP_STRING_MULTI_END
+XYP_MMIO_ERROR_GENERIC_C1:
+	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
+	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1"
+	XYP_STRING_MULTI_END
+XYP_MMIO_ERROR_REG_VRAMRW:
+	XYP_STRING_MULTI 4, 10, 0, "1st gen: ? <-> LSPC-A0(?)"
+	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
+	XYP_STRING_MULTI_END
+	align 2
+
+; prints just the error description
+; params:
+;  a1 = error description
+print_error_string:
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	bsr	print_xy_string_clear
+	rts
+
+; prints just the error description
+; params:
+;  a1 = error description
+print_error_string_psub:
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#5, d1
+	jmp	print_xy_string_clear_psub		; error description and PSUB_RETURN
+
+; called if there was an error looking up the
+; error code or its print function
+; params:
+;  d0 = error code
+;  d1 = print function id
+print_error_invalid:
+
+	movem.w	d0-d1, -(a7)
+
+	moveq	#9, d0
+	moveq	#5, d1
+	lea	STR_INVALID_ERROR, a0
+	bsr	print_xy_string_clear
+
+	moveq	#4, d0
+	moveq	#6, d1
+	lea	STR_ERROR_CODE, a0
+	bsr	print_xy_string_clear
+
+	moveq	#4, d0
+	moveq	#7, d1
+	lea	STR_PRINT_FUNCTION, a0
+	bsr	print_xy_string_clear
+
+	move.w	(a7)+, d2
+	moveq	#24, d0
+	moveq	#6, d1
+	bsr	print_hex_byte				; error code
+
+	move.w	(a7)+, d2
+	moveq	#24, d0
+	moveq	#7, d1
+	bsr	print_hex_byte				; print function id
+	rts
+
+; called if there was an error looking up the
+; error code or its print function
+; params:
+;  d0 = error code
+;  d1 = print function id
+print_error_invalid_psub:
+	move.b	d0, d3				; print function id
+	move.b	d1, d4				; error code
+
+	; using print_xy_string_clear_psub will cause the psub
+	; nest to go to deep and a crash, so we need to break
+	; it up into fix_clear_line_psub and print_xy_string_psub
+	moveq	#5, d0
+	PSUB	fix_clear_line
+	moveq	#6, d0
+	PSUB	fix_clear_line
+	moveq	#7, d0
+	PSUB	fix_clear_line
+
+	moveq	#9, d0
+	moveq	#5, d1
+	lea	STR_INVALID_ERROR, a0
+	PSUB	print_xy_string
+
+	moveq	#4, d0
+	moveq	#6, d1
+	lea	STR_ERROR_CODE, a0
+	PSUB	print_xy_string
+
+	moveq	#4, d0
+	move	#7, d1
+	lea	STR_PRINT_FUNCTION, a0
+	PSUB	print_xy_string
+
+	move.b	d3, d2
+	moveq	#24, d0
+	moveq	#6, d1
+	PSUB	print_hex_byte				; error code
+
+	move.b	d4, d2
+	moveq	#24, d0
+	moveq	#7, d1
+	jmp	print_hex_byte_psub			; print function id
 
 
-STR_UNKNOWN_ERROR_CODE_NS: 	STRING "UNKNOWN ERROR CODE (NS)"
+STR_INVALID_ERROR:	STRING "INVALID ERROR"
+STR_ERROR_CODE:		STRING "ERROR CODE:"
+STR_PRINT_FUNCTION:	STRING "PRINT FUNCTION: "
 
-EC_LOOKUP_TABLE:
-	EC_LOOKUP_ITEM Z80_M1_CRC
-	EC_LOOKUP_ITEM Z80_M1_UPPER_ADDRESS
-	EC_LOOKUP_ITEM Z80_RAM_DATA_00
-	EC_LOOKUP_ITEM Z80_RAM_DATA_55
-	EC_LOOKUP_ITEM Z80_RAM_DATA_AA
-	EC_LOOKUP_ITEM Z80_RAM_DATA_FF
-	EC_LOOKUP_ITEM Z80_RAM_ADDRESS_A0_A7
-	EC_LOOKUP_ITEM Z80_RAM_ADDRESS_A8_A10
-	EC_LOOKUP_ITEM Z80_RAM_OE
-	EC_LOOKUP_ITEM Z80_RAM_WE
-	EC_LOOKUP_ITEM Z80_68K_COMM_NO_HANDSHAKE
-	EC_LOOKUP_ITEM Z80_68K_COMM_NO_CLEAR
-	EC_LOOKUP_ITEM Z80_SM1_OE
-	EC_LOOKUP_ITEM Z80_SM1_CRC
 
-	EC_LOOKUP_ITEM YM2610_IO_ERROR
-	EC_LOOKUP_ITEM YM2610_TIMER_TIMING_FLAG
-	EC_LOOKUP_ITEM YM2610_TIMER_TIMING_IRQ
-	EC_LOOKUP_ITEM YM2610_IRQ_UNEXPECTED
-	EC_LOOKUP_ITEM YM2610_TIMER_INIT_FLAG
-	EC_LOOKUP_ITEM YM2610_TIMER_INIT_IRQ
+; print function for all error codes from z80
+; params:
+;  d0 = error code
+;  a1 = error description
+print_error_z80:
+	move.b	d0, d2
+	moveq	#29, d0
+	moveq	#12, d1
+	bsr	print_hex_byte
 
-	EC_LOOKUP_ITEM Z80_M1_BANK_ERROR_16K
-	EC_LOOKUP_ITEM Z80_M1_BANK_ERROR_8K
-	EC_LOOKUP_ITEM Z80_M1_BANK_ERROR_4K
-	EC_LOOKUP_ITEM Z80_M1_BANK_ERROR_2K
+	lea	XYP_STR_Z80_ERROR_CODE.l, a0
+	bsr	print_xyp_string_struct
 
-	EC_LOOKUP_ITEM BIOS_MIRROR
-	EC_LOOKUP_ITEM BIOS_CRC32
+	movea.l	a1, a0
+	moveq	#4, d0
+	moveq	#14, d1
+	bsr	print_xyp_string
 
-	EC_LOOKUP_ITEM WRAM_DEAD_OUTPUT_LOWER
-	EC_LOOKUP_ITEM WRAM_DEAD_OUTPUT_UPPER
-
-	EC_LOOKUP_ITEM BRAM_DEAD_OUTPUT_LOWER
-	EC_LOOKUP_ITEM BRAM_DEAD_OUTPUT_UPPER
-
-	EC_LOOKUP_ITEM WRAM_UNWRITABLE_LOWER
-	EC_LOOKUP_ITEM WRAM_UNWRITABLE_UPPER
-
-	EC_LOOKUP_ITEM BRAM_UNWRITABLE_LOWER
-	EC_LOOKUP_ITEM BRAM_UNWRITABLE_UPPER
-
-	EC_LOOKUP_ITEM WRAM_DATA_0000
-	EC_LOOKUP_ITEM WRAM_DATA_5555
-	EC_LOOKUP_ITEM WRAM_DATA_AAAA
-	EC_LOOKUP_ITEM WRAM_DATA_FFFF
-
-	EC_LOOKUP_ITEM BRAM_DATA_0000
-	EC_LOOKUP_ITEM BRAM_DATA_5555
-	EC_LOOKUP_ITEM BRAM_DATA_AAAA
-	EC_LOOKUP_ITEM BRAM_DATA_FFFF
-
-	EC_LOOKUP_ITEM WRAM_ADDRESS_A0_A7
-	EC_LOOKUP_ITEM WRAM_ADDRESS_A8_A14
-
-	EC_LOOKUP_ITEM BRAM_ADDRESS_A0_A7
-	EC_LOOKUP_ITEM BRAM_ADDRESS_A8_A14
-
-	EC_LOOKUP_ITEM PAL_245_DEAD_OUTPUT_LOWER
-	EC_LOOKUP_ITEM PAL_245_DEAD_OUTPUT_UPPER
-	EC_LOOKUP_ITEM PAL_DEAD_OUTPUT_LOWER
-	EC_LOOKUP_ITEM PAL_DEAD_OUTPUT_UPPER
-
-	EC_LOOKUP_ITEM PAL_UNWRITABLE_LOWER
-	EC_LOOKUP_ITEM PAL_UNWRITABLE_UPPER
-
-	EC_LOOKUP_ITEM PAL_BANK0_DATA_0000
-	EC_LOOKUP_ITEM PAL_BANK0_DATA_5555
-	EC_LOOKUP_ITEM PAL_BANK0_DATA_AAAA
-	EC_LOOKUP_ITEM PAL_BANK0_DATA_FFFF
-
-	EC_LOOKUP_ITEM PAL_BANK1_DATA_0000
-	EC_LOOKUP_ITEM PAL_BANK1_DATA_5555
-	EC_LOOKUP_ITEM PAL_BANK1_DATA_AAAA
-	EC_LOOKUP_ITEM PAL_BANK1_DATA_FFFF
-
-	EC_LOOKUP_ITEM PAL_ADDRESS_A0_A7
-	EC_LOOKUP_ITEM PAL_ADDRESS_A0_A12
-
-	EC_LOOKUP_ITEM VRAM_DATA_0000
-	EC_LOOKUP_ITEM VRAM_DATA_5555
-	EC_LOOKUP_ITEM VRAM_DATA_AAAA
-	EC_LOOKUP_ITEM VRAM_DATA_FFFF
-
-	EC_LOOKUP_ITEM VRAM_ADDRESS_A0_A7
-	EC_LOOKUP_ITEM VRAM_ADDRESS_A8_A14
-
-	EC_LOOKUP_ITEM VRAM_32K_DEAD_OUTPUT_LOWER
-	EC_LOOKUP_ITEM VRAM_32K_DEAD_OUTPUT_UPPER
-	EC_LOOKUP_ITEM VRAM_2K_DEAD_OUTPUT_LOWER
-	EC_LOOKUP_ITEM VRAM_2K_DEAD_OUTPUT_UPPER
-
-	EC_LOOKUP_ITEM VRAM_32K_UNWRITABLE_LOWER
-	EC_LOOKUP_ITEM VRAM_32K_UNWRITABLE_UPPER
-	EC_LOOKUP_ITEM VRAM_2K_UNWRITABLE_LOWER
-	EC_LOOKUP_ITEM VRAM_2K_UNWRITABLE_UPPER
-
-	EC_LOOKUP_ITEM MMIO_DEAD_OUTPUT
-EC_LOOKUP_TABLE_END:
+	moveq	#21, d0
+	bsr	fix_clear_line
+	moveq	#22, d0
+	bsr	fix_clear_line
+	rts
 
 ; ack an error sent to us by the z80 by sending
 ; it back, and then waiting for the z80 to ack
@@ -1974,132 +2395,6 @@ timer_interrupt:
 	move.w	#$2, ($a,a6)		; ack int
 	rte
 
-; parse through the array of error_code_print structs below
-; and run the correct print error function
-; params:
-;  d0 = error code
-;  d1 = error data
-;  d2 = error data
-;  a0 = error data
-print_error_data:
-	move.b	d0, d6
-	and.w	#$3c, d0
-	lsr.w	#2, d0
-	lea	(ECT_DATA_FUNC_LOOKUP_TABLE_START - 4), a1
-	moveq	#((ECT_DATA_FUNC_LOOKUP_TABLE_END - ECT_DATA_FUNC_LOOKUP_TABLE_START)/6), d5
-.loop_next_entry:
-	addq.l	#4, a1
-	cmp.w	(a1)+, d0
-	dbeq	d5, .loop_next_entry
-	beq	.match_found
-	rts
-
-.match_found:
-	movea.l	(a1), a2
-	jsr	(a2)			; match found run the print function
-	move.b	d6, d0
-	rts
-
-
-
-; struct error_code_print {
-;  word error_code_type;
-;  long function_address;
-; }
-ECT_DATA_FUNC_LOOKUP_TABLE_START:
-	ECT_DATA_LOOKUP_ITEM $003, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $004, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $005, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $006, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $007, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $008, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $009, print_error_data_memory
-	ECT_DATA_LOOKUP_ITEM $00f, print_error_data_mmio
-ECT_DATA_FUNC_LOOKUP_TABLE_END:
-
-	dc.b $4e,$75			; random rts opcode?
-
-; jumps to the needed function to print error data
-; that jump location is responsible for calling PSUB_RETURN
-; params:
-;  d0 = error code
-print_error_data_psub:
-	move.b	d0, d6
-	and.w	#$3c, d0
-	lsr.w	#2, d0
-	lea	(ECT_DATA_PSUB_LOOKUP_TABLE_START - 4),a1
-	moveq	#((ECT_DATA_PSUB_LOOKUP_TABLE_END - ECT_DATA_PSUB_LOOKUP_TABLE_START)/6), d5
-
-.loop_next_entry:
-	addq.l	#4, a1
-	cmp.w	(a1)+, d0
-	dbeq	d5, .loop_next_entry
-	beq	.match_found
-	PSUB_RETURN
-.match_found:
-	movea.l	(a1), a2
-	move.b	d6, d0
-	jmp	(a2)
-
-
-; struct {
-;  word error_code_type;
-;  long jmp_address;       jmp location for how to print the data for the ec type
-; };
-ECT_DATA_PSUB_LOOKUP_TABLE_START:
-	ECT_DATA_LOOKUP_ITEM $0000, print_error_hex_psub
-	ECT_DATA_LOOKUP_ITEM $0001, print_error_data_bram_aes_psub
-	ECT_DATA_LOOKUP_ITEM $0002, print_error_data_memory_psub
-	ECT_DATA_LOOKUP_ITEM $0003, print_error_data_memory_psub
-	ECT_DATA_LOOKUP_ITEM $0004, print_error_data_memory_psub
-ECT_DATA_PSUB_LOOKUP_TABLE_END:
-
-; prints error value and actual value as hex
-; params:
-;  d0 = error code
-;  d1 = actual value
-;  d2 = expected value
-print_error_hex_psub:
-	cmp.b	#EC_BIOS_CRC32, d0
-	beq	.print_bios_crc32_data		; special case for bios crc values
-
-	move.b	d2, d3
-	move.b	d1, d2
-
-	moveq	#14, d0
-	moveq	#10, d1
-	PSUB	print_hex_byte
-
-	move.b	d3, d2
-	moveq	#14, d0
-	moveq	#12, d1
-	PSUB	print_hex_byte
-
-	bra	.print_error_strings
-
-.print_bios_crc32_data:
-	move.l	d1, d2
-	moveq	#14, d0
-	moveq	#10, d1
-	PSUB	print_hex_long
-
-	moveq	#14, d0
-	moveq	#12, d1
-	move.l	BIOS_CRC32_ADDR, d2
-	PSUB	print_hex_long
-
-
-.print_error_strings:
-	lea	STR_EXPECTED.l, a0
-	moveq	#4, d0
-	moveq	#12, d1
-	PSUB	print_xy_string
-
-	lea	STR_ACTUAL.l, a0
-	moveq	#4, d0
-	moveq	#10, d1
-	PSUB	print_xy_string
-	PSUB_RETURN
 
 ; seems likely this is never called
 print_error_data_bram_aes_psub:
@@ -2124,143 +2419,7 @@ print_error_data_bram_aes_psub:
 XY_STR_AES_BRAM_NOT_MOD:	XY_STRING 4, 24, "IF USING AES W/OUT BACKUP RAM MOD,"
 XY_STR_AES_BRAM_C_RESET:	XY_STRING 4, 25, "RELEASE C BUTTON AND SOFT RESET."
 
-; prints actual/expected data for a memory address
-; params:
-;  d0 = error code
-;  d1 = expected data
-;  d2 = actual data
-;  a0 = address location
-print_error_data_memory:
-	move.w	d1, d3
-	move.w	d2, d4
-	moveq	#$e, d0
-	moveq	#$8, d1
-	move.l	a0, d2
-	bsr	print_hex_3_bytes		; prints the address
 
-	moveq	#$e, d0
-	moveq	#$c, d1
-	move.w	d3, d2
-	bsr	print_hex_word			; prints expected value
-
-	moveq	#$e, d0
-	moveq	#$a, d1
-	move.w	d4, d2
-	bsr	print_hex_word			; prints actual value
-
-	lea	STR_ADDRESS.l, a0
-	moveq	#$4, d0
-	moveq	#$8, d1
-	bsr	print_xy_string
-
-	lea	STR_EXPECTED.l, a0
-	moveq	#$4, d0
-	moveq	#$c, d1
-	bsr	print_xy_string
-
-	lea	STR_ACTUAL.l, a0
-	moveq	#$4, d0
-	moveq	#$a, d1
-	bsr	print_xy_string
-	rts
-
-
-; prints actual/expected data for a memory address
-; params:
-;  d0 = error code
-;  d1 = expected data
-;  d2 = actual data
-;  a0 = address location
-print_error_data_memory_psub:
-	move.w	d1, d3
-	move.w	d2, d4
-
-	moveq	#14, d0
-	moveq	#8, d1
-	move.l	a0, d2
-	PSUB	print_hex_3_bytes
-
-	moveq	#14, d0
-	moveq	#12, d1
-	move.w	d3, d2
-	PSUB	print_hex_word
-
-	moveq	#14, d0
-	moveq	#10, d1
-	move.w	d4, d2
-	PSUB	print_hex_word
-
-	lea	STR_ADDRESS.l, a0
-	moveq	#4, d0
-	moveq	#8, d1
-	PSUB	print_xy_string
-
-	lea	STR_EXPECTED.l, a0
-	moveq	#4, d0
-	moveq	#12, d1
-	PSUB	print_xy_string
-
-	lea	STR_ACTUAL.l, a0
-	moveq	#4, d0
-	moveq	#10, d1
-	PSUB	print_xy_string
-
-	PSUB_RETURN
-
-
-; params:
-;  a0 = mmio address
-print_error_data_mmio:
-	move.l	a0, d3
-	moveq	#$d, d0
-	moveq	#$8, d1
-	move.l	a0, d2
-	bsr	print_hex_3_bytes
-
-	lea	STR_ADDRESS.l, a0
-	moveq	#$4, d0
-	moveq	#$8, d1
-	bsr	print_xy_string
-
-	lea	(MMIO_ERROR_LOOKUP_TABLE_START - 4), a0
-.loop_next_entry:
-	addq.l	#4, a0
-	cmp.l	(a0)+, d3
-	bne	.loop_next_entry
-	movea.l	(a0), a0
-	bsr	print_xyp_string_struct_multi
-	rts
-
-
-
-
-MMIO_ERROR_LOOKUP_TABLE_START:
-	dc.l REG_DIPSW, XYP_MMIO_ERROR_C1_1_TO_F0_47
-	dc.l REG_SYSTYPE, XYP_MMIO_ERROR_C1_1_TO_F0_47
-	dc.l REG_STATUS_A, XYP_MMIO_ERROR_REG_STATUS_A
-	dc.l REG_P1CNT, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_SOUND, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_P2CNT, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_STATUS_B, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_VRAMRW, XYP_MMIO_ERROR_REG_VRAMRW
-
-XYP_MMIO_ERROR_C1_1_TO_F0_47:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
-	XYP_STRING_MULTI_END
-XYP_MMIO_ERROR_REG_STATUS_A:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
-	XYP_STRING_MULTI_END
-XYP_MMIO_ERROR_GENERIC_C1:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1"
-	XYP_STRING_MULTI_END
-XYP_MMIO_ERROR_REG_VRAMRW:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: ? <-> LSPC-A0(?)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
-	XYP_STRING_MULTI_END
-	align 2
 
 
 ; The bios code is only 16k ($4000).  7 copies/mirrors
@@ -4441,15 +4600,7 @@ manual_wbram_test_loop:
 	bra	manual_tests
 
 .test_failed_abort:
-	move.b	d0, d6
-	PSUB	print_error_data
-
-	move.b	d6, d0
-	PSUB	get_error_description
-
-	moveq	#$4, d0
-	moveq	#$5, d1
-	PSUB	print_xy_string_clear
+	PSUB	print_error
 	bra	loop_reset_check_psub
 
 
@@ -4504,15 +4655,7 @@ manual_palette_ram_test_loop:
 	move.b	d0, REG_PALBANK0
 	bsr	palette_ram_restore
 
-	move.w	d0, -(a7)
-	bsr	print_error_data
-	move.w	(a7)+, d0
-
-	bsr	get_error_description
-	movea.l	a0, a0					; bug? get_error_description already does this
-	moveq	#$4, d0
-	moveq	#$5, d1
-	bsr	print_xy_string_clear
+	bsr	print_error
 
 	moveq	#$19, d0
 	bsr	fix_clear_line
@@ -4582,15 +4725,7 @@ manual_vram_32k_test_loop:
 	bsr	print_hex_3_bytes		; print pass number
 	movem.l	(a7)+, d0-d2
 
-	move.w	d0, -(a7)
-	bsr	print_error_data
-	move.w	(a7)+, d0
-	bsr	get_error_description
-
-	movea.l	a0, a0
-	moveq	#$4, d0
-	moveq	#$5, d1
-	bsr	print_xy_string_clear
+	bsr	print_error
 
 	moveq	#$19, d0
 	bsr	fix_clear_line
@@ -4635,15 +4770,7 @@ manual_vram_2k_test_loop:
 	bra	.loop_run_test
 
 .test_failed_abort:
-	move.w	d0, -(a7)
-	bsr	print_error_data
-	move.w	(a7)+, d0
-
-	bsr	get_error_description
-	movea.l	a0, a0
-	moveq	#$4, d0
-	moveq	#$5, d1
-	bsr	print_xy_string_clear
+	bsr	print_error
 
 	moveq	#$19, d0
 	bsr	fix_clear_line
