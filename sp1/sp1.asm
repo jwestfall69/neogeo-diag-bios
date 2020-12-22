@@ -4594,9 +4594,8 @@ manual_wbram_test_loop:
 	PSUB	fix_clear
 
 	; re-init stuff and return to menu
-	move.b	#3, main_menu_cursor
+	move.b	#4, main_menu_cursor
 	movea.l	$0, a7
-	moveq	#$c, d7
 	bra	manual_tests
 
 .test_failed_abort:
