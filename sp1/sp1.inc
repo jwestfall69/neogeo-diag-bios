@@ -1,7 +1,7 @@
 ; defines specific the the diag bios
 
 SP_INIT_ADDR			equ $110000
-BIOS_CRC32_ADDR			equ $c03ffc
+BIOS_CRC32_ADDR			equ $c07ffc
 PALETTE_RAM_BACKUP_LOCATION	equ $10001c
 FIXMAP_BACKUP_LOCATION		equ $10201c
 

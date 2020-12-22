@@ -2422,24 +2422,24 @@ XY_STR_AES_BRAM_C_RESET:	XY_STRING 4, 25, "RELEASE C BUTTON AND SOFT RESET."
 
 
 
-; The bios code is only 16k ($4000).  7 copies/mirrors
+; The bios code is only 32k ($8000).  3 copies/mirrors
 ; of it are used to fill the entire 128k of the bios rom.
-; At offset $.loop3fb of each mirror is a byte that contains
+; At offset $7ffb of each mirror is a byte that contains
 ; the mirror number.  The running bios is $00, first
-; mirror is $01, 2nd mirror $02, ... 7th mirror $07.
+; mirror is $01, 2nd mirror $02, and 3th mirror $03.
 ; This test checks each of these to verify they are correct.
-; If they end up being wrong it will trigger the "BIOS ADDRESS (A13-A15)"
+; If they end up being wrong it will trigger the "BIOS ADDRESS (A14-A15)"
 ; error.
 ; on error:
 ;  d1 = actual value
 ;  d2 = expected value
 auto_bios_mirror_test_psub:
 	lea	$bffffb, a0
-	moveq	#7, d0
+	moveq	#3, d0
 	moveq	#-1, d2
 .loop_next_offset:
 	addq.b	#1, d2
-	lea	($4000,a0), a0
+	adda.l	#$8000, a0
 	move.b	(a0), d1
 	cmp.b	d2, d1
 	dbne	d0, .loop_next_offset
@@ -2453,17 +2453,17 @@ auto_bios_mirror_test_psub:
 	PSUB_RETURN
 
 ; verifies the bios crc is correct.  The expected crc32 value
-; are the 4 bytes located at $.loop3fc ($c03.loop3c) of the bios.
+; are the 4 bytes located at $7ffc ($c07ffc) of the bios.
 ; on error:
 ;  d1 = actual crc32
 auto_bios_crc32_test_psub:
-	move.l	#$3ffb, d0			; length
+	move.l	#$7ffb, d0			; length
 	lea	$c00000.l, a0			; start address
 	move.b	d0, REG_SWPROM			; use carts vector table?
 	PSUB	calc_crc32
 
 	move.b	d0, REG_SWPBIOS			; use bios vector table
-	cmp.l	$c03ffc.l, d0
+	cmp.l	$c07ffc.l, d0
 	beq	.test_passed
 
 	move.l	d0, d1
@@ -4970,7 +4970,7 @@ misc_input_print_static_items:
 	dbra	d7, .loop_next_entry
 	rts
 
-	rorg	$3000, $ff
+	rorg	$6000, $ff
 
 STR_ACTUAL:			STRING "ACTUAL:"
 STR_EXPECTED:			STRING "EXPECTED:"
@@ -5046,7 +5046,7 @@ STR_Z80_M1_BANK_ERROR_8K:	STRING "M1 BANK ERROR (8K)"
 STR_Z80_M1_BANK_ERROR_4K:	STRING "M1 BANK ERROR (4K)"
 STR_Z80_M1_BANK_ERROR_2K:	STRING "M1 BANK ERROR (2K)"
 
-STR_BIOS_MIRROR:		STRING "BIOS ADDRESS (A13-A15)"
+STR_BIOS_MIRROR:		STRING "BIOS ADDRESS (A14-A15)"
 STR_BIOS_CRC32:			STRING "BIOS CRC ERROR"
 
 STR_WRAM_DEAD_OUTPUT_LOWER:	STRING "WRAM DEAD OUTPUT (LOWER)"
@@ -5174,7 +5174,7 @@ STR_MI_CFG_B:			STRING "CFG-B"
 STR_MI_CFG_B_LOW:		STRING "(CFG-B LOW)"
 STR_MI_CFG_B_HIGH:		STRING "(CFG-B HIGH)"
 
-	rorg	$3ffb, $ff
+	rorg	$7ffb, $ff
 ; these get filled in by gen-crc-mirror
-	dc.b 	$00			; bios copy mirror.  mirror 1 (running copy) is $0, 2nd is $1, etc, up to $7
-	dc.b 	$00,$00,$00,$00		; bios crc32 value calculated from bios_start to $c03ffb
+	dc.b 	$00			; bios mirror, $00 is running copy, $01 1st copy, $02 2nd, $03 3rd
+	dc.b 	$00,$00,$00,$00		; bios crc32 value calculated from bios_start to $c07ffb

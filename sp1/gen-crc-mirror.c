@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INPUT_SIZE        0x4000	// how large the resulting file from vasm should be
+#define INPUT_SIZE        0x8000	// how large the resulting file from vasm should be
 
 #define MIRROR_OFFSET     INPUT_SIZE - 5
 #define CRC32_OFFSET      INPUT_SIZE - 4
 
-#define NUM_MIRRORS       8
+#define NUM_MIRRORS       3
 
 uint32_t crc32_for_byte(uint32_t r) {
   for(int j = 0; j < 8; ++j)
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   // zero out the crc location, mirrors dont get it filled in
   bzero(buffer+CRC32_OFFSET, 4);
 
-  for(i = 1; i < NUM_MIRRORS;i++) {
+  for(i = 1; i <= NUM_MIRRORS;i++) {
     buffer[MIRROR_OFFSET] = i;
     fwrite(buffer, sizeof(char), INPUT_SIZE, rom);
   }
