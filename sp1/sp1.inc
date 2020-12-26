@@ -2,8 +2,8 @@
 
 SP_INIT_ADDR			equ $110000
 BIOS_CRC32_ADDR			equ $c07ffc
-PALETTE_RAM_BACKUP_LOCATION	equ $10001c
-FIXMAP_BACKUP_LOCATION		equ $10201c
+PALETTE_RAM_BACKUP_LOCATION	equ $100024
+FIXMAP_BACKUP_LOCATION		equ $102024
 
 ; variable locations in ram
 ; $100000 ?
@@ -20,6 +20,8 @@ p1_input_aux_edge		equ $100014
 p2_input_aux_edge		equ $100016
 main_menu_cursor		equ $100018	; highlighted main menu item
 z80_test_flags			equ $10001a
+memcard_size			equ $10001c	; long, data size
+memcard_flags			equ $100022
 
 ; bits we can set/check in z80_test_flags
 Z80_TEST_FLAG_ENABLED		equ $0
@@ -74,3 +76,8 @@ PRINT_ERROR_BIOS_CRC32		equ $03
 PRINT_ERROR_MMIO		equ $04
 PRINT_ERROR_STRING		equ $05
 PRINT_ERROR_INVALID		equ $ff
+
+; memcard flags (bset/btst bits)
+MEMCARD_FLAG_BAD_DATA		equ $00
+MEMCARD_FLAG_DBUS_16BIT		equ $01
+MEMCARD_FLAG_DBUS_WIDE		equ $02

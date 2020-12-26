@@ -1464,6 +1464,14 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_STRUCT VRAM_2K_UNWRITABLE_UPPER, PRINT_ERROR_STRING
 
 	EC_LOOKUP_STRUCT MMIO_DEAD_OUTPUT, PRINT_ERROR_MMIO
+
+	EC_LOOKUP_STRUCT MC_245_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT MC_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT MC_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT MC_UNWRITABLE_LOWER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT MC_UNWRITABLE_UPPER, PRINT_ERROR_STRING
+	EC_LOOKUP_STRUCT MC_DATA, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT MC_ADDRESS, PRINT_ERROR_MEMORY
 EC_LOOKUP_TABLE_END:
 
 ; struct print_error {
@@ -2375,6 +2383,7 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_32K, manual_vram_32k_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_2K, manual_vram_2k_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_MISC_INPUT_TEST, manual_misc_input_tests, 0
+	MAIN_MENU_ITEM STR_MM_MEMCARD_TESTS, manual_memcard_tests, 0
 MAIN_MENU_ITEMS_END:
 
 
@@ -3390,6 +3399,9 @@ check_palette_ram_to_245_output:
 	move.w	(a0), d1
 	add.w	d5, d3
 	and.w	d0, d1
+
+	; note this is comparing the mask with the read data,
+	; dead output from the chip will cause $ff
 	cmp.w	d0, d1
 	dbne	d2, .loop_next_address
 
@@ -4983,6 +4995,613 @@ misc_input_print_static_items:
 	dbra	d7, .loop_next_entry
 	rts
 
+; notes:
+; - 68k a1 line to wired to a0 of memcard slot
+; - neo geo has ce#1 and ce#2 wired together
+;     On sram memcards ce#1 is for enabling d0-7 and ce#2 d8-15
+; - 8 bit memcard
+;     Official and repro neogeo memcards are this and have a single 8bit sram/fram chip
+;     Generic sram cards of this type likely have multiple underlying chips
+; - 16 bit memcard
+;     2x 8bit wide sram chips (like neo geo work ram)
+;     Not sure these exist, as they would violate the PC Card sram spec
+; - 16 bit double wide memcard
+;     Some of these cards also support 8bit mode, but requires making proper use of ce#1/2.
+;     With the neogeo setting ce#1/2 both low, it signals to the memcard access will be via
+;     16bit / word.  The memcard expects word aligned requests in this case and will ignore
+;     its a0 line.  This causes a double wide effect when the neogeo is accessing the card
+;     68k address   memcard address   data
+;       800000         000000         1122
+;       800002         000001         1122
+;       800004         000002         3344
+;       800006         000003         3344
+manual_memcard_tests:
+
+	lea	XYP_STR_MC_D_MAIN_MENU, a0
+	bsr	print_xyp_string_struct_clear
+
+	move.b	REG_STATUS_B, d0
+	and.b	#$30, d0
+	beq	.memcard_inserted
+
+	lea	XYP_STR_MC_NOT_DETECTED, a0
+	bsr	print_xyp_string_struct_clear
+	bra	.loop_wait_input_return_menu
+
+.memcard_inserted:
+	move.b	REG_STATUS_B, d0
+	btst	#$6, d0
+	beq	.memcard_not_write_protect
+
+	lea	XYP_STR_MC_WRITE_PROTECT, a0
+	bsr	print_xyp_string_struct_clear
+	bra	.loop_wait_input_return_menu
+
+.memcard_not_write_protect:
+
+	lea	XYP_STR_MC_WARNING1, a0
+	bsr	print_xyp_string_struct_clear
+	lea	XYP_STR_MC_WARNING2, a0
+	bsr	print_xyp_string_struct_clear
+	lea	XYP_STR_MC_A_C_RUN_TEST, a0
+	bsr	print_xyp_string_struct_clear
+
+.loop_wait_input_run_test:
+
+	bsr	p1p2_input_update
+	bsr	wait_frame
+
+	move.b	p1_input, d0
+	btst	#D_BUTTON, d0
+	bne	.dont_run_tests
+
+	and.b	#$50, d0			; a+c pressed, run test
+	cmp.b	#$50, d0
+	beq	.run_tests
+	bra	.loop_wait_input_run_test
+
+.dont_run_tests:
+	rts
+
+.run_tests:
+	moveq	#8, d0
+	bsr	fix_clear_line
+	moveq	#26, d0
+	bsr	fix_clear_line
+	moveq	#27, d0
+	bsr	fix_clear_line
+	lea	XYP_STR_MC_RUNNING_TESTS, a0
+	bsr	print_xyp_string_struct_clear
+
+	moveq	#$0, d0
+	move.b	d0, REG_CRDNORMAL
+	move.b	d0, REG_CRDBANK
+	move.b	d0, REG_CRDUNLOCK1
+	move.b  d0, REG_CRDUNLOCK2
+	clr.b	memcard_flags
+	clr.l	memcard_size
+
+	bsr	memcard_oe_tests
+	bne	.test_failed_abort
+
+	bsr	memcard_get_bit_width
+	bsr	memcard_get_size
+
+	lea	XYP_STR_MC_DETECT, a0
+	bsr	print_xyp_string_struct_clear
+
+	; add (BAD DATA) if we weren't able to detect
+	btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
+	beq	.skip_bad_data
+	lea	XYP_STR_MC_BAD_DATA, a0
+	bsr	print_xyp_string_struct
+
+.skip_bad_data:
+
+	lea	XYP_STR_MC_DBUS_8BIT, a0
+	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+	beq	.print_dbus_size
+	lea	XYP_STR_MC_DBUS_16BIT, a0
+
+.print_dbus_size:
+	bsr	print_xyp_string_struct_clear
+
+	; add (WIDE) if double wide bus
+	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	beq	.print_size
+	lea	XYP_STR_MC_DBUS_WIDE, a0
+	bsr	print_xyp_string_struct
+
+.print_size:
+	lea	XYP_STR_MC_SIZE, a0
+	bsr	print_xyp_string_struct_clear
+
+	moveq	#13, d0
+	moveq	#25, d1
+	move.l	memcard_size, d2
+	moveq	#10, d3			; print the size in KB
+	lsr.l	d3, d2
+	bsr	print_5_digits
+
+	bsr	memcard_we_tests
+	bne	.test_failed_abort
+
+	bsr	memcard_data_tests
+	bne	.test_failed_abort
+
+	bsr	memcard_address_tests
+	bne	.test_failed_abort
+
+	lea	XYP_STR_MC_TESTS_PASSED, a0
+	bsr	print_xyp_string_struct
+
+	bra	.wait_input_return_menu
+
+.test_failed_abort:
+	bsr	print_error
+	moveq	#9, d0
+	bsr	fix_clear_line
+
+.wait_input_return_menu:
+	move.b	d0, REG_CRDLOCK1
+	move.b  d0, REG_CRDLOCK2
+
+	lea	XYP_STR_MC_D_MAIN_MENU, a0
+	bsr	print_xyp_string_struct_clear
+
+.loop_wait_input_return_menu:
+
+	bsr	p1p2_input_update
+	bsr	wait_frame
+
+	btst	#D_BUTTON, p1_input_edge
+	beq	.loop_wait_input_return_menu		; if d pressed, exit test
+
+	rts
+
+
+; The memory card data lines have 2xHCT245 or NEO-G0 between
+; them and the 68k's data lines.
+;
+; check_memcard_oe calls will attempt to identify output issues
+; from those IC's to the 68k.  For this test is ok to check the
+; upper byte for output on 8 bit cards.  If the ICs are working
+; they will be outputting something on the upper byte which
+; won't trigger an error
+;
+; check_memcard_to_245_output call will attempt to identify when the
+; memory on memcard itself is having output issues.  We can only
+; test the lower byte in this case since we don't know if the card
+; is 16 bit.  Figuring out if the card is 16 bit requires the upper
+; byte to be outputing data.
+memcard_oe_tests:
+	move.w	#$ff, d0			; lower byte
+	lea	MEMCARD_START, a0
+	bsr	check_memory_output
+	beq	.test_passed_memory_output_lower
+	move.b	#EC_MC_245_DEAD_OUTPUT_LOWER, d0
+	rts
+
+.test_passed_memory_output_lower:
+	move.w	#$ff00, d0			; high byte
+	lea	MEMCARD_START, a0
+	bsr	check_memory_output
+	beq	.test_passed_memory_output_upper
+	move.b	#EC_MC_245_DEAD_OUTPUT_UPPER, d0
+	rts
+
+.test_passed_memory_output_upper:
+	move.w	#$ff, d0
+	lea	MEMCARD_START, a0
+	bsr	check_memcard_to_245_output
+	beq	.test_passed_memcard_to_245_output_lower
+	move.b	#EC_MC_DEAD_OUTPUT_LOWER, d0
+	rts
+
+.test_passed_memcard_to_245_output_lower:
+	moveq	#$0, d0
+	rts
+
+; Both palette ram and memcard memory exist behind 2x245s or a NEO-G0.  Howver
+; we seem to get different results when the underly memory is not outputting
+; anything.  For palette ram we always get $ff, while for the memcard we get
+; the last written (imm) value to it.  Its unclear why this is (wait cycles?).
+; Additionally the check_palette_ram_to_245_output function is writing a
+; single memory address up to 255 times, which isn't a good idea as repro
+; memcards usually are fram based and have ~10k write cycles.
+check_memcard_to_245_output:
+	move.w  #$5555, (4, a0)
+	move.w  (a0), d1
+	move.w  #$5555, d2
+
+	and.w	d0, d1
+	and.w	d0, d2
+	cmp.w	d1, d2
+	bne	.test_passed
+
+	move.w	#$aaaa, (8, a0)
+	move.w	(a0), d1
+	move.w	#$aaaa, d2
+
+	and.w	d0, d1
+	and.w	d0, d2
+	cmp.w	d1, d2
+	bne	.test_passed
+
+	moveq	#-1, d0
+	rts
+
+.test_passed:
+	moveq	#0, d0
+	rts
+
+; figure out if the card has a 8 bit, 16 bit or 16 bit double wide data bus
+memcard_get_bit_width:
+
+	lea	MEMCARD_START, a0
+	move.w	#$aaaa, (a0)
+
+	; if 8 bit card, the upper 8 bits on the 16 bit data bus seems to be the
+	; last written data.  Write some junk so we see that instead of our 0xaaaa
+	move.w	#$5555, (4, a0)
+	move.w	(a0), d0
+
+	; got back bad data, assume 8bit
+	cmp.b	#$aa, d0
+	bne	.bad_data
+
+	; upper byte doesn't match, assume 8bit, but could be corrupt too
+	cmp.w	#$aaaa, d0
+	bne	.is_8bit
+	bset.b	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+
+	; check for double wide
+	move.w	#$5555, (2, a0)
+	cmp.w	#$5555, (a0)
+	beq	.is_16bit_wide
+	rts
+
+.is_16bit_wide:
+	bset.b	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	rts
+
+.bad_data:
+	bset.b	#MEMCARD_FLAG_BAD_DATA, memcard_flags
+
+.is_8bit:
+	rts
+
+; The memory card is mapped into $800000 to $BFFFFF ($400000/4MB bytes)
+; We have to deal with there being possible bad addresses lines, so we
+; are checking each address line and using the last working one to
+; figure out the memory card size.
+;
+; When checking a specific address line we test the first word and
+; if it passes assume all addresses until the next address line are
+; valid.  For example if $802000 passed testing, we assume up to
+; $803fff are also valid too.
+;
+; This means we are assuming the memory card size is a power of 2.
+; There are some (uncommon) generic sram cards that are not a power
+; of 2.  If one of these are used it will be detected as being the
+; next highest power of 2 and ultimately trigger an error when
+; doing the data tests.
+memcard_get_size:
+
+	; bad data, assume stock neo geo card size (2k)
+	btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
+	bne	.bad_data
+
+	moveq	#4, d1			; write test offset
+	moveq	#0, d2			; last valid test offset
+	lea	MEMCARD_START, a0
+
+.loop_next_bit:
+	movea.l	a0, a1
+	adda.l	d1, a1
+
+	move.w	#$aa, (a1)		; write test offset
+	move.w	#$55, (a0)		; write memcard start
+	move.w	(a1), d0		; read test offset
+
+	cmp.b	#$aa, d0
+	bne	.test_failed
+
+	move.l	d1, d2			; save working test offset
+
+.test_failed:
+	lsl.l	#1, d1			; next test offset
+
+	cmp.l	#$400000, d1		; max test offset
+	beq	.loop_exit
+	bra	.loop_next_bit
+
+.loop_exit:
+
+	; never got any valid address lines? assume stock neo geo card size (2k)
+	cmp.l	#$0, d2
+	beq	.bad_data
+
+	; d2 contains the last working working test offset, but this is
+	; the start of that range.  We need to double it up to get the
+	; total address size.
+	lsl.l	#1, d2
+
+	; d2 contains the address size of the memory card.  In the case of 8bit or
+	; 16bit wide cards only 1/2 of the address space contains actual memory
+	; card data.  So we need to adjust to get the correct memory card data size.
+	; For other cards, data size = address size.
+	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+	beq	.adjust_size
+	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	bne	.adjust_size
+	bra	.skip_adjust_size
+
+.adjust_size:
+	lsr.l	#$1, d2
+
+.skip_adjust_size:
+	move.l	d2, memcard_size
+	rts
+
+.bad_data:
+	move.l	#2048, memcard_size
+	rts
+
+memcard_we_tests:
+	lea	MEMCARD_START, a0
+	move.w	#$ff, d0
+	bsr 	check_memcard_we
+	beq	.test_passed_lower
+	move.b	#EC_MC_UNWRITABLE_LOWER, d0
+	rts
+
+.test_passed_lower:
+	; only test upper if 16bit
+	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+	beq	.test_passed_upper
+
+	move.w	#$ff00, d0
+	bsr	check_memcard_we
+	beq	.test_passed_upper
+	move.b	#EC_MC_UNWRITABLE_UPPER, d0
+	rts
+
+.test_passed_upper:
+	moveq	#0, d0
+	rts
+
+; a0 = address to check
+; d0 = mask
+; returns:
+;  d0 = 0 pass / -1 fail
+check_memcard_we:
+
+	move.w	(a0), d1		; read existing data at address
+
+	move.w	d1, d2
+	eor.w	#$-1, d2		; flip the bits on the read data
+	move.w	d2, (a0)		; write flipped data to address
+	move.w	d1, (4, a0)		; put junk on the bus
+
+	move.w	(a0), d2		; re-read data at address
+
+	and.w	d0, d1
+	and.w	d0, d2
+	cmp.w	d1, d2			; if re-read data == original read data => error
+
+	bne	.test_passed
+	moveq	#$-1, d0
+	rts
+
+.test_passed:
+	moveq	#$0, d0
+	rts
+
+memcard_data_tests:
+	moveq	#$0, d0
+	bsr	check_memcard_data
+	beq	.test_passed_0000
+	move.b	#EC_MC_DATA, d0
+	rts
+
+.test_passed_0000:
+	move.w	#$5555, d0
+	bsr	check_memcard_data
+	beq	.test_passed_5555
+	move.b	#EC_MC_DATA, d0
+	rts
+
+.test_passed_5555:
+	move.w	#$aaaa, d0
+	bsr	check_memcard_data
+	beq	.test_passed_aaaa
+	move.b	#EC_MC_DATA, d0
+	rts
+
+.test_passed_aaaa:
+	moveq	#$-1, d0
+	bsr	check_memcard_data
+	beq	.test_passed_ffff
+	move.b	#EC_MC_DATA, d0
+
+.test_passed_ffff:
+	moveq	#$0, d0
+	rts
+
+
+; Does a full write/read test
+; params:
+;  d0 = value
+; returns:
+;  d0 = 0 (pass), $ff (fail)
+;  a0 = failed address
+;  d1 = wrote value
+;  d2 = read (bad) value
+; On memcard memory, if the there is no output on a data line it will take of
+; the state of the last written state for it.  So we need to poison this by
+; writing the opposite value at an alternative address before re-reading our
+; test address.
+check_memcard_data:
+
+	lea	MEMCARD_START, a0
+	move.l	memcard_size, d1
+
+	move.w	#$ff, d3	; compare mask, default is lower byte only
+	moveq	#2, d4		; address increment amount
+	move.w	d0, d5
+	eor.w	#$-1, d5	; poison value
+
+	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+	beq	.finished_adjustments
+
+	; 16 bit
+	lsr.l	#$1, d1		; adjust length since we will be reading in words
+	move.w	#$ffff, d3	; adjust mask to check upper byte
+
+	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	beq	.finished_adjustments
+	moveq	#4, d4		; wide is every other word
+
+.finished_adjustments:
+	and.w	d3, d0
+
+	; dont check the last byte/word in the loop, we will need to do this
+	; manually to avoid overflowing our test range when poisoning
+	subq.l	#1, d1
+
+.loop_next_address:
+	WATCHDOG
+	move.w	d0, (a0)
+	move.w	d5, (a0, d4)	; use next test address as the poison location
+	move.w	(a0), d2
+
+	and.w 	d3, d2
+	cmp.w	d0, d2
+	bne	.test_failed
+
+	adda.l	d4, a0
+	subq.l	#1, d1
+	bne	.loop_next_address
+
+	; manually test the last byte/word
+	move.w	d0, (a0)
+	move.w	d5, (-4, a0)
+	move.w	(a0), d2
+	and.w	d3, d2
+	cmp.w	d0, d2
+	bne	.test_failed
+
+	moveq	#0, d0
+	rts
+
+.test_failed:
+	move.w	d0, d1
+	moveq	#-1, d0
+	rts
+
+memcard_address_tests:
+	bsr	check_memcard_address
+	beq	.test_passed
+	move.b	#EC_MC_ADDRESS, d0
+	rts
+
+.test_passed
+	moveq	#0, d0
+	rts
+
+check_memcard_address:
+	move.l	memcard_size, d0
+
+	move.w	#$ff, d1	; compare mask, default is lower byte only
+	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+	beq	.skip_adjust_mask
+	move.w	#$ffff, d1
+
+.skip_adjust_mask:
+
+	; need to adjust memcard_size to address size
+	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+	beq	.adjust_size
+	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	bne	.adjust_size
+	bra	.skip_adjust_size
+
+.adjust_size:
+	lsl.l	#1, d0
+
+.skip_adjust_size:
+
+	move.w	#$101, d2		; current read/write value
+	moveq	#2, d3			; current read/write offset
+
+	lea	MEMCARD_START.l, a0
+	move.w	d2, (a0)
+
+	; wide bus, skip 800002
+	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	beq	.loop_write_next_address
+	lsl.l	#1, d3
+	add.w	#$101, d2
+
+.loop_write_next_address:
+	lea	MEMCARD_START, a0
+	adda.l	d3, a0
+
+	add.w	#$101, d2
+	move.w	d2, (a0)
+
+
+	lsl.l	#1, d3
+	cmp	d3, d0
+	beq	.loop_write_end
+	bra	.loop_write_next_address
+.loop_write_end:
+
+	; reset to read back the data
+	move.w	#$101, d2
+	moveq	#2, d3
+
+	lea	MEMCARD_START, a0
+	move.w	(a0), d4
+	move.w	d2, d5
+	and.w	d1, d4
+	and.w	d1, d5
+	cmp.w	d4, d5
+	bne	.test_failed
+
+	; wide bus, skip 800002
+	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+	beq	.loop_read_next_address
+	lsl.l	#1, d3
+	add.w	#$101, d2
+
+.loop_read_next_address:
+	lea	MEMCARD_START, a0
+	adda.l	d3, a0
+
+	add.w	#$101, d2
+	move.w	(a0), d4
+	move.w	d2, d5
+	and.w	d1, d4
+	and.w	d1, d5
+	cmp.w	d4, d5
+	bne	.test_failed
+
+	lsl.l	#1, d3
+	cmp	d3, d0
+	beq	.loop_read_end
+	bra	.loop_read_next_address
+.loop_read_end:
+	moveq	#$0, d0
+	rts
+
+.test_failed:
+	move.w	d5, d1
+	move.w	d4, d2
+	moveq	#-1, d0
+	rts
+
 	rorg	$6000, $ff
 
 STR_ACTUAL:			STRING "ACTUAL:"
@@ -5126,7 +5745,15 @@ STR_VRAM_2K_UNWRITABLE_UPPER:	STRING "VRAM 2K UNWRITABLE (UPPER)"
 
 STR_MMIO_DEAD_OUTPUT:		STRING "MMIO DEAD OUTPUT"
 
-; main menu items;
+STR_MC_245_DEAD_OUTPUT_LOWER:	STRING "MEMCARD 245/G0 DEAD OUTPUT (LOWER)"
+STR_MC_245_DEAD_OUTPUT_UPPER:	STRING "MEMCARD 245/G0 DEAD OUTPUT (UPPER)"
+STR_MC_DEAD_OUTPUT_LOWER:	STRING "MEMCARD DEAD OUTPUT (LOWER)"
+STR_MC_UNWRITABLE_LOWER:	STRING "MEMCARD UNWRITEABLE (LOWER)"
+STR_MC_UNWRITABLE_UPPER:	STRING "MEMCARD UNWRITEABLE (UPPER)"
+STR_MC_DATA:			STRING "MEMCARD DATA"
+STR_MC_ADDRESS:			STRING "MEMCARD ADDRESS"
+
+; main menu items
 STR_MM_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
 STR_MM_COLOR_BARS:		STRING "COLOR BARS"
 STR_MM_SMPTE_COLOR_BARS:	STRING "SMPTE COLOR BARS"
@@ -5136,8 +5763,9 @@ STR_MM_PAL_RAM_TEST_LOOP:	STRING "PALETTE RAM TEST LOOP"
 STR_MM_VRAM_TEST_LOOP_32K:	STRING "VRAM TEST LOOP (32K)"
 STR_MM_VRAM_TEST_LOOP_2K:	STRING "VRAM TEST LOOP (2K)"
 STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
+STR_MM_MEMCARD_TESTS:		STRING "MEMORY CARD TESTS"
 
-; strings for calender io screen;
+; strings for calender io screen
 XYP_STR_CAL_A_1HZ_PULSE:	XYP_STRING  4,  8,  0, "A: 1Hz pulse"
 XYP_STR_CAL_B_64HZ_PULSE:	XYP_STRING  4, 10,  0, "B: 64Hz pulse"
 XYP_STR_CAL_C_4096HZ_PULSE:	XYP_STRING  4, 12,  0, "C: 4096Hz pulse"
@@ -5145,26 +5773,26 @@ XYP_STR_CAL_D_MAIN_MENU:	XYP_STRING  4, 14,  0, "D: Return to menu"
 XYP_STR_CAL_4990_TP:		XYP_STRING  4, 21,  0, "4990 TP:"
 XYP_STR_CAL_WAITING_PULSE:	XYP_STRING  4, 27,  0, "WAITING FOR CALENDAR PULSE..."
 
-; strings for controller test screen;
+; strings for controller test screen
 XYP_STR_CT_D_MAIN_MENU:		XYP_STRING  4, 27,  0, "D: Return to menu"
 XYP_STR_CT_P1:			XYP_STRING  1,  4,  0, "P1"
 XYP_STR_CT_P2:			XYP_STRING  1, 17,  0, "P2"
 
-; strings wram/bram test screens;
+; strings wram/bram test screens
 XYP_STR_WBRAM_PASSES:		XYP_STRING  4, 14,  0, "PASSES:"
 XYP_STR_WBRAM_HOLD_ABCD:	XYP_STRING  4, 27,  0, "HOLD ABCD TO STOP"
 XYP_STR_WBRAM_WRAM_AES_ONLY:	XYP_STRING  4, 16,  0, "WRAM TEST ONLY (AES)"
 
-; strings for palette test screen;
+; strings for palette test screen
 XYP_STR_PAL_PASSES:		XYP_STRING  4, 14,  0, "PASSES:"
 XYP_STR_PAL_A_TO_RESUME:	XYP_STRING  4, 27,  0, "RELEASE A TO RESUME"
 XYP_STR_PAL_HOLD_ABCD:		XYP_STRING  4, 25,  0, "HOLD ABCD TO STOP"
 
-; strings for vram test screens;
+; strings for vram test screens
 XYP_STR_VRAM_32K_A_TO_RESUME:	XYP_STRING  4, 27,  0, "RELEASE A TO RESUME"
 STR_VRAM_HOLD_ABCD:		STRING "HOLD ABCD TO STOP"
 
-; strings for misc input screen;
+; strings for misc input screen
 XYP_STR_MI_D_MAIN_MENU:		XYP_STRING  4, 27,  0, "D: Return to menu"
 XYP_STR_MI_MEMORY_CARD:		XYP_STRING  4,  8,  0, "MEMORY CARD:"
 XYP_STR_MI_SYSTEM_TYPE:		XYP_STRING  4, 13,  0, "SYSTEM TYPE:"
@@ -5186,6 +5814,23 @@ STR_MI_CFG_A_HIGH:		STRING "(CFG-A HIGH)"
 STR_MI_CFG_B:			STRING "CFG-B"
 STR_MI_CFG_B_LOW:		STRING "(CFG-B LOW)"
 STR_MI_CFG_B_HIGH:		STRING "(CFG-B HIGH)"
+
+; strings for memory card screen
+XYP_STR_MC_A_C_RUN_TEST:	XYP_STRING  4, 26,  0, "A+C: Run Test"
+XYP_STR_MC_D_MAIN_MENU:		XYP_STRING  4, 27,  0, "D: Return to menu"
+XYP_STR_MC_WARNING1:		XYP_STRING  4,  8,  0, "WARNING: ALL DATA ON THE MEMORY"
+XYP_STR_MC_WARNING2:		XYP_STRING  4,  9,  0, "CARD WILL BE OVERWRITTEN!"
+XYP_STR_MC_NOT_DETECTED:	XYP_STRING  4,  8,  0, "ERROR: MEMORY CARD NOT DETECTED"
+XYP_STR_MC_WRITE_PROTECT:	XYP_STRING  4,  8,  0, "ERROR: MEMORY CARD WRITE PROTECTED"
+XYP_STR_MC_DETECT:		XYP_STRING  4, 22,  0, "DETECTED"
+XYP_STR_MC_BAD_DATA:		XYP_STRING 13, 22,  0, "(BAD DATA)"
+XYP_STR_MC_DBUS_8BIT:		XYP_STRING  4, 24,  0, "DATA BUS: 8-BIT"
+XYP_STR_MC_DBUS_16BIT:		XYP_STRING  4, 24,  0, "DATA BUS: 16-BIT"
+XYP_STR_MC_DBUS_WIDE:		XYP_STRING 21, 24,  0, "(WIDE)"
+XYP_STR_MC_SIZE:		XYP_STRING  8, 25,  0, "SIZE:      KB"
+XYP_STR_MC_TESTS_PASSED:	XYP_STRING  4,  9,  0, "ALL TESTS PASSED"
+XYP_STR_MC_RUNNING_TESTS:	XYP_STRING  4,  9,  0, "RUNNING TESTS..."
+
 
 	rorg	$7ffb, $ff
 ; these get filled in by gen-crc-mirror
