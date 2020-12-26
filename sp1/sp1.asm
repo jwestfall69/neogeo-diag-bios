@@ -628,7 +628,7 @@ print_digits:
 	move.w	d2, (a6)
 	clr.w	d2
 	swap	d2
-	dbra	d1, .loop_next_digit
+	dbeq	d1, .loop_next_digit
 	rts
 
 ; prints 5 digits starting at x,y - psub version
@@ -656,7 +656,7 @@ print_5_digits_psub:
 	move.w	d2, (a6)
 	clr.w	d2
 	swap	d2
-	dbra	d1, .loop_next_digit
+	dbeq	d1, .loop_next_digit
 	PSUB_RETURN
 
 ; moves fix memory from src to dst, src memory will be ovewritten with $20 tile
