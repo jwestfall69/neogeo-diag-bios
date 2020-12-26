@@ -2658,7 +2658,7 @@ auto_palette_ram_tests:
 	move.w	#$2000, d0
 	bsr	copy_memory			; backup palette ram, unclean why palette_ram_backup function wasnt used
 
-	bsr	palette_ram_oe_tests
+	bsr	palette_ram_output_tests
 	bne	.test_failed_abort
 
 	bsr	palette_ram_we_tests
@@ -3326,43 +3326,54 @@ check_palette_ram_address:
 	moveq	#-1, d0
 	rts
 
-palette_ram_oe_tests:
+; Depending on motherboard model there will either be 2x245s or a NEO-G0
+; sitting between the palette memory and the 68k data bus.
+; The first 2 tests are checking for output from the IC's, while the last 2
+; tests are checking for output on the palette memory chips
+palette_ram_output_tests:
 	move.w	#$ff, d0
-	bsr	check_palette_ram_74245_oe
-	beq	.test_passed_74245_lower
+	lea	PALETTE_RAM_START, a0
+	bsr	check_memory_output
+	beq	.test_passed_memory_output_lower
 	moveq	#EC_PAL_245_DEAD_OUTPUT_LOWER, d0
 	rts
 
-.test_passed_74245_lower:
+.test_passed_memory_output_lower:
 	move.w	#$ff00, d0
-	bsr	check_palette_ram_74245_oe
-	beq	.test_passed_74245_upper
+	lea	PALETTE_RAM_START, a0
+	bsr	check_memory_output
+	beq	.test_passed_memory_output_upper
 	moveq	#EC_PAL_245_DEAD_OUTPUT_UPPER, d0
 	rts
 
-.test_passed_74245_upper:
+.test_passed_memory_output_upper:
 	move.w	#$ff, d0
-	bsr	check_palette_ram_oe
-	beq	.test_passed_lower
+	bsr	check_palette_ram_to_245_output
+	beq	.test_passed_palette_ram_to_245_output_lower
 	moveq	#EC_PAL_DEAD_OUTPUT_LOWER, d0
 	rts
 
-.test_passed_lower:
+.test_passed_palette_ram_to_245_output_lower:
 	move.w	#$ff00, d0
-	bsr	check_palette_ram_oe
-	beq	.test_passed_upper
+	bsr	check_palette_ram_to_245_output
+	beq	.test_passed_palette_ram_to_245_output_upper
 	moveq	#EC_PAL_DEAD_OUTPUT_UPPER, d0
 	rts
 
-.test_passed_upper:
+.test_passed_palette_ram_to_245_output_upper:
 	moveq	#0, d0
 	rts
 
-
-; params:
-;  d0 = bitmask
-; this seems to be doing the same thing as check_ram_we, with a delay before the re-read
-check_palette_ram_oe:
+; palette ram and have 2x245s or a NEO-G0 between
+; them and the 68k data bus.  This function attempts
+; to check for dead output between the memory chip and
+; the 245s/NEO-G0.
+;
+; params
+;  d0 = compare mask
+; return
+;  d0 = 0 is passed, -1 = failed
+check_palette_ram_to_245_output:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$ff, d2
 	moveq	#0, d3
@@ -3390,9 +3401,12 @@ check_palette_ram_oe:
 	moveq	#-1, d0
 	rts
 
-
-check_palette_ram_74245_oe:
-	lea	PALETTE_RAM_START.l, a0
+; This really the same thing as check_ram_oe_psub
+;  d0 = compare mask
+;  a0 = address for testing
+; return
+;  d0 = 0 is passed, -1 = failed
+check_memory_output:
 	moveq	#$31, d2
 
 .loop_test_again:
