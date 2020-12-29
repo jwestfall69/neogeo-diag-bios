@@ -1,11 +1,9 @@
 # Tests
 ---
 
+#### BIOS/68k Automatic Tests:
 Below is a breakdown of the tests and the order they are preformed during
 automatic testing.
-
-
-#### BIOS/68k Tests:
 
 This first chunk of tests are written such that they don't touch work ram.
 * [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
@@ -106,8 +104,86 @@ At this point work ram starts getting used.
   * MMIO Output Enable (Word)
     * REG_VRAMRW
 
+ #### BIOS/68k Manual Tests:
+ These are the tests started by via the menu.
+
+ * Calendar I/O (MVS Only)
+ * Color Bars
+ * SMPTE Color Bars
+ * Controller Test
+ * Work/Backup RAM Test Loop
+   * Work RAM Data Tests
+     * Pattern 0x0000
+     * Pattern 0x5555
+     * Pattern 0xaaaa
+     * Pattern 0xffff
+   * Work RAM Address Tests
+     * Address Lines a0 to a7
+     * Address Lines a8 to a14
+   * Backup RAM Data Tests
+     * Pattern 0x0000
+     * Pattern 0x5555
+     * Pattern 0xaaaa
+     * Pattern 0xffff
+   * Backup RAM Address Tests
+     * Address Lines a0 to a7
+     * Address Lines a8 to a14
+ * Palette RAM Test Loop
+   * Palette RAM Data Tests
+     * Palette Bank0
+       * Pattern 0x0000
+       * Pattern 0x5555
+       * Pattern 0xaaaa
+       * Pattern 0xffff
+     * Palette Bank1
+       * Pattern 0x0000
+       * Pattern 0x5555
+       * Pattern 0xaaaa
+       * Pattern 0xffff      
+   * Palette RAM Address Tests
+     * Address Lines a0 to a7
+     * Address Lines a8 to a12
+ * 32K Video RAM Test Loop
+   * 32K Video RAM Data Tests
+     * Pattern 0x0000
+     * Pattern 0x5555
+     * Pattern 0xaaaa
+     * Pattern 0xffff
+   * 32K Video RAM Address Tests
+     * Address Lines a0 to a7
+     * Address Lines a8 to a14
+ * 2K Video RAM Test Loop
+   * 2K Video RAM Data Tests
+     * Pattern 0x0000
+     * Pattern 0x5555
+     * Pattern 0xaaaa
+     * Pattern 0xffff
+   * 2K Video RAM Address Tests
+     * Address Lines a0 to a7
+     * Address Lines a8 to a10
+ * Misc Input Test
+ * [Memory Card Tests](tests/68k/memcard.md)
+   * [Memory Card Inserted](tests/68k/memcared_detect.md)
+   * [Memory Card Write Protect Check](tests/68k/memcard_detect.md)
+   * [Memory Card Output Tests](tests/68k/memcard_output.md)
+     * Memory Card 245/G0 Lower
+     * Memory Card 245/G0 Upper
+     * Memory Card Lower
+   * [Memory Card Detect Size/Bus Width](tests/68k/memcard_detect.md)
+   * [Memory Card Writable Tests](tests/68k/memcard_writable.md)
+     * Memory Card Lower
+     * Memory Card Upper
+   * [Memory Card Data Tests](tests/68k/memcard_data.md)
+     * Pattern 0x0000
+     * Pattern 0x5555
+     * Pattern 0xaaaa
+     * Pattern 0xffff
+   * [Memory Card Address Test](tests/68k/memcard_address.md)
+
 
  #### M1/Z80 Tests:
+ Below is a breakdown of the tests and the order they are preformed during
+ automatic testing.
 
  This first chunk of tests are written such that they don't touch ram.
  * [YM2610 Noise Maker](tests/z80/ym2610_noise_maker.md)

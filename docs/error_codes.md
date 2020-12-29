@@ -14,6 +14,7 @@ error code sent from the diag bios to the diag m1 will only happen after the
 (successful) 68k <=> Z80 comm test.  As such any diag bios test that happens
 before the comm test will not generate a beep code.  These tests are identified
 by the beep code having an * in front of it in the 68k Error codes table below.
+Error codes >= 0x80 will not generate a beep code.
 
 Beeps consist of a series of high and low tones that correspond to the Beep
 Codes in the tables below.  A 1 will be a high tone and 0 an low tone, going
@@ -27,7 +28,7 @@ On MVS hardware the diag bios will also display the error number on the
 player1/2 credit leds.  Player 1 credit leds will have the 2 upper digits of the
 error and Player 2 the lower 2 digits.  The neo geo hardware doesn't seem to
 allow the left digit on a player's credit leds to be 0 and instead just leaves
-it off/empty.
+it off/empty.  Error codes >= 0x80 will not display to the credit leds.
 
 In the tables below a value of 'x' in meant to represent the digit is off/empty.
 
@@ -117,7 +118,13 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x7a |    122 |   1111010 |       x1 / 22 | VRAM 2K UNWRITABLE (LOWER) |
 |  0x7b |    123 |   1111011 |       x1 / 23 | VRAM 2K UNWRITABLE (UPPER) |
 |  0x7c |    124 |   1111100 |       x1 / 24 | MMIO DEAD OUTPUT |
-
+|  0x80 |    128 |       N/A |           N/A | [MEMCARD 245/G0 DEAD OUTPUT (LOWER)](tests/68k/memcard_output.md) |
+|  0x81 |    129 |       N/A |           N/A | [MEMCARD 245/G0 DEAD OUTPUT (UPPER)](tests/68k/memcard_output.md) |
+|  0x82 |    130 |       N/A |           N/A | [MEMCARD DEAD OUTPUT (LOWER)](tests/68k/memcard_output.md) |
+|  0x83 |    131 |       N/A |           N/A | [MEMCARD UNWRITABLE (LOWER)](tests/68k/memcard_writable.md) |
+|  0x84 |    132 |       N/A |           N/A | [MEMCARD UNWRITABLE (UPPER)](tests/68k/memcard_writable.md) |
+|  0x85 |    133 |       N/A |           N/A | [MEMCARD DATA](tests/68k/memcard_data.md) |
+|  0x88 |    136 |       N/A |           N/A | [MEMCARD ADDRESS](tests/68k/memcard_address.md) |
 
 #### 68k Errors, No Code:
 The following are error messages do not generate an error code.
@@ -135,7 +142,7 @@ Z80->68k COMM ISSUE (HELLO)
 Z80->68k COMM ISSUE (ACK)
 ```
 
-This message is assoicated with the [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
+This message is associated with the [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
 
 ```
 WATCHDOG DELAY...
