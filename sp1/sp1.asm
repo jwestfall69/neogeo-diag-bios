@@ -5553,7 +5553,7 @@ check_memcard_address:
 
 
 	lsl.l	#1, d3
-	cmp	d3, d0
+	cmp.l	d3, d0
 	beq	.loop_write_end
 	bra	.loop_write_next_address
 .loop_write_end:
@@ -5589,7 +5589,7 @@ check_memcard_address:
 	bne	.test_failed
 
 	lsl.l	#1, d3
-	cmp	d3, d0
+	cmp.l	d3, d0
 	beq	.loop_read_end
 	bra	.loop_read_next_address
 .loop_read_end:
