@@ -163,13 +163,13 @@ At this point work ram starts getting used.
      * Address Lines a8 to a10
  * Misc Input Test
  * [Memory Card Tests](tests/68k/memcard.md)
-   * [Memory Card Inserted](tests/68k/memcared_detect.md)
+   * [Memory Card Inserted](tests/68k/memcard_detect.md)
    * [Memory Card Write Protect Check](tests/68k/memcard_detect.md)
    * [Memory Card Output Tests](tests/68k/memcard_output.md)
      * Memory Card 245/G0 Lower
      * Memory Card 245/G0 Upper
      * Memory Card Lower
-   * [Memory Card Detect Size/Bus Width](tests/68k/memcard_detect.md)
+   * [Memory Card Detect Size + Bus Width](tests/68k/memcard_detect.md)
    * [Memory Card Writable Tests](tests/68k/memcard_writable.md)
      * Memory Card Lower
      * Memory Card Upper
