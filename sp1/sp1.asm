@@ -5380,7 +5380,7 @@ check_memcard_we:
 	move.w	(a0), d1		; read existing data at address
 
 	move.w	d1, d2
-	eor.w	#$-1, d2		; flip the bits on the read data
+	eor.w	#-1, d2			; flip the bits on the read data
 	move.w	d2, (a0)		; write flipped data to address
 	move.w	d1, (4, a0)		; put junk on the bus
 
@@ -5391,7 +5391,7 @@ check_memcard_we:
 	cmp.w	d1, d2			; if re-read data == original read data => error
 
 	bne	.test_passed
-	moveq	#$-1, d0
+	moveq	#-1, d0
 	rts
 
 .test_passed:
@@ -5420,7 +5420,7 @@ memcard_data_tests:
 	rts
 
 .test_passed_aaaa:
-	moveq	#$-1, d0
+	moveq	#-1, d0
 	bsr	check_memcard_data
 	beq	.test_passed_ffff
 	move.b	#EC_MC_DATA, d0
@@ -5450,7 +5450,7 @@ check_memcard_data:
 	move.w	#$ff, d3	; compare mask, default is lower byte only
 	moveq	#2, d4		; address increment amount
 	move.w	d0, d5
-	eor.w	#$-1, d5	; poison value
+	eor.w	#-1, d5		; poison value
 
 	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
 	beq	.finished_adjustments
