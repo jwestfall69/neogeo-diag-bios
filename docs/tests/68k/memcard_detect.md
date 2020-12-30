@@ -87,3 +87,7 @@ ultimately trigger an error when doing the data tests.
 
 Something it keep in mind, if the last address line needed by your memory card
 is bad it will cause the card size to be detected as half its actual size.
+
+Memory cards larger then 2048KB require using bank switching via the
+REG_CRDBANK register to set A21-A23 address lines.  This is not something the
+diag bios currently supports so those cards will be detected as 2048KB.
