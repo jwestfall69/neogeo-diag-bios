@@ -151,3 +151,7 @@ when the Neo Geo accesses the memory card's memory.
 |    0x800002 |            0x000000 | 0x1122 |
 |    0x800004 |            0x000002 | 0x3344 |
 |    0x800006 |            0x000002 | 0x3344 |
+
+NOTE: I've never come across a 16-bit card that wasn't double wide.  I think
+would require a non-standard/custom card that was wired up like the neo geo's
+work/backup ram for it to be non-double wide.

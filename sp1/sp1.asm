@@ -5273,7 +5273,7 @@ memcard_get_bit_width:
 
 ; The memory card is mapped into $800000 to $BFFFFF ($400000/4MB bytes)
 ; We have to deal with there being possible bad addresses lines, so we
-; are checking each address line and using the last working one to
+; are checking each address line and use the last working one to
 ; figure out the memory card size.
 ;
 ; When checking a specific address line we test the first word and
@@ -5285,14 +5285,14 @@ memcard_get_bit_width:
 ; There are some (uncommon) generic sram cards that are not a power
 ; of 2.  If one of these are used it will be detected as being the
 ; next highest power of 2 and ultimately trigger an error when
-; doing the data tests.
+; doing the address tests.
 memcard_get_size:
 
 	; bad data, assume stock neo geo card size (2k)
 	btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
 	bne	.bad_data
 
-	moveq	#4, d1			; write test offset
+	moveq	#4, d1			; test offset
 	moveq	#0, d2			; last valid test offset
 	lea	MEMCARD_START, a0
 
@@ -5438,7 +5438,7 @@ memcard_data_tests:
 ;  a0 = failed address
 ;  d1 = wrote value
 ;  d2 = read (bad) value
-; On memcard memory, if the there is no output on a data line it will take of
+; On memcard memory, if the there is no output on a data line it will take on
 ; the state of the last written state for it.  So we need to poison this by
 ; writing the opposite value at an alternative address before re-reading our
 ; test address.
@@ -5510,6 +5510,8 @@ memcard_address_tests:
 	moveq	#0, d0
 	rts
 
+; Write an incrementing value at each address line
+; Read back those values and make sure they are correct.
 check_memcard_address:
 	move.l	memcard_size, d0
 
