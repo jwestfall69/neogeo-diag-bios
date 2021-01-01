@@ -5,6 +5,10 @@ BIOS_CRC32_ADDR			equ $c07ffc
 PALETTE_RAM_BACKUP_LOCATION	equ $100024
 FIXMAP_BACKUP_LOCATION		equ $102024
 
+; Dynamic subroutines
+DSUB_INIT_PSEUDO		equ $0c
+DSUB_INIT_REAL			equ $18
+
 ; variable locations in ram
 ; $100000 ?
 ; $100002 ?

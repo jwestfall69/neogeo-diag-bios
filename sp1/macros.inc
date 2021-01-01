@@ -4,15 +4,31 @@
 		move.b	d0, (REG_WATCHDOG)
 	endm
 
-	macro PSUB
-		lea (\1_psub), a2
+	macro DSUB
+		lea (\1_dsub), a2
 		lea (.\@), a3
-		bra psub_enter
+		bra dsub_enter
 .\@:
 	endm
 
-	macro PSUB_RETURN
-		bra psub_exit
+	macro DSUB_RETURN
+		bra dsub_return
+	endm
+
+	macro PSUB
+		lea (\1_dsub), a2
+		lea (.\@), a3
+		bra dsub_enter
+.\@:
+	endm
+
+	macro RSUB
+		movem.l	a2-a3, -(a7)
+		lea (\1_dsub), a2
+		lea (.\@), a3
+		bra dsub_enter
+.\@:
+		movem.l	(a7)+, a2-a3
 	endm
 
 	macro STRING

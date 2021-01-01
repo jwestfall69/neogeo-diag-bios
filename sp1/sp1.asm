@@ -27,60 +27,94 @@ VECTORS:
 	dc.l	vblank_interrupt
 	dc.l	timer_interrupt
 
-; psub_enter/psub_exit allows creating and using pseudo subroutines.  The
-; purpose of which is to mimic jsr/bsr with out the need for touching
-; the stack/work ram, which maybe faultly.  Up to 2 nested psub calls
-; are supported.
-;
-; psub_enter requires 2 registers to be setup
-; a2 = psub that will be called
-; a3 = address to jmp to when psub is finished
-;
-; d7 is used to keep track of nesting and must be initialized to $0c
-; before using psub_enter for the first time
-;
-; When a psub is done, it should jmp/bra to psub_exit instead of rts.
-;
-; The initial psub call will store the return address in a7, first nest
-; in a5, and 2nd nest in a4.  This will also mean that a7 will be
-; clobbered and must be re-initialized before doing anything with the
-; stack.
-;
-; A psub should not touch a4, a5, a7, d7.  This will mean you can't
-; call normal subroutines within a psub as the stack (a7) will
-; will not contain a valid stack location.  Ideally you should also
-; avoid using wram within a psub.
-;
-; Its common for there to be 2 versions of a given function, one thats
-; a normal subroutine and another that is the psub.  Because of this
-; all psub routine labels a appended with _psub.
-;
-; Macros are set to deal with calling psubs
-;  PSUB <function>
-;   This will deal with setting the return label, populating a2, a3
-;   and then calling psub_enter.  Note that the macro will automatically
-;   append _psub onto the supplied function name.
-; PSUB_RETURN
-;   When in a psub, PSUB_RETURN should be used to return from the function
 	rorg	$80, $ff
-psub_enter:
-	subq.w	#4,d7
-	jmp	*+4(PC,d7.w)
-	movea.l	a3,a4
+
+; dsub_enter/dsub_return allows creating and using dynamic subroutines.
+; There are 2 modes for calling dynamic subroutines.
+;
+;  psuedo mode:
+;    In this mode jumping to and returning from a dsub isn't reliant
+;    on the stack, and thus there is no dependency on ram.  In this
+;    mode a4, a5, a7 are used to store the jump back locations. To
+;    switch to this mode d7 must be initialized with
+;    DSUB_INIT_PSEUDO ($0c) before making the first dsub call. This mode
+;    is the exact same as 0.19's pseudo subroutines
+;
+;  real mode:
+;    In this mode jumping to and returning from a dsub will mimic
+;    a normal bsr/rts by pushing the return address onto the stack.
+;    a4, a5 are free to use outside the dsub. To swith to this mode
+;    d7 must be initialized with DSUB_INIT_REAL ($18) before making
+;    the first dsub call.
+;
+; Up to 2 nested dsub calls are supported.  When I dsub calls another
+; dsub, the nested call with follow the same mode its already in.
+;
+; dsub_enter requires 2 registers to be setup
+; a2 = dsub that will be called
+; a3 = address to jmp to when dsub is finished
+;
+; dsub code blocks should not touch a4/a5/a7/d7 registers and/or use
+; the stack. When a dsub code block is done it should jmp/bra to
+; dsub_return instead of calling rts or something else.
+;
+; Code blocks that are dsubs should have _dsub append onto their
+; subroutine names.
+;
+; A couple macros are set to deal with calling/returning from dsubs
+;  DSUB <function>
+;   This will deal with setting the return label, populating a2, a3
+;   and then jumping dsub_enter.  Note that the macro will automatically
+;   append _dsub onto the supplied function name.  This macro should be used
+;   when a dsub calling another dsub
+;  DSUB <function>
+;   This is meant to be called when using dsub in pseudo mode.  Its the exact
+;   same as the DSUB macro.  It just exists to make it easier to follow the
+;   code, by making it clear the call is meant to be pseudo.
+;  RSUB <function>
+;   This is meant to be called when using dsub in real mode.  Its the same
+;   as the DSUB macro but will push/pop a2/a3 onto the stack around the dsub
+;   call.
+;  DSUB_RETURN
+;   When in a dsub, DSUB_RETURN should be used to return from the subroutine
+dsub_enter:
+	subq.w	#4, d7
+	jmp	*+4(PC, d7.w)
+
+	; pseudo mode (DSUB)
+	movea.l	a3, a4
 	jmp	(a2)
-	movea.l	a3,a5
+	movea.l	a3, a5
 	jmp	(a2)
 	movea.l	a3, a7
 	jmp	(a2)
 
-psub_exit:
+	; real mode (RSUB)
+	move.l	a3, -(a7)
+	jmp	(a2)
+	move.l	a3, -(a7)
+	jmp	(a2)
+	move.l	a3, -(a7)
+	jmp	(a2)
+
+dsub_return:
 	addq.w	#4, d7
-	jmp	*(PC,d7.w)
+	jmp	*(PC, d7.w)
+
+	; pseudo mode (DSUB)
 	jmp	(a4)
 	nop
 	jmp	(a5)
 	nop
 	jmp	(a7)
+
+	; real modde (RSUB)
+	nop
+	rts
+	nop
+	rts
+	nop
+	rts
 
 ; set vram addr so its at location x,y of fix layer
 ; params:
@@ -107,8 +141,8 @@ fix_clear:
 	WATCHDOG
 	rts
 
-; clears the fix layer - psub version;
-fix_clear_psub:
+; clears the fix layer - dsub version;
+fix_clear_dsub:
 	move.w	#FIXMAP, (-2,a6)
 	move.w	#1, (2,a6)
 	move.w	#$20, d0
@@ -117,7 +151,7 @@ fix_clear_psub:
 	move.w	d0, (a6)
 	dbra	d1, .loop_next_tile
 	WATCHDOG
-	PSUB_RETURN
+	DSUB_RETURN
 
 
 ; clears a line of the fix layer
@@ -137,10 +171,10 @@ fix_clear_line:
 	move.w	(a7)+, d6
 	rts
 
-; clears a line of the fix layer - psub version
+; clears a line of the fix layer - dsub version
 ; params:
 ;  d0 = line to clear
-fix_clear_line_psub:
+fix_clear_line_dsub:
 	ext.w	d0
 	add.w	#FIXMAP, d0
 	move.w	d0, (-2,a6)
@@ -150,7 +184,7 @@ fix_clear_line_psub:
 .loop_next_tile:
 	move.w	d0, (a6)
 	dbra	d1, .loop_next_tile
-	PSUB_RETURN
+	DSUB_RETURN
 
 
 ; prints a char at x,y of fix layer
@@ -206,27 +240,27 @@ print_xy_string:
 	bne	.loop_next_char
 	rts
 
-; clears the line the string will be printed on, then falls through to print_xy_string_psub - psub version
+; clears the line the string will be printed on, then falls through to print_xy_string_dsub - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  a0 = string location
-print_xy_string_clear_psub:
+print_xy_string_clear_dsub:
 	move.b	d0, d2			; fix_clear_line expect d0 to be y
 	swap	d2			; backup d0.b and d1.b into d2
 	move.b	d1, d2			; then make d0.b be y
 	move.b	d1, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 	move.b	d2, d1			; restore d0.b and d1.b
 	swap	d2
 	move.b	d2, d0
 
-; print string to x,y - psub version
+; print string to x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  a0 = string location
-print_xy_string_psub:
+print_xy_string_dsub:
 	ext.w	d0
 	ext.w	d1
 	lsl.w	#5, d0
@@ -240,19 +274,19 @@ print_xy_string_psub:
 	move.w	d2, (a6)
 	move.b	(a0)+, d2
 	bne	.loop_next_char
-	PSUB_RETURN
+	DSUB_RETURN
 
-; clears the line that an xy string will be on, then falls through to print_xy_string_struct_psub - psub version
+; clears the line that an xy string will be on, then falls through to print_xy_string_struct_dsub - dsub version
 ; params:
 ;  a0 = start of xy string struct
-print_xy_string_struct_clear_psub:
+print_xy_string_struct_clear_dsub:
 	move.b	(1,a0), d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 
-; prints xy string at x,y - psub version
+; prints xy string at x,y - dsub version
 ; params:
 ;  a0 - start of xy string struct
-print_xy_string_struct_psub:
+print_xy_string_struct_dsub:
 	move.b	(a0)+, d0
 	move.b	(a0)+, d1
 	ext.w	d0
@@ -268,7 +302,7 @@ print_xy_string_struct_psub:
 	move.w	d2, (a6)
 	move.b	(a0)+, d2
 	bne	.loop_next_char
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; prints the char n times starting at x,y
 ; params:
@@ -288,14 +322,14 @@ print_char_repeat:
 	dbra	d4, .loop_next_tile
 	rts
 
-; prints the char n times starting at x,y - psub version
+; prints the char n times starting at x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = upper byte of fix map entry
 ;  d3 = char
 ;  d4 = number of times to print
-print_char_repeat_psub:
+print_char_repeat_dsub:
 	ext.w	d0
 	ext.w	d1
 	lsl.w	#5, d0
@@ -309,14 +343,14 @@ print_char_repeat_psub:
 .loop_next_tile:
 	move.w	d2, (a6)
 	dbra	d4, .loop_next_tile
-	PSUB_RETURN
+	DSUB_RETURN
 
-; prints 1 byte in hex starting at location x,y - psub version
+; prints 1 byte in hex starting at location x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data
-print_hex_byte_psub:
+print_hex_byte_dsub:
 	addq.w	#1, d0
 	ext.w	d0
 	ext.w	d1
@@ -325,14 +359,14 @@ print_hex_byte_psub:
 	or.w	#FIXMAP, d1			; seek to x + 1, y
 	move.w	d1, (-2,a6)
 	moveq	#1, d1
-	bra	print_hex_psub			; handles PSUB_RETURN for us
+	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
-; prints 2 bytes in hex starting at location x,y - psub version
+; prints 2 bytes in hex starting at location x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data
-print_hex_word_psub:
+print_hex_word_dsub:
 	addq.w	#3, d0
 	ext.w	d0
 	ext.w	d1
@@ -341,15 +375,15 @@ print_hex_word_psub:
 	or.w	#FIXMAP, d1			; seek to x + 3, y
 	move.w	d1, (-2,a6)
 	moveq	#3, d1
-	bra	print_hex_psub			; handles PSUB_RETURN for us
+	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
 
-; prints 3 bytes in hex starting at location x,y - psub version
+; prints 3 bytes in hex starting at location x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data
-print_hex_3_bytes_psub:
+print_hex_3_bytes_dsub:
 	addq.w	#5, d0
 	ext.w	d0
 	ext.w	d1
@@ -358,15 +392,15 @@ print_hex_3_bytes_psub:
 	or.w	#FIXMAP, d1			; seek to x + 5, y
 	move.w	d1, (-2,a6)
 	moveq	#5, d1
-	bra	print_hex_psub			; handles PSUB_RETURN for us
+	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
 
-; prints 4 bytes in hex starting at location x,y - psub version
+; prints 4 bytes in hex starting at location x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data
-print_hex_long_psub:
+print_hex_long_dsub:
 	addq.w	#7, d0
 	ext.w	d0
 	ext.w	d1
@@ -374,13 +408,13 @@ print_hex_long_psub:
 	or.w	d0, d1
 	or.w	#FIXMAP, d1			; seek to x + 7, y
 	move.w	d1, (-2,a6)
-	moveq	#7, d1				; falls through to print_hex_psub
+	moveq	#7, d1				; falls through to print_hex_dsub
 
-; prints N hex chars, caller must already be at end x,y location as this function prints backwards - psub version
+; prints N hex chars, caller must already be at end x,y location as this function prints backwards - dsub version
 ; params:
 ;  d1 = number of chars to print - 1
 ;  d2 = data
-print_hex_psub:
+print_hex_dsub:
 	move.w	#$ffe0, (2,a6)			; write backwards
 	bra	.loop_start
 
@@ -392,7 +426,7 @@ print_hex_psub:
 	move.b	(HEX_LOOKUP,PC,d0.w), d0
 	move.w	d0, (a6)
 	dbra	d1, .loop_next_hex
-	PSUB_RETURN
+	DSUB_RETURN
 
 HEX_LOOKUP:
 	dc.b	"0123456789ABCDEF"
@@ -539,13 +573,13 @@ print_digits:
 	dbeq	d1, .loop_next_digit
 	rts
 
-; prints 5 digits starting at x,y - psub version
+; prints 5 digits starting at x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data
 ; unused code?
-print_5_digits_psub:
+print_5_digits_dsub:
 	addq.w	#4, d0
 	ext.w	d0
 	ext.w	d1
@@ -565,7 +599,7 @@ print_5_digits_psub:
 	clr.w	d2
 	swap	d2
 	dbeq	d1, .loop_next_digit
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; start
 _start:
@@ -578,7 +612,7 @@ _start:
 	move.w	#7, REG_IRQACK
 	move.w	#$4000, REG_LSPCMODE
 	lea	REG_VRAMRW, a6					; a6 will always be REG_VRAMRW
-	moveq	#$c, d7						; init d7 for psub
+	moveq	#DSUB_INIT_PSEUDO, d7				; init dsub for pseudo subroutines
 	move.l	#$7fff0000, PALETTE_RAM_START+$2		; white on black for text
 	move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+$2	;  gray on black for text (disabled menu items)
 	clr.w	PALETTE_REFERENCE
@@ -593,7 +627,8 @@ _start:
 		bne	automatic_tests
 	endif
 
-	movea.l	$0, a7				; re-init SP so we can call real subroutines
+	movea.l	$0, a7				; re-init SP
+	moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 	clr.b	main_menu_cursor
 	bra	manual_tests
 
@@ -603,6 +638,7 @@ automatic_tests:
 	PSUB	automatic_psub_tests
 
 	movea.l	$0, a7				; re-init SP
+	moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 
 	clr.b	z80_test_flags
 
@@ -673,71 +709,72 @@ skip_z80_test:
 	and.b	REG_P1CNT, d0		; ABCD pressed?
 	bne	.loop_user_input
 
-	movea.l	$0, a7
+	movea.l	$0, a7			; re-init SP
+	moveq	#DSUB_INIT_REAL, d7	; init dsub for real subroutines
 	clr.b	main_menu_cursor
 	bsr	fix_clear
 	bra	manual_tests
 
-watchdog_stuck_test_psub:
+watchdog_stuck_test_dsub:
 	lea	XY_STR_WATCHDOG_DELAY, a0
-	PSUB	print_xy_string_struct_clear
+	DSUB	print_xy_string_struct_clear
 	lea	XY_STR_WATCHDOG_TEXT_REMAINS, a0
-	PSUB	print_xy_string_struct_clear
+	DSUB	print_xy_string_struct_clear
 	lea	XY_STR_WATCHDOG_STUCK, a0
-	PSUB	print_xy_string_struct_clear
+	DSUB	print_xy_string_struct_clear
 
 	move.l	#$c930, d0		; 128760us / 128.76ms
-	PSUB	delay
+	DSUB	delay
 
 	moveq	#8, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 	moveq	#10, d0
-	PSUB	fix_clear_line
-	PSUB_RETURN
+	DSUB	fix_clear_line
+	DSUB_RETURN
 
-; runs automatic tests that are psub based;
-automatic_psub_tests_psub:
+; runs automatic tests that are psub based
+automatic_psub_tests_dsub:
 	moveq	#0, d6
 .loop_next_test:
 	movea.l	(AUTOMATIC_PSUB_TEST_STRUCT_START+4,pc,d6.w),a0
 	moveq	#4, d0
 	moveq	#5, d1
-	PSUB	print_xy_string_clear			; print the test description to screen
+	DSUB	print_xy_string_clear			; print the test description to screen
 
 	movea.l	(AUTOMATIC_PSUB_TEST_STRUCT_START,pc,d6.w), a2
-	lea	(.psub_return), a3			; manually do psub call since the PSUB macro wont
-	bra	psub_enter				; work in this case
-.psub_return
+	lea	(.dsub_return), a3			; manually do dsub call since the DSUB macro wont
+	bra	dsub_enter				; work in this case
+.dsub_return
 
 	tst.b	d0					; check result
 	beq	.test_passed
 
 	move.b	d0, d6
-	PSUB	print_error
+	DSUB	print_error
 	move.b	d6, d0
 
 	tst.b	REG_STATUS_B
 	bpl	.skip_error_to_credit_leds	; skip if aes
 	move.b	d6, d0
-	PSUB	error_to_credit_leds
+	DSUB	error_to_credit_leds
 
 .skip_error_to_credit_leds
-	bra	loop_reset_check_psub
+	bra	loop_reset_check_dsub
 
 .test_passed:
 	addq.w	#8, d6
 	cmp.w	#(AUTOMATIC_PSUB_TEST_STRUCT_END - AUTOMATIC_PSUB_TEST_STRUCT_START), d6
 	bne	.loop_next_test
-	PSUB_RETURN
+	DSUB_RETURN
 
 
 AUTOMATIC_PSUB_TEST_STRUCT_START:
-	dc.l	auto_bios_mirror_test_psub, STR_TESTING_BIOS_MIRROR
-	dc.l	auto_bios_crc32_test_psub, STR_TESTING_BIOS_CRC32
-	dc.l	auto_ram_oe_tests_psub, STR_TESTING_RAM_OE
-	dc.l	auto_ram_we_tests_psub, STR_TESTING_RAM_WE
-	dc.l	auto_wram_data_tests_psub, STR_TESTING_WRAM_DATA
-	dc.l	auto_wram_address_tests_psub, STR_TESTING_WRAM_ADDRESS
+	dc.l	auto_bios_mirror_test_dsub, STR_TESTING_BIOS_MIRROR
+	dc.l	auto_bios_crc32_test_dsub, STR_TESTING_BIOS_CRC32
+	dc.l	auto_ram_oe_tests_dsub, STR_TESTING_RAM_OE
+	dc.l	auto_ram_we_tests_dsub, STR_TESTING_RAM_WE
+	dc.l	auto_wram_data_tests_dsub, STR_TESTING_WRAM_DATA
+	dc.l	auto_wram_address_tests_dsub, STR_TESTING_WRAM_ADDRESS
 AUTOMATIC_PSUB_TEST_STRUCT_END:
 
 
@@ -905,11 +942,11 @@ delay:
 ; params:
 ;  d0 * 2.5us = how long to delay
 ; never called
-delay_psub:
+delay_dsub:
 	move.b	d0, REG_WATCHDOG
 	subq.l	#1, d0
-	bne	delay_psub
-	PSUB_RETURN
+	bne	delay_dsub
+	DSUB_RETURN
 
 ; see if the z80 sent us an error
 z80_check_error:
@@ -1062,15 +1099,15 @@ loop_reset_check:
 	bra	.loop_forever
 
 
-; loop forever checking for reset request - psub version
-loop_reset_check_psub:
+; loop forever checking for reset request - dsub version
+loop_reset_check_dsub:
 	moveq	#27, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_HOLD_SS_TO_RESET, a0
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 .loop_ss_not_pressed:
 	WATCHDOG
@@ -1079,12 +1116,12 @@ loop_reset_check_psub:
 	bne	.loop_ss_not_pressed		; loop until P1 start+select both held down
 
 	moveq	#27, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_RELEASE_SS, a0
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 .loop_ss_pressed:
 	WATCHDOG
@@ -1156,25 +1193,25 @@ print_header:
 	bsr	print_xy_string_clear
 	rts
 
-; prints headers - psub version
+; prints headers - dsub version
 ; NEO DIAGNOSTICS v0.19 - BY SMKDAN
 ; ---------------------------------
-print_header_psub:
+print_header_dsub:
 	moveq	#0, d0
 	moveq	#4, d1
 	moveq	#1, d2
 	moveq	#$16, d3
 	moveq	#40, d4
-	PSUB	print_char_repeat			; $116 which is an overscore line
+	DSUB	print_char_repeat			; $116 which is an overscore line
 
 	moveq	#3, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 
 	moveq	#2, d0
 	moveq	#3, d1
 	lea	STR_VERSION_HEADER, a0
-	PSUB	print_xy_string
-	PSUB_RETURN
+	DSUB	print_xy_string
+	DSUB_RETURN
 
 ; prints the z80 related communication error
 ; params:
@@ -1344,10 +1381,10 @@ EC_LOOKUP_TABLE_END:
 ;  long function_address;
 ;}
 PRINT_ERROR_PSUB_TABLE:
-	PRINT_ERROR_STRUCT PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_psub
-	PRINT_ERROR_STRUCT PRINT_ERROR_HEX_BYTE, print_error_hex_byte_psub
-	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory_psub
-	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string_psub
+	PRINT_ERROR_STRUCT PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_dsub
+	PRINT_ERROR_STRUCT PRINT_ERROR_HEX_BYTE, print_error_hex_byte_dsub
+	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory_dsub
+	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string_dsub
 PRINT_ERROR_PSUB_TABLE_END:
 
 PRINT_ERROR_FUNC_TABLE:
@@ -1411,7 +1448,7 @@ error_code_lookup:
 .not_found
 	rts
 
-; figure out error description and print error psub
+; figure out error description and print error dsub
 ; params:
 ;  d0 = error code
 ;  d1 = error data
@@ -1419,9 +1456,9 @@ error_code_lookup:
 ;  a0 = error data
 ; returns
 ;  a1 = error code description
-;  a2 = print error psub
+;  a2 = print error dsub
 ;  d0-d2, a0 are unmodified
-error_code_lookup_psub:
+error_code_lookup_dsub:
 	lea	(EC_LOOKUP_TABLE), a1
 	moveq	#((EC_LOOKUP_TABLE_END - EC_LOOKUP_TABLE)/6 - 1), d3
 	bra	.loop_ec_lookup_start
@@ -1434,7 +1471,7 @@ error_code_lookup_psub:
 	beq	.ec_found
 
 	; error code not found
-	lea	print_error_invalid_psub, a2
+	lea	print_error_invalid_dsub, a2
 	lea	STR_INVALID_ERROR_CODE, a1
 	move.b	#PRINT_ERROR_INVALID, d1
 	bra	.not_found
@@ -1456,7 +1493,7 @@ error_code_lookup_psub:
 	beq	.function_found
 
 	; no function was found
-	lea	print_error_invalid_psub, a2
+	lea	print_error_invalid_dsub, a2
 	move.b	d4, d1
 	bra	.not_found
 
@@ -1464,7 +1501,7 @@ error_code_lookup_psub:
 	movea.l	(2, a2), a2
 
 .not_found:
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; lookup/print error
 print_error:
@@ -1472,8 +1509,8 @@ print_error:
 	jmp	(a2)
 
 ; lookup/print error
-print_error_psub:
-	PSUB	error_code_lookup
+print_error_dsub:
+	DSUB	error_code_lookup
 	jmp	(a2)
 
 ; prints error for bad bios crc32
@@ -1481,31 +1518,31 @@ print_error_psub:
 ;  d0 = error code
 ;  d1 = actual value
 ;  a1 = error description
-print_error_bios_crc32_psub:
+print_error_bios_crc32_dsub:
 	move.l	d1, d2
 	moveq	#14, d0
 	moveq	#10, d1
-	PSUB	print_hex_long
+	DSUB	print_hex_long
 
 	moveq	#14, d0
 	moveq	#12, d1
 	move.l	BIOS_CRC32_ADDR, d2
-	PSUB	print_hex_long
+	DSUB	print_hex_long
 
 	lea	STR_EXPECTED.l, a0
 	moveq	#4, d0
 	moveq	#12, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	lea	STR_ACTUAL.l, a0
 	moveq	#4, d0
 	moveq	#10, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	jmp	print_xy_string_clear_psub	; error description and PSUB_RETURN
+	jmp	print_xy_string_clear_dsub	; error description and DSUB_RETURN
 
 ; print error for generic hex byte
 ; params:
@@ -1513,33 +1550,33 @@ print_error_bios_crc32_psub:
 ;  d1 = actual value
 ;  d2 = expected value
 ;  a1 = error description
-print_error_hex_byte_psub:
+print_error_hex_byte_dsub:
 	move.b	d2, d3
 	move.b	d1, d2
 
 	moveq	#14, d0
 	moveq	#10, d1
-	PSUB	print_hex_byte
+	DSUB	print_hex_byte
 
 	move.b	d3, d2
 	moveq	#14, d0
 	moveq	#12, d1
-	PSUB	print_hex_byte
+	DSUB	print_hex_byte
 
 	lea	STR_EXPECTED.l, a0
 	moveq	#4, d0
 	moveq	#12, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	lea	STR_ACTUAL.l, a0
 	moveq	#4, d0
 	moveq	#10, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	jmp	print_xy_string_clear_psub	; error description and PSUB_RETURN
+	jmp	print_xy_string_clear_dsub	; error description and DSUB_RETURN
 
 ; prints actual/expected data for a memory address
 ; params:
@@ -1594,44 +1631,44 @@ print_error_memory:
 ;  d2 = actual data
 ;  a0 = address location
 ;  a1 = error description
-print_error_memory_psub:
+print_error_memory_dsub:
 	move.w	d1, d3
 	move.w	d2, d4
 
 	moveq	#14, d0
 	moveq	#8, d1
 	move.l	a0, d2
-	PSUB	print_hex_3_bytes		; address
+	DSUB	print_hex_3_bytes		; address
 
 	moveq	#14, d0
 	moveq	#12, d1
 	move.w	d3, d2
-	PSUB	print_hex_word			; expected
+	DSUB	print_hex_word			; expected
 
 	moveq	#14, d0
 	moveq	#10, d1
 	move.w	d4, d2
-	PSUB	print_hex_word			; actual
+	DSUB	print_hex_word			; actual
 
 	lea	STR_ADDRESS.l, a0
 	moveq	#4, d0
 	moveq	#8, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	lea	STR_EXPECTED.l, a0
 	moveq	#4, d0
 	moveq	#12, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	lea	STR_ACTUAL.l, a0
 	moveq	#4, d0
 	moveq	#10, d1
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	jmp	print_xy_string_clear_psub	; error description and PSUB_RETURN
+	jmp	print_xy_string_clear_dsub	; error description and DSUB_RETURN
 
 ; print error for mmio
 ; params:
@@ -1708,11 +1745,11 @@ print_error_string:
 ; prints just the error description
 ; params:
 ;  a1 = error description
-print_error_string_psub:
+print_error_string_dsub:
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	jmp	print_xy_string_clear_psub		; error description and PSUB_RETURN
+	jmp	print_xy_string_clear_dsub		; error description and DSUB_RETURN
 
 ; called if there was an error looking up the
 ; error code or its print function
@@ -1754,44 +1791,44 @@ print_error_invalid:
 ; params:
 ;  d0 = error code
 ;  d1 = print function id
-print_error_invalid_psub:
+print_error_invalid_dsub:
 	move.b	d0, d3				; print function id
 	move.b	d1, d4				; error code
 
-	; using print_xy_string_clear_psub will cause the psub
+	; using print_xy_string_clear_dsub will cause the dsub
 	; nest to go to deep and a crash, so we need to break
-	; it up into fix_clear_line_psub and print_xy_string_psub
+	; it up into fix_clear_line_dsub and print_xy_string_dsub
 	moveq	#5, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 	moveq	#6, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 	moveq	#7, d0
-	PSUB	fix_clear_line
+	DSUB	fix_clear_line
 
 	moveq	#9, d0
 	moveq	#5, d1
 	lea	STR_INVALID_ERROR, a0
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	moveq	#4, d0
 	moveq	#6, d1
 	lea	STR_ERROR_CODE, a0
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	moveq	#4, d0
 	move	#7, d1
 	lea	STR_PRINT_FUNCTION, a0
-	PSUB	print_xy_string
+	DSUB	print_xy_string
 
 	move.b	d3, d2
 	moveq	#24, d0
 	moveq	#6, d1
-	PSUB	print_hex_byte				; error code
+	DSUB	print_hex_byte				; error code
 
 	move.b	d4, d2
 	moveq	#24, d0
 	moveq	#7, d1
-	jmp	print_hex_byte_psub			; print function id
+	jmp	print_hex_byte_dsub			; print function id
 
 
 STR_INVALID_ERROR:	STRING "INVALID ERROR"
@@ -1905,7 +1942,7 @@ error_to_credit_leds:
 
 	rts
 
-error_to_credit_leds_psub:
+error_to_credit_leds_dsub:
 	moveq	#3, d2
 	moveq	#0, d3
 	moveq	#0, d4
@@ -1927,17 +1964,17 @@ error_to_credit_leds_psub:
 	; player 2 led
 	move.b	#LED_NO_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	PSUB	delay				; 40us
+	DSUB	delay				; 40us
 
 	move.b	d4, REG_LEDDATA
 
 	move.b	#LED_P2_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	PSUB	delay
+	DSUB	delay
 
 	move.b	#LED_NO_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	PSUB	delay
+	DSUB	delay
 
 	; player 1 led
 	lsr.w	#8, d4
@@ -1945,11 +1982,11 @@ error_to_credit_leds_psub:
 
 	move.b	#LED_P1_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	PSUB	delay
+	DSUB	delay
 
 	move.b	#LED_P1_LATCH, REG_LEDLATCHES
 
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; backup palette ram to PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_backup:
@@ -2029,14 +2066,14 @@ wait_frame:
 	rts
 
 
-; wait for a full frame, psub
+; wait for a full frame, dsub
 ; never called..
-wait_frame_psub:
+wait_frame_dsub:
 	WATCHDOG
 	move.w	(4,a6), d0
 	and.w	#$ff80, d0
 	cmp.w	#$f800, d0
-	beq	wait_frame_psub
+	beq	wait_frame_dsub
 
 .loop_not_bottom_border:
 	WATCHDOG
@@ -2044,7 +2081,7 @@ wait_frame_psub:
 	and.w	#$ff80, d0
 	cmp.w	#$f800, d0
 	bne	.loop_not_bottom_border
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; d0 = scanline to wait for
 wait_scanline:
@@ -2274,7 +2311,7 @@ timer_interrupt:
 
 
 ; seems likely this is never called
-print_error_data_bram_aes_psub:
+print_error_data_bram_aes_dsub:
 	bra	.skip_aes_test
 
 	tst.b	REG_STATUS_B			; next 4 lines seem to be dead code?
@@ -2285,13 +2322,13 @@ print_error_data_bram_aes_psub:
 .skip_aes_test:
 
 	lea	XY_STR_AES_BRAM_NOT_MOD, a0
-	PSUB	print_xy_string_struct
+	DSUB	print_xy_string_struct
 
 	lea	XY_STR_AES_BRAM_C_RESET, a0
-	PSUB	print_xy_string_struct
+	DSUB	print_xy_string_struct
 .skip_print_error:
 
-	PSUB_RETURN
+	DSUB_RETURN
 
 XY_STR_AES_BRAM_NOT_MOD:	XY_STRING 4, 24, "IF USING AES W/OUT BACKUP RAM MOD,"
 XY_STR_AES_BRAM_C_RESET:	XY_STRING 4, 25, "RELEASE C BUTTON AND SOFT RESET."
@@ -2310,7 +2347,7 @@ XY_STR_AES_BRAM_C_RESET:	XY_STRING 4, 25, "RELEASE C BUTTON AND SOFT RESET."
 ; on error:
 ;  d1 = actual value
 ;  d2 = expected value
-auto_bios_mirror_test_psub:
+auto_bios_mirror_test_dsub:
 	lea	$bffffb, a0
 	moveq	#3, d0
 	moveq	#-1, d2
@@ -2323,21 +2360,21 @@ auto_bios_mirror_test_psub:
 	bne	.test_failed
 
 	moveq	#$0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_failed:
 	moveq	#EC_BIOS_MIRROR, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; verifies the bios crc is correct.  The expected crc32 value
 ; are the 4 bytes located at $7ffc ($c07ffc) of the bios.
 ; on error:
 ;  d1 = actual crc32
-auto_bios_crc32_test_psub:
+auto_bios_crc32_test_dsub:
 	move.l	#$7ffb, d0			; length
 	lea	$c00000.l, a0			; start address
 	move.b	d0, REG_SWPROM			; use carts vector table?
-	PSUB	calc_crc32
+	DSUB	calc_crc32
 
 	move.b	d0, REG_SWPBIOS			; use bios vector table
 	cmp.l	$c07ffc.l, d0
@@ -2345,11 +2382,11 @@ auto_bios_crc32_test_psub:
 
 	move.l	d0, d1
 	moveq	#EC_BIOS_CRC32, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed:
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; calculate the crc32 value
 ; params:
@@ -2357,7 +2394,7 @@ auto_bios_crc32_test_psub:
 ;  a0 = start address
 ; returns:
 ;  d0 = crc value
-calc_crc32_psub:
+calc_crc32_dsub:
 	subq.l	#1, d0
 	move.w	d0, d3
 	swap	d0
@@ -2379,7 +2416,7 @@ calc_crc32_psub:
 	dbra	d3, .loop_outter
 	dbra	d4, .loop_outter
 	not.l	d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; d0 = data
 ; sends the 4 bit command to the rtc, which runs in
@@ -2429,15 +2466,15 @@ rtc_check_pulse:
 	rts
 
 
-auto_ram_oe_tests_psub:
+auto_ram_oe_tests_dsub:
 	lea	WORK_RAM_START.l, a0		; wram upper
 	moveq	#0, d0
-	PSUB	check_ram_oe
+	DSUB	check_ram_oe
 	tst.b	d0
 	bne	.test_failed_wram_upper
 
 	moveq	#1, d0				; wram lower
-	PSUB	check_ram_oe
+	DSUB	check_ram_oe
 	tst.b	d0
 	bne	.test_failed_wram_lower
 
@@ -2449,31 +2486,31 @@ auto_ram_oe_tests_psub:
 .do_bram_test:
 	lea	BACKUP_RAM_START.l, a0		; bram upper
 	moveq	#0, d0
-	PSUB	check_ram_oe
+	DSUB	check_ram_oe
 	tst.b	d0
 	bne	.test_failed_bram_upper
 
 	moveq	#1, d0				; bram lower
-	PSUB	check_ram_oe
+	DSUB	check_ram_oe
 	tst.b	d0
 	bne	.test_failed_bram_lower
 
 .test_passed:
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_failed_wram_upper:
 	moveq	#EC_WRAM_DEAD_OUTPUT_UPPER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 .test_failed_wram_lower:
 	moveq	#EC_WRAM_DEAD_OUTPUT_LOWER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 .test_failed_bram_upper:
 	moveq	#EC_BRAM_DEAD_OUTPUT_UPPER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 .test_failed_bram_lower:
 	moveq	#EC_BRAM_DEAD_OUTPUT_LOWER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; Attempts to read from ram.  If the chip never gets enabled
 ; d1 will be filled with the last data on the data bus,
@@ -2487,7 +2524,7 @@ auto_ram_oe_tests_psub:
 ;  d0 = 0 (upper chip) or 1 (lower chip)
 ; return:
 ;  d0 = $00 (pass) or $ff (fail)
-check_ram_oe_psub:
+check_ram_oe_dsub:
 	adda.w	d0, a0
 	moveq	#$31, d2
 
@@ -2508,7 +2545,7 @@ check_ram_oe_psub:
 .test_passed:
 	dbeq	d2, .loop_test_again
 	seq	d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 auto_bram_tests:
 	tst.b	REG_STATUS_B			; do test if MVS
@@ -2578,23 +2615,23 @@ palette_ram_we_tests:
 	moveq	#0, d0
 	rts
 
-auto_ram_we_tests_psub:
+auto_ram_we_tests_dsub:
 	lea	WORK_RAM_START.l, a0
 	move.w	#$ff, d0
-	PSUB	check_ram_we
+	DSUB	check_ram_we
 	tst.b	d0
 	beq	.test_passed_wram_lower
 	moveq	#EC_WRAM_UNWRITABLE_LOWER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_wram_lower:
 	lea	WORK_RAM_START.l, a0
 	move.w	#$ff00, d0
-	PSUB	check_ram_we
+	DSUB	check_ram_we
 	tst.b	d0
 	beq	.test_passed_wram_upper
 	moveq	#EC_WRAM_UNWRITABLE_UPPER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_wram_upper:
 	tst.b	REG_STATUS_B
@@ -2602,34 +2639,34 @@ auto_ram_we_tests_psub:
 	btst	#6, REG_P1CNT				; dead code? checking if C is pressed, then nop
 	nop						; maybe nop should be 'bne .do_bram_test' to allow forced bram test on aes?
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .do_bram_test:
 	move.b	d0, REG_SRAMUNLOCK			; unlock bram
 
 	lea	BACKUP_RAM_START.l, a0
 	move.w	#$ff, d0
-	PSUB	check_ram_we
+	DSUB	check_ram_we
 	tst.b	d0
 	beq	.test_passed_bram_lower
 
 	moveq	#EC_BRAM_UNWRITABLE_LOWER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_bram_lower:
 	lea	BACKUP_RAM_START.l, a0
 	move.w	#$ff00, d0
-	PSUB	check_ram_we
+	DSUB	check_ram_we
 	tst.b	d0
 	beq	.test_passed_bram_upper
 
 	moveq	#EC_BRAM_UNWRITABLE_UPPER, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_bram_upper:
 	move.b	d0, REG_SRAMLOCK			; lock bram
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; params:
 ;  a0 = address
@@ -2660,7 +2697,7 @@ check_ram_we:
 ; params:
 ;  a0 = address
 ;  d0 = bitmask
-check_ram_we_psub:
+check_ram_we_dsub:
 	move.w	(a0), d1
 	and.w	d0, d1
 	moveq	#0, d2
@@ -2677,55 +2714,55 @@ check_ram_we_psub:
 	beq	.test_failed
 
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_failed:
 	moveq	#-1, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
-auto_wram_data_tests_psub:
+auto_wram_data_tests_dsub:
 	lea	WORK_RAM_START.l, a0
 	moveq	#0, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_0000
 	moveq	#EC_WRAM_DATA_0000, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_0000:
 	lea	WORK_RAM_START.l, a0
 	move.w	#$5555, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_5555
 	moveq	#EC_WRAM_DATA_5555, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_5555:
 	lea	WORK_RAM_START.l, a0
 	move.w	#$aaaa, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_aaaa
 	moveq	#EC_WRAM_DATA_AAAA, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_aaaa:
 	lea	WORK_RAM_START.l, a0
 	moveq	#-1, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_ffff
 	moveq	#EC_WRAM_DATA_FFFF, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_ffff:
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 bram_data_tests:
 	lea	BACKUP_RAM_START.l, a0
@@ -2767,49 +2804,49 @@ bram_data_tests:
 	moveq	#0, d0
 	rts
 
-bram_data_tests_psub:
+bram_data_tests_dsub:
 	lea	BACKUP_RAM_START.l, a0
 	moveq	#$0, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_0000
 	moveq	#EC_BRAM_DATA_0000, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_0000:
 	lea	BACKUP_RAM_START.l, a0
 	move.w	#$5555, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_5555
 	moveq	#EC_BRAM_DATA_5555, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_5555:
 	lea	BACKUP_RAM_START.l, a0
 	move.w	#$aaaa, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_aaaa
 	moveq	#EC_BRAM_DATA_AAAA, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_aaaa:
 	lea	BACKUP_RAM_START.l, a0
 	moveq	#-$1, d0
 	move.w	#$8000, d1
-	PSUB	check_ram_data
+	DSUB	check_ram_data
 	tst.b	d0
 	beq	.test_passed_ffff
 	moveq	#EC_BRAM_DATA_FFFF, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_ffff:
 	moveq	#$0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
@@ -2940,7 +2977,7 @@ check_ram_data:
 ;  a0 = failed address
 ;  d1 = wrote value
 ;  d2 = read (bad) value
-check_ram_data_psub:
+check_ram_data_dsub:
 	subq.w	#1, d1
 
 .loop_next_address:
@@ -2952,39 +2989,39 @@ check_ram_data_psub:
 
 	WATCHDOG
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_failed:
 	subq.l	#2, a0
 	move.w	d0, d1
 	WATCHDOG
 	moveq	#-1, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 
-auto_wram_address_tests_psub:
+auto_wram_address_tests_dsub:
 	lea	WORK_RAM_START.l, a0
 	moveq	#2, d0
 	move.w	#$100, d1
-	PSUB	check_ram_address
+	DSUB	check_ram_address
 	tst.b	d0
 	beq	.test_passed_a0_a7
 	moveq	#EC_WRAM_ADDRESS_A0_A7, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_a0_a7:
 	lea	WORK_RAM_START.l, a0
 	move.w	#$200, d0
 	move.w	#$80, d1
-	PSUB	check_ram_address
+	DSUB	check_ram_address
 	tst.b	d0
 	beq	.test_passed_a8_a14
 	moveq	#EC_WRAM_ADDRESS_A8_A14, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_a8_a14:
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 bram_address_tests:
 	lea	BACKUP_RAM_START.l, a0
@@ -3009,31 +3046,31 @@ bram_address_tests:
 	rts
 
 ; dont think this is ever called
-bram_address_tests_psub:
+bram_address_tests_dsub:
 	lea	BACKUP_RAM_START.l, a0
 	moveq	#$2, d0
 	move.w	#$100, d1
-	PSUB	check_ram_address
+	DSUB	check_ram_address
 	tst.b	d0
 
 	beq	.test_passed_a0_a7
 	moveq	#EC_BRAM_ADDRESS_A0_A7, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_a0_a7:
 	lea	BACKUP_RAM_START.l, a0
 	move.w	#$200, d0
 	move.w	#$80, d1
-	PSUB	check_ram_address
+	DSUB	check_ram_address
 
 	tst.b	d0
 	beq	.test_passed_a8_a14
 	moveq	#EC_BRAM_ADDRESS_A8_A14, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_passed_a8_a14:
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 ; params:
 ;  a0 = address start
@@ -3089,7 +3126,7 @@ check_ram_address:
 ; d0 = 0 (pass), $ff (fail)
 ; d1 = expected value
 ; d2 = actual value
-check_ram_address_psub:
+check_ram_address_dsub:
 	subq.w	#1, d1
 	move.w	d1, d2
 	moveq	#0, d3
@@ -3117,13 +3154,13 @@ check_ram_address_psub:
 	bne	.test_failed
 	WATCHDOG
 	moveq	#0, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 .test_failed:
 	move.w	d3, d1
 	WATCHDOG
 	moveq	#-1, d0
-	PSUB_RETURN
+	DSUB_RETURN
 
 
 palette_ram_address_tests:
@@ -3281,7 +3318,7 @@ check_palette_ram_to_245_output:
 	moveq	#-1, d0
 	rts
 
-; This really the same thing as check_ram_oe_psub
+; This really the same thing as check_ram_oe_dsub
 ;  d0 = compare mask
 ;  a0 = address for testing
 ; return
@@ -4442,7 +4479,7 @@ manual_wbram_test_loop:
 	bsr	print_xy_string_struct_clear
 
 .system_mvs:
-	moveq	#$c, d7				; re-setup d7 so we can do psub calls
+	moveq	#DSUB_INIT_PSEUDO, d7		; init dsub for pseudo subroutines
 	bra	.loop_start_run_test
 
 .loop_run_test:
@@ -4488,12 +4525,12 @@ manual_wbram_test_loop:
 
 	; re-init stuff and return to menu
 	move.b	#4, main_menu_cursor
-	movea.l	$0, a7
+	movea.l	#DSUB_INIT_REAL, a7		; init dsub for real subroutines
 	bra	manual_tests
 
 .test_failed_abort:
 	PSUB	print_error
-	bra	loop_reset_check_psub
+	bra	loop_reset_check_dsub
 
 
 
