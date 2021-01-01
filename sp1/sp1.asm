@@ -4351,7 +4351,8 @@ manual_wbram_test_loop:
 
 	; re-init stuff and return to menu
 	move.b	#4, main_menu_cursor
-	movea.l	#DSUB_INIT_REAL, a7		; init dsub for real subroutines
+	movea.l	$0, a7				; re-init SP
+	moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 	bra	manual_tests
 
 .test_failed_abort:
