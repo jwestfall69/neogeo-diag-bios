@@ -120,14 +120,14 @@ dsub_return:
 ; params:
 ;  d0 = x
 ;  d1 = y
-fix_seek_xy:
+fix_seek_xy_dsub:
 	ext.w	d0
 	ext.w	d1
 	lsl.w	#5, d0
 	or.w	d1, d0
 	or.w	#FIXMAP, d0
 	move.w	d0, (-2,a6)
-	rts
+	DSUB_RETURN
 
 ; clears the fix layer - dsub version;
 fix_clear_dsub:
@@ -162,11 +162,17 @@ fix_clear_line_dsub:
 ; d0 = x
 ; d1 = y
 ; d2 = char
-print_xy_char:
-	bsr	fix_seek_xy
+print_xy_char_dsub:
+	ext.w	d0
+	ext.w	d1
+	lsl.w	#5, d0
+	or.w	d1, d0
+	or.w	#FIXMAP, d0
+	move.w	d0, (-2, a6)	; seek to x,y
 	and.w	#$ff, d2
 	move.w	d2, (a6)
-	rts
+	DSUB_RETURN
+
 
 ; clears the line the string will be printed on, then falls through to print_xy_string_dsub
 ; params:
@@ -363,7 +369,7 @@ HEX_LOOKUP:
 ;  d1 = y
 ;  d2 = data (bit 0)
 print_bit:
-	bsr	fix_seek_xy
+	RSUB	fix_seek_xy
 	move.w	#$ffe0, (2,a6)			; write backwards, pointless instruction?
 	and.w	#1, d2
 	add.b	#$30, d2
@@ -377,7 +383,7 @@ print_bit:
 ;  d1 = y
 ;  d2 = digit
 print_digit:
-	bsr	fix_seek_xy
+	RSUB	fix_seek_xy
 	moveq	#0, d1
 	bra	print_digits			; handles rts
 
@@ -388,7 +394,7 @@ print_digit:
 ;  d2 = data
 print_3_digits:
 	addq.w	#2, d0
-	bsr	fix_seek_xy			; seek to x + 2, y
+	RSUB	fix_seek_xy			; seek to x + 2, y
 	moveq	#2, d1
 	bra	print_digits			; handles rts
 
@@ -400,7 +406,7 @@ print_3_digits:
 ; unused code?
 print_5_digits:
 	addq.w	#4, d0
-	bsr	fix_seek_xy			; seek to x + 4, y
+	RSUB	fix_seek_xy			; seek to x + 4, y
 	moveq	#4, d1
 	nop					; falls through to print_digits
 
@@ -2029,7 +2035,7 @@ main_menu_loop:
 	moveq	#5, d1
 	add.b	main_menu_cursor, d1
 	moveq	#$11, d2
-	bsr	print_xy_char				; draw arrow
+	RSUB	print_xy_char				; draw arrow
 
 	move.b	main_menu_cursor, d1
 	move.b	p1_input_edge, d0
@@ -2056,13 +2062,13 @@ main_menu_loop:
 	add.b	main_menu_cursor, d1
 	move.b	(1,a7), main_menu_cursor
 	moveq	#$20, d2
-	bsr	print_xy_char				; replace existing arrow with space
+	RSUB	print_xy_char				; replace existing arrow with space
 
 	moveq	#4, d0
 	moveq	#5, d1
 	add.w	(a7)+, d1
 	moveq	#$11, d2
-	bsr	print_xy_char				; draw arrow at new location
+	RSUB	print_xy_char				; draw arrow at new location
 
 .check_a_pressed:
 	btst	#A_BUTTON, p1_input_edge		; 'a' pressed?
@@ -3841,7 +3847,7 @@ rtc_print_data:
 
 	moveq	#$e, d0
 	moveq	#$15, d1
-	bsr	fix_seek_xy
+	RSUB	fix_seek_xy
 
 	moveq	#$18, d0
 	move.b	REG_STATUS_A, d1
@@ -3932,7 +3938,7 @@ color_bar_setup_palette_bank:
 color_bar_draw_tiles:
 	moveq	#$4, d0
 	moveq	#$7, d1
-	bsr	fix_seek_xy			; d0 on return will have current vram address
+	RSUB	fix_seek_xy			; d0 on return will have current vram address
 	move.w	#$1, (2,a6)			; increment vram writes one at a time
 
 	moveq	#$e, d1				; 15 total shades in the gradients
@@ -4667,7 +4673,7 @@ misc_input_print_dynamic_items:
 .print_description:
 	moveq	#$d, d0
 	move.b	d5, d1
-	bsr	print_xy_char
+	RSUB	print_xy_char
 
 	moveq	#$15, d0
 	move.b	d5, d1
@@ -4704,7 +4710,7 @@ misc_input_print_static_items:
 	moveq	#$2e, d2
 	moveq	#$a, d0
 	move.b	d3, d1
-	bsr	print_xy_char
+	RSUB	print_xy_char
 
 	move.b	(-$4,a1), d2			; reload test_bit
 	moveq	#$b, d0
@@ -4714,7 +4720,7 @@ misc_input_print_static_items:
 	moveq	#$3d, d2
 	moveq	#$c, d0
 	move.b	d3, d1
-	bsr	print_xy_char
+	RSUB	print_xy_char
 
 	movea.l	(a1)+, a0			; load bit_name_string_address
 	moveq	#$f, d0
