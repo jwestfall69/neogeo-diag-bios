@@ -255,6 +255,21 @@ print_char_repeat_dsub:
 	dbra	d4, .loop_next_tile
 	DSUB_RETURN
 
+; prints a nibble in hex starting at location x,y
+; params:
+;  d0 = x
+;  d1 = y
+;  d2 = data
+print_hex_nibble_dsub:
+	ext.w	d0
+	ext.w	d1
+	lsl.w	#5, d0
+	or.w	d0, d1
+	or.w	#FIXMAP, d1			; seek to x, y
+	move.w	d1, (-2,a6)
+	moveq	#0, d1
+	bra	print_hex_dsub			; handles DSUB_RETURN for us
+
 ; prints 1 byte in hex starting at location x,y - dsub version
 ; params:
 ;  d0 = x
@@ -340,82 +355,6 @@ print_hex_dsub:
 
 HEX_LOOKUP:
 	dc.b	"0123456789ABCDEF"
-
-
-; prints N hex chars, caller must already be at end x,y location as this function prints backwards
-; params:
-;  d1 = number of chars to print - 1
-;  d2 = data
-print_hex:
-	move.w	#$ffe0, (2,a6)			; write backwards
-	bra	.loop_start
-
-.loop_next_hex:
-	lsr.l	#4, d2
-.loop_start:
-	moveq	#$f, d0
-	and.b	d2, d0
-	move.b	(HEX_LOOKUP,PC,d0.w), d0
-	move.w	d0, (a6)
-	dbra	d1, .loop_next_hex
-	rts
-
-
-; prints 1 nibble in hex starting at location x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = data
-print_hex_nibble:
-	bsr	fix_seek_xy
-	moveq	#0, d1
-	bra	print_hex			; will rts for us
-
-
-; prints 1 byte in hex starting at location x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = data
-print_hex_byte:
-	addq.w	#1, d0
-	bsr	fix_seek_xy			; seek to x + 1, y
-	moveq	#1, d1
-	bra	print_hex			; handles rts
-
-; prints 2 bytes in hex starting at location x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = data
-print_hex_word:
-	addq.w	#3, d0
-	bsr	fix_seek_xy			; seek to x + 3, y
-	moveq	#3, d1
-	bra	print_hex			; handles rts
-
-; prints 3 bytes in hex starting at location x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = data
-print_hex_3_bytes:
-	addq.w	#5, d0
-	bsr	fix_seek_xy			; seek x + 5, y
-	moveq	#5, d1
-	bra	print_hex			; handles rts
-
-
-; prints 4 bytes in hex starting at location x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = data
-print_hex_long:
-	addq.w	#7, d0
-	bsr	fix_seek_xy			; seek x + 7, y
-	moveq	#7, d1
-	bra	print_hex			; handles rts
 
 
 ; prints bit 0/1 at location x,y
@@ -1127,12 +1066,12 @@ z80_print_comm_error:
 	move.w	(a7)+, d2
 	moveq	#14, d0
 	moveq	#8, d1
-	bsr	print_hex_byte				; expected value
+	RSUB	print_hex_byte				; expected value
 
 	move.b	REG_SOUND, d2
 	moveq	#14, d0
 	moveq	#10, d1
-	bsr	print_hex_byte				; actual value
+	RSUB	print_hex_byte				; actual value
 
 	lea	XY_STR_Z80_MAKE_SURE, a0
 	RSUB	print_xy_string_struct_clear
@@ -1478,17 +1417,17 @@ print_error_memory:
 	moveq	#14, d0
 	moveq	#8, d1
 	move.l	a0, d2
-	bsr	print_hex_3_bytes		; address
+	RSUB	print_hex_3_bytes		; address
 
 	moveq	#14, d0
 	moveq	#12, d1
 	move.w	d3, d2
-	bsr	print_hex_word			; expected
+	RSUB	print_hex_word			; expected
 
 	moveq	#14, d0
 	moveq	#10, d1
 	move.w	d4, d2
-	bsr	print_hex_word			; actual
+	RSUB	print_hex_word			; actual
 
 	lea	STR_ADDRESS.l, a0
 	moveq	#4, d0
@@ -1566,7 +1505,7 @@ print_error_mmio:
 	moveq	#13, d0
 	moveq	#8, d1
 	move.l	a0, d2
-	bsr	print_hex_3_bytes
+	RSUB	print_hex_3_bytes
 
 	lea	STR_ADDRESS.l, a0
 	moveq	#4, d0
@@ -1665,12 +1604,12 @@ print_error_invalid:
 	move.w	(a7)+, d2
 	moveq	#24, d0
 	moveq	#6, d1
-	bsr	print_hex_byte				; error code
+	RSUB	print_hex_byte				; error code
 
 	move.w	(a7)+, d2
 	moveq	#24, d0
 	moveq	#7, d1
-	bsr	print_hex_byte				; print function id
+	RSUB	print_hex_byte				; print function id
 	rts
 
 ; called if there was an error looking up the
@@ -1731,7 +1670,7 @@ print_error_z80:
 	move.b	d0, d2
 	moveq	#29, d0
 	moveq	#12, d1
-	bsr	print_hex_byte
+	RSUB	print_hex_byte
 
 	lea	XY_STR_Z80_ERROR_CODE.l, a0
 	RSUB	print_xy_string_struct
@@ -3893,12 +3832,12 @@ rtc_print_data:
 	moveq	#$e, d0
 	moveq	#$11, d1
 	move.w	d2, -(a7)
-	bsr	print_hex_word
+	RSUB	print_hex_word
 
 	moveq	#$e, d0
 	moveq	#$13, d1
 	move.w	timer_count, d2
-	bsr	print_hex_word
+	RSUB	print_hex_word
 
 	moveq	#$e, d0
 	moveq	#$15, d1
@@ -4238,7 +4177,7 @@ controller_print_labels:
 	move.b	d4, d0
 	moveq	#$3, d1
 	move.b	d3, d2
-	bsr	print_hex_nibble
+	RSUB	print_hex_nibble
 	subq.w	#4, d4
 	dbra	d3, .loop_next_header
 
@@ -4342,14 +4281,14 @@ controller_print_player_data:
 	move.b	d5, d0
 	move.b	d6, d1
 	move.w	(a7), d2
-	bsr	print_hex_byte
+	RSUB	print_hex_byte
 
 	move.b	d5, d0
 	move.b	d6, d1
 	addq.b	#1, d1
 	move.w	(a7)+, d2
 	and.w	#$ff, d2
-	bra	print_3_digits		; will rts for us
+	bsr	print_3_digits		; will rts for us
 
 
 manual_wbram_test_loop:
@@ -4449,7 +4388,7 @@ manual_palette_ram_test_loop:
 	moveq	#$e, d0
 	moveq	#$e, d1
 	move.w	d6, d2
-	bsr	print_hex_3_bytes			; print the number of passes in hex
+	RSUB	print_hex_3_bytes			; print the number of passes in hex
 
 	btst	#$4, REG_P1CNT				; check for 'a' being presses
 	bne	.loop_run_test				; 'a' not pressed, loop and do another test
@@ -4516,7 +4455,7 @@ manual_vram_32k_test_loop:
 	moveq	#$e, d1
 	move.l	d6, d2
 	bclr	#$1f, d2			; make sure signed bit is 0
-	bsr	print_hex_3_bytes		; print pass number
+	RSUB	print_hex_3_bytes		; print pass number
 
 .loop_wait_a_release:
 	WATCHDOG
@@ -4538,7 +4477,7 @@ manual_vram_32k_test_loop:
 	moveq	#$e, d1
 	move.l	d6, d2
 	bclr	#$1f, d2
-	bsr	print_hex_3_bytes		; print pass number
+	RSUB	print_hex_3_bytes		; print pass number
 	movem.l	(a7)+, d0-d2
 
 	bsr	print_error
@@ -4575,7 +4514,7 @@ manual_vram_2k_test_loop:
 	moveq	#$e, d0
 	moveq	#$e, d1
 	move.l	d6, d2
-	bsr	print_hex_3_bytes
+	RSUB	print_hex_3_bytes
 
 	addq.l	#1, d6
 
@@ -4759,7 +4698,7 @@ misc_input_print_static_items:
 	move.l	(a1)+, d2			; load the test_bit and mmio_address
 	moveq	#$4, d0
 	move.b	d3, d1
-	bsr	print_hex_3_bytes		; print the mmio_address
+	RSUB	print_hex_3_bytes		; print the mmio_address
 
 	moveq	#$2e, d2
 	moveq	#$a, d0
@@ -4769,7 +4708,7 @@ misc_input_print_static_items:
 	move.b	(-$4,a1), d2			; reload test_bit
 	moveq	#$b, d0
 	move.b	d3, d1
-	bsr	print_hex_nibble
+	RSUB	print_hex_nibble
 
 	moveq	#$3d, d2
 	moveq	#$c, d0
