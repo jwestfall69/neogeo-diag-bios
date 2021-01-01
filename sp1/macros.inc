@@ -26,18 +26,12 @@
 		align 1
 	endm
 
-	macro XYP_STRING
-		dc.b \1, \2, \3
-		dc.b \4, $0
-		align 1
+	macro XY_STRING_MULTI
+		dc.b \1, \2 
+		dc.b \3, $0
 	endm
 
-	macro XYP_STRING_MULTI
-		dc.b \1, \2, \3
-		dc.b \4, $0
-	endm
-
-	macro XYP_STRING_MULTI_END
+	macro XY_STRING_MULTI_END
 		dc.b $0
 	endm
 
@@ -45,7 +39,6 @@
 		dc.l \1, \2
 		dc.w \3
 	endm
-
 
 	macro MISC_INPUT_ITEM
 		dc.b \1,\2,\3,\4

@@ -164,83 +164,20 @@ print_xy_char:
 	move.w	d2, (a6)
 	rts
 
-; prints an array of xyp string structs until $00 is encountered
+; clears the line that an xy string will be on, then falls through to print_xy_string_struct
 ; params:
-; a0 = start of array of xyp string structs
-print_xyp_string_struct_multi:
-	bsr	print_xyp_string_struct
-	tst.b	(a0)
-	bne	print_xyp_string_struct_multi
-	rts
-
-; clears the line that an xyp string will be on, then falls through to print_xyp_string_struct
-; params:
-; a0 = start of xyp string struct
-print_xyp_string_struct_clear:
-	move.b	(1,a0), d0
+;  a0 = start of xy string struct
+print_xy_string_struct_clear:
+	move.b	(1, a0), d0
 	bsr	fix_clear_line
 
-; converts an xyp string struct into the format that print_xyp_string expects, then falls through to it
+; prints xy string at x,y
 ; params:
-;  a0 = start of xyp string struct
-print_xyp_string_struct:
+;  a0 - start of xy string struct
+print_xy_string_struct:
 	move.b	(a0)+, d0
 	move.b	(a0)+, d1
-	move.b	(a0)+, d2
-
-; prints string at starting at x,y using d2 as the upper byte of the fix map entry
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = upper byte of fix map entry
-;  a0 = address of string
-print_xyp_string:
-	bsr	fix_seek_xy
-	move.w	#$20, (2,a6)
-	move.b	d2, -(a7)		; these 3 instructions cause the d2.b to be moved to
-	move.w	(a7)+, d2		; the upper byte of d2.w.  The lower d2.w will be garbage,
-	move.b	(a0)+, d2		; but we replace it with current char from string
-.loop_next_char:
-	move.w	d2, (a6)
-	move.b	(a0)+, d2
-	bne	.loop_next_char
-	rts
-
-
-; prints string struct as double height letters at x,y using d2 as the upper byte of the fix map entry
-; params:
-;  a0 = start of xyp string struct
-; this appears to be an unused subroutine
-print16_xyp_string_struct:
-	move.b	(a0)+, d0
-	move.b	(a0)+, d1
-	move.b	(a0)+, d2
-	move.l	a1, -(a7)
-	addq.b	#1, d2
-	bsr	fix_seek_xy
-
-	move.w	#$20, (2,a6)		; top half of chars
-	move.b	d2, -(a7)
-	move.w	(a7)+, d2
-	movea.l	a0, a1
-	move.b	(a0)+, d2
-.loop_next_char_top:
-	move.w	d2, (a6)
-	move.b	(a0)+, d2
-	bne	.loop_next_char_top
-
-	addq.w	#1, d1			; bottom half of chars on the next line
-	move.w	d1, (-2,a6)
-	add.w	#$100, d2
-	move.b	(a1)+, d2
-.loop_next_char_bottom:
-	move.w	d2, (a6)
-	move.b	(a1)+, d2
-	bne	.loop_next_char_bottom
-
-	movea.l	(a7)+, a1
-	rts
-
+	bra	print_xy_string
 
 ; clears the line that an string will be on, then falls through to print_xy_string
 ; params:
@@ -267,35 +204,6 @@ print_xy_string:
 	move.w	d0, (a6)
 	move.b	(a0)+, d0
 	bne	.loop_next_char
-	rts
-
-; prints string as double height letters at x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  a0 = string location
-; this appears to be an unused subroutine
-print16_xy_string:
-	move.l	a1, -(a7)
-	bsr	fix_seek_xy
-	move.w	#$20, (2,a6)
-	movea.l	a0, a1
-	move.w	#$100, d0		; top half of letter
-	move.b	(a0)+, d0
-.loop_next_char_top:
-	move.w	d0, (a6)
-	move.b	(a0)+, d0
-	bne	.loop_next_char_top
-
-	addq.w	#1, d1
-	move.w	d1, (-2,a6)
-	move.w	#$200, d0		; bottom half of letter on the next line
-	move.b	(a1)+, d0
-.loop_next_char_bottom:
-	move.w	d0, (a6)
-	move.b	(a1)+, d0
-	bne	.loop_next_char_bottom
-	movea.l	(a7)+, a1
 	rts
 
 ; clears the line the string will be printed on, then falls through to print_xy_string_psub - psub version
@@ -334,16 +242,16 @@ print_xy_string_psub:
 	bne	.loop_next_char
 	PSUB_RETURN
 
-; clears the line that an xyp string will be on, then falls through to print_xyp_string_struct_psub - psub version
+; clears the line that an xy string will be on, then falls through to print_xy_string_struct_psub - psub version
 ; params:
-;  a0 = start of xyp string struct
+;  a0 = start of xy string struct
 print_xy_string_struct_clear_psub:
 	move.b	(1,a0), d0
 	PSUB	fix_clear_line
 
-; prints xyp string at x,y - psub version
+; prints xy string at x,y - psub version
 ; params:
-;  a0 - start of xyp string struct
+;  a0 - start of xy string struct
 print_xy_string_struct_psub:
 	move.b	(a0)+, d0
 	move.b	(a0)+, d1
@@ -769,8 +677,8 @@ automatic_tests:
 skip_slot_switch:
 
 	bsr	z80_comm_test
-	lea	XYP_STR_Z80_WAITING, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_WAITING, a0
+	bsr	print_xy_string_struct_clear
 
 .loop_try_again:
 	WATCHDOG
@@ -782,24 +690,24 @@ skip_slot_switch:
 skip_z80_test:
 
 	bsr	automatic_function_tests
-	lea	XYP_STR_ALL_TESTS_PASSED, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_ALL_TESTS_PASSED, a0
+	bsr	print_xy_string_struct_clear
 
-	lea	XYP_STR_ABCD_MAIN_MENU, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_ABCD_MAIN_MENU, a0
+	bsr	print_xy_string_struct_clear
 
 	tst.b	z80_test_flags
 
 	bne	.loop_user_input
 
-	lea	XYP_STR_Z80_TESTS_SKIPPED, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_TESTS_SKIPPED, a0
+	bsr	print_xy_string_struct_clear
 
-	lea	XYP_STR_Z80_HOLD_D_AND_SOFT, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_HOLD_D_AND_SOFT, a0
+	bsr	print_xy_string_struct_clear
 
-	lea	XYP_STR_Z80_RESET_WITH_CART, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_RESET_WITH_CART, a0
+	bsr	print_xy_string_struct_clear
 
 .loop_user_input
 	WATCHDOG
@@ -934,8 +842,8 @@ z80_slot_switch:
 
 	bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
 
-	lea	XYP_STR_Z80_SWITCHING_M1, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_SWITCHING_M1, a0
+	bsr	print_xy_string_struct_clear
 
 	move.b	#$01, REG_SOUND				; tell z80 to prep for m1 switch
 
@@ -967,8 +875,8 @@ z80_slot_switch:
 .z80_do_slot_switch:
 
 	move.b	(a0), d3
-	lea	(XYP_STR_Z80_SLOT_SWITCH_NUM), a0	; "[SS ]"
-	bsr	print_xyp_string_struct
+	lea	(XY_STR_Z80_SLOT_SWITCH_NUM), a0	; "[SS ]"
+	bsr	print_xy_string_struct
 
 	move.b	#32, d0
 	moveq	#4, d1
@@ -997,14 +905,14 @@ Z80_SLOT_SELECT_END:
 
 
 z80_slot_switch_ignored:
-	lea	XYP_STR_Z80_IGNORED_SM1, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_Z80_SM1_UNRESPONSIVE, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_Z80_MV1BC_HOLD_B, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_Z80_PRESS_START, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_IGNORED_SM1, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_Z80_SM1_UNRESPONSIVE, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_Z80_MV1BC_HOLD_B, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_Z80_PRESS_START, a0
+	bsr	print_xy_string_struct_clear
 
 	bsr	print_hold_ss_to_reset
 
@@ -1100,8 +1008,8 @@ z80_check_sm1_test:
 	move.b	d0, REG_BRDFIX
 	move.b	#COMM_SM1_TEST_SWITCH_SM1_DONE, REG_SOUND
 
-	lea	(XYP_STR_Z80_SM1_TESTS), a0		; "[SM1]" to indicate m1 is running sm1 tests
-	bsr	print_xyp_string_struct
+	lea	(XY_STR_Z80_SM1_TESTS), a0		; "[SM1]" to indicate m1 is running sm1 tests
+	bsr	print_xy_string_struct
 
 	bsr	z80_wait_clear
 	rts
@@ -1126,7 +1034,7 @@ z80_wait_clear:
 	beq	z80_wait_clear
 	rts
 
-XYP_STR_Z80_ERROR_CODE:		XYP_STRING 4, 12, 0, "Z80 REPORTED ERROR CODE: "
+XY_STR_Z80_ERROR_CODE:		XY_STRING 4, 12, "Z80 REPORTED ERROR CODE: "
 
 
 ; see if z80 says its done testing (with no issues)
@@ -1137,11 +1045,11 @@ z80_check_done:
 
 z80_comm_test:
 
-	lea	XYP_STR_Z80_M1_ENABLED, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_Z80_M1_ENABLED, a0
+	bsr	print_xy_string_struct
 
-	lea	XYP_STR_Z80_TESTING_COMM_PORT, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_TESTING_COMM_PORT, a0
+	bsr	print_xy_string_struct_clear
 
 	move.b	#COMM_TEST_HELLO, d1
 	move.w  #500, d2
@@ -1177,11 +1085,11 @@ z80_comm_test:
 	rts
 
 .z80_hello_timeout
-	lea	XYP_STR_Z80_COMM_NO_HELLO, a0
+	lea	XY_STR_Z80_COMM_NO_HELLO, a0
 	bra	.print_comm_error
 
 .z80_ack_timeout
-	lea	XYP_STR_Z80_COMM_NO_ACK, a0
+	lea	XY_STR_Z80_COMM_NO_ACK, a0
 
 .print_comm_error
 	move.b	d1, d0
@@ -1315,11 +1223,11 @@ print_header_psub:
 ; prints the z80 related communication error
 ; params:
 ;  d0 = expected response
-;  a0 = xyp_string_struct address for main error
+;  a0 = xy_string_struct address for main error
 z80_print_comm_error:
 	move.w	d0, -(a7)
 
-	bsr	print_xyp_string_struct_clear
+	bsr	print_xy_string_struct_clear
 
 	moveq	#4, d0
 	moveq	#8, d1
@@ -1331,10 +1239,10 @@ z80_print_comm_error:
 	lea	STR_ACTUAL, a0
 	bsr	print_xy_string_clear
 
-	lea	XYP_STR_Z80_SKIP_TEST, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_Z80_PRESS_D_RESET, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_SKIP_TEST, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_Z80_PRESS_D_RESET, a0
+	bsr	print_xy_string_struct_clear
 
 	move.w	(a7)+, d2
 	moveq	#14, d0
@@ -1346,11 +1254,11 @@ z80_print_comm_error:
 	moveq	#10, d1
 	bsr	print_hex_byte				; actual value
 
-	lea	XYP_STR_Z80_MAKE_SURE, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_MAKE_SURE, a0
+	bsr	print_xy_string_struct_clear
 
-	lea	XYP_STR_Z80_CART_CLEAN, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_Z80_CART_CLEAN, a0
+	bsr	print_xy_string_struct_clear
 
 	bsr	z80_check_error
 	bra	loop_reset_check
@@ -1791,7 +1699,11 @@ print_error_mmio:
 	cmp.l	(a0)+, d3
 	bne	.loop_next_entry
 	movea.l	(a0), a0
-	bsr	print_xyp_string_struct_multi
+
+.loop_next_xy_string_struct:
+	bsr	print_xy_string_struct
+	tst.b	(a0)
+	bne	.loop_next_xy_string_struct
 
 	movea.l	a1, a0
 	moveq	#4, d0
@@ -1800,31 +1712,31 @@ print_error_mmio:
 	rts
 
 MMIO_ERROR_LOOKUP_TABLE_START:
-	dc.l REG_DIPSW, XYP_MMIO_ERROR_C1_1_TO_F0_47
-	dc.l REG_SYSTYPE, XYP_MMIO_ERROR_C1_1_TO_F0_47
-	dc.l REG_STATUS_A, XYP_MMIO_ERROR_REG_STATUS_A
-	dc.l REG_P1CNT, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_SOUND, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_P2CNT, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_STATUS_B, XYP_MMIO_ERROR_GENERIC_C1
-	dc.l REG_VRAMRW, XYP_MMIO_ERROR_REG_VRAMRW
+	dc.l REG_DIPSW, XY_MMIO_ERROR_C1_1_TO_F0_47
+	dc.l REG_SYSTYPE, XY_MMIO_ERROR_C1_1_TO_F0_47
+	dc.l REG_STATUS_A, XY_MMIO_ERROR_REG_STATUS_A
+	dc.l REG_P1CNT, XY_MMIO_ERROR_GENERIC_C1
+	dc.l REG_SOUND, XY_MMIO_ERROR_GENERIC_C1
+	dc.l REG_P2CNT, XY_MMIO_ERROR_GENERIC_C1
+	dc.l REG_STATUS_B, XY_MMIO_ERROR_GENERIC_C1
+	dc.l REG_VRAMRW, XY_MMIO_ERROR_REG_VRAMRW
 
-XYP_MMIO_ERROR_C1_1_TO_F0_47:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
-	XYP_STRING_MULTI_END
-XYP_MMIO_ERROR_REG_STATUS_A:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
-	XYP_STRING_MULTI_END
-XYP_MMIO_ERROR_GENERIC_C1:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: (no info)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1"
-	XYP_STRING_MULTI_END
-XYP_MMIO_ERROR_REG_VRAMRW:
-	XYP_STRING_MULTI 4, 10, 0, "1st gen: ? <-> LSPC-A0(?)"
-	XYP_STRING_MULTI 4, 11, 0, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
-	XYP_STRING_MULTI_END
+XY_MMIO_ERROR_C1_1_TO_F0_47:
+	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
+	XY_STRING_MULTI_END
+XY_MMIO_ERROR_REG_STATUS_A:
+	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
+	XY_STRING_MULTI_END
+XY_MMIO_ERROR_GENERIC_C1:
+	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1"
+	XY_STRING_MULTI_END
+XY_MMIO_ERROR_REG_VRAMRW:
+	XY_STRING_MULTI 4, 10, "1st gen: ? <-> LSPC-A0(?)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
+	XY_STRING_MULTI_END
 	align 2
 
 ; prints just the error description
@@ -1941,13 +1853,13 @@ print_error_z80:
 	moveq	#12, d1
 	bsr	print_hex_byte
 
-	lea	XYP_STR_Z80_ERROR_CODE.l, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_Z80_ERROR_CODE.l, a0
+	bsr	print_xy_string_struct
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#14, d1
-	bsr	print_xyp_string
+	bsr	print_xy_string
 
 	moveq	#21, d0
 	bsr	fix_clear_line
@@ -2276,7 +2188,7 @@ main_menu_draw:
 .print_entry:
 	moveq	#6, d0
 	move.b	d5, d1
-	bsr	print_xyp_string
+	bsr	print_xy_string
 	addq.b	#1, d3
 	addq.b	#1, d5
 	dbra	d4, .loop_next_entry
@@ -4002,14 +3914,14 @@ check_mmio_oe_word:
 	rts
 
 manual_calendar_test:
-	lea	XYP_STR_CAL_A_1HZ_PULSE, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_CAL_B_64HZ_PULSE, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_CAL_C_4096HZ_PULSE, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_CAL_D_MAIN_MENU, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_CAL_A_1HZ_PULSE, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_CAL_B_64HZ_PULSE, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_CAL_C_4096HZ_PULSE, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_CAL_D_MAIN_MENU, a0
+	bsr	print_xy_string_struct_clear
 
 	moveq	#$4, d0
 	moveq	#$11, d1
@@ -4021,8 +3933,8 @@ manual_calendar_test:
 	lea	STR_EXPECTED, a0
 	bsr	print_xy_string_clear
 
-	lea	XYP_STR_CAL_4990_TP, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_CAL_4990_TP, a0
+	bsr	print_xy_string_struct_clear
 
 	bsr	rtc_set_1_hz
 
@@ -4081,8 +3993,8 @@ rtc_update_hz:
 	bsr	rtc_send_command
 
 	move.l	d1, -(a7)
-	lea	XYP_STR_CAL_WAITING_PULSE, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_CAL_WAITING_PULSE, a0
+	bsr	print_xy_string_struct_clear
 
 	bsr	rtc_wait_pulse
 
@@ -4141,8 +4053,8 @@ rtc_print_data:
 ; blue  = tile 0x00, palette bank1
 ; white = tile 0x20, palette bank1
 manual_color_bars_test:
-	lea	XYP_STR_CT_D_MAIN_MENU, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_CT_D_MAIN_MENU, a0
+	bsr	print_xy_string_struct_clear
 	bsr	color_bar_setup_palettes
 	bsr	color_bar_draw_tiles
 
@@ -4436,10 +4348,10 @@ manual_controller_test:
 
 
 controller_print_labels:
-	lea	XYP_STR_CT_P1, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_CT_P2, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_CT_P1, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_CT_P2, a0
+	bsr	print_xy_string_struct_clear
 	moveq	#$7, d3
 	moveq	#$25, d4
 .loop_next_header:
@@ -4562,17 +4474,17 @@ controller_print_player_data:
 
 
 manual_wbram_test_loop:
-	lea	XYP_STR_WBRAM_PASSES,a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_WBRAM_HOLD_ABCD, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_WBRAM_PASSES,a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_WBRAM_HOLD_ABCD, a0
+	bsr	print_xy_string_struct_clear
 
 	moveq	#$0, d6
 	tst.b	REG_STATUS_B
 	bmi	.system_mvs
 	bset	#$1f, d6
-	lea	XYP_STR_WBRAM_WRAM_AES_ONLY, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_WBRAM_WRAM_AES_ONLY, a0
+	bsr	print_xy_string_struct_clear
 
 .system_mvs:
 	moveq	#$c, d7				; re-setup d7 so we can do psub calls
@@ -4631,12 +4543,12 @@ manual_wbram_test_loop:
 
 
 manual_palette_ram_test_loop:
-	lea	XYP_STR_PAL_PASSES, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_PAL_A_TO_RESUME, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_PAL_HOLD_ABCD, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_PAL_PASSES, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_PAL_A_TO_RESUME, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_PAL_HOLD_ABCD, a0
+	bsr	print_xy_string_struct_clear
 
 	bsr	palette_ram_backup
 
@@ -4691,11 +4603,11 @@ manual_palette_ram_test_loop:
 
 
 manual_vram_32k_test_loop:
-	lea	XYP_STR_VRAM_32K_A_TO_RESUME, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_VRAM_32K_A_TO_RESUME, a0
+	bsr	print_xy_string_struct_clear
 
-	lea	XYP_STR_PASSES.l, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_PASSES.l, a0
+	bsr	print_xy_string_struct
 
 	lea	STR_VRAM_HOLD_ABCD.l, a0
 	moveq	#$4, d0
@@ -4767,8 +4679,8 @@ manual_vram_2k_test_loop:
 	moveq	#$1b, d1
 	bsr	print_xy_string_clear
 
-	lea	XYP_STR_PASSES.l, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_PASSES.l, a0
+	bsr	print_xy_string_struct
 
 	moveq	#$0, d6
 	bra	.loop_start_run_test
@@ -4806,8 +4718,8 @@ manual_vram_2k_test_loop:
 	rts
 
 manual_misc_input_tests:
-	lea	XYP_STR_MI_D_MAIN_MENU, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MI_D_MAIN_MENU, a0
+	bsr	print_xy_string_struct_clear
 	bsr	misc_input_print_static
 .loop_run_test
 	bsr	p1p2_input_update
@@ -4818,16 +4730,16 @@ manual_misc_input_tests:
 	rts
 
 misc_input_print_static:
-	lea	XYP_STR_MI_MEMORY_CARD, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MI_MEMORY_CARD, a0
+	bsr	print_xy_string_struct_clear
 
 	lea	MI_ITEM_CD1, a0
 	moveq	#$9, d0
 	moveq	#$3, d1
 	bsr	misc_input_print_static_items
 
-	lea	XYP_STR_MI_SYSTEM_TYPE, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MI_SYSTEM_TYPE, a0
+	bsr	print_xy_string_struct_clear
 
 	lea	MI_ITEM_TYPE, a0
 	moveq	#$e, d0
@@ -5017,15 +4929,15 @@ misc_input_print_static_items:
 ;       800006         000002         3344
 manual_memcard_tests:
 
-	lea	XYP_STR_MC_D_MAIN_MENU, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_D_MAIN_MENU, a0
+	bsr	print_xy_string_struct_clear
 
 	move.b	REG_STATUS_B, d0
 	and.b	#$30, d0
 	beq	.memcard_inserted
 
-	lea	XYP_STR_MC_NOT_DETECTED, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_NOT_DETECTED, a0
+	bsr	print_xy_string_struct_clear
 	bra	.loop_wait_input_return_menu
 
 .memcard_inserted:
@@ -5033,18 +4945,18 @@ manual_memcard_tests:
 	btst	#$6, d0
 	beq	.memcard_not_write_protect
 
-	lea	XYP_STR_MC_WRITE_PROTECT, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_WRITE_PROTECT, a0
+	bsr	print_xy_string_struct_clear
 	bra	.loop_wait_input_return_menu
 
 .memcard_not_write_protect:
 
-	lea	XYP_STR_MC_WARNING1, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_MC_WARNING2, a0
-	bsr	print_xyp_string_struct_clear
-	lea	XYP_STR_MC_A_C_RUN_TEST, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_WARNING1, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_MC_WARNING2, a0
+	bsr	print_xy_string_struct_clear
+	lea	XY_STR_MC_A_C_RUN_TEST, a0
+	bsr	print_xy_string_struct_clear
 
 .loop_wait_input_run_test:
 
@@ -5070,8 +4982,8 @@ manual_memcard_tests:
 	bsr	fix_clear_line
 	moveq	#27, d0
 	bsr	fix_clear_line
-	lea	XYP_STR_MC_RUNNING_TESTS, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_RUNNING_TESTS, a0
+	bsr	print_xy_string_struct_clear
 
 	moveq	#$0, d0
 	move.b	d0, REG_CRDNORMAL
@@ -5087,34 +4999,34 @@ manual_memcard_tests:
 	bsr	memcard_get_bit_width
 	bsr	memcard_get_size
 
-	lea	XYP_STR_MC_DETECT, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_DETECT, a0
+	bsr	print_xy_string_struct_clear
 
 	; add (BAD DATA) if we weren't able to detect
 	btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
 	beq	.skip_bad_data
-	lea	XYP_STR_MC_BAD_DATA, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_MC_BAD_DATA, a0
+	bsr	print_xy_string_struct
 
 .skip_bad_data:
 
-	lea	XYP_STR_MC_DBUS_8BIT, a0
+	lea	XY_STR_MC_DBUS_8BIT, a0
 	btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
 	beq	.print_dbus_size
-	lea	XYP_STR_MC_DBUS_16BIT, a0
+	lea	XY_STR_MC_DBUS_16BIT, a0
 
 .print_dbus_size:
-	bsr	print_xyp_string_struct_clear
+	bsr	print_xy_string_struct_clear
 
 	; add (WIDE) if double wide bus
 	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
 	beq	.print_size
-	lea	XYP_STR_MC_DBUS_WIDE, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_MC_DBUS_WIDE, a0
+	bsr	print_xy_string_struct
 
 .print_size:
-	lea	XYP_STR_MC_SIZE, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_SIZE, a0
+	bsr	print_xy_string_struct_clear
 
 	moveq	#13, d0
 	moveq	#25, d1
@@ -5132,8 +5044,8 @@ manual_memcard_tests:
 	bsr	memcard_address_tests
 	bne	.test_failed_abort
 
-	lea	XYP_STR_MC_TESTS_PASSED, a0
-	bsr	print_xyp_string_struct
+	lea	XY_STR_MC_TESTS_PASSED, a0
+	bsr	print_xy_string_struct
 
 	bra	.wait_input_return_menu
 
@@ -5146,8 +5058,8 @@ manual_memcard_tests:
 	move.b	d0, REG_CRDLOCK1
 	move.b  d0, REG_CRDLOCK2
 
-	lea	XYP_STR_MC_D_MAIN_MENU, a0
-	bsr	print_xyp_string_struct_clear
+	lea	XY_STR_MC_D_MAIN_MENU, a0
+	bsr	print_xy_string_struct_clear
 
 .loop_wait_input_return_menu:
 
@@ -5614,13 +5526,13 @@ STR_HOLD_SS_TO_RESET:		STRING "HOLD START/SELECT TO SOFT RESET"
 STR_RELEASE_SS:			STRING "RELEASE START/SELECT"
 STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a00 - BY SMKDAN"
 
-XYP_STR_PASSES:			XYP_STRING  4, 14,  0, "PASSES:"
-XYP_STR_Z80_WAITING:		XYP_STRING  4,  5,  0, "WAITING FOR Z80 TO FINISH TESTS..."
-XYP_STR_ALL_TESTS_PASSED:	XYP_STRING  4,  5,  0, "ALL TESTS PASSED"
-XYP_STR_ABCD_MAIN_MENU:		XYP_STRING  4, 21,  0, "PRESS ABCD FOR MAIN MENU"
-XYP_STR_Z80_TESTS_SKIPPED:	XYP_STRING  4, 23,  0, "NOTE: Z80 TESTING WAS SKIPPED. TO"
-XYP_STR_Z80_HOLD_D_AND_SOFT:	XYP_STRING  4, 24,  0, "TEST Z80, HOLD BUTTON D AND SOFT"
-XYP_STR_Z80_RESET_WITH_CART:	XYP_STRING  4, 25,  0, "RESET WITH TEST CART INSERTED."
+XY_STR_PASSES:			XY_STRING  4, 14, "PASSES:"
+XY_STR_Z80_WAITING:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
+XY_STR_ALL_TESTS_PASSED:	XY_STRING  4,  5, "ALL TESTS PASSED"
+XY_STR_ABCD_MAIN_MENU:		XY_STRING  4, 21, "PRESS ABCD FOR MAIN MENU"
+XY_STR_Z80_TESTS_SKIPPED:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
+XY_STR_Z80_HOLD_D_AND_SOFT:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
+XY_STR_Z80_RESET_WITH_CART:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
 
 XY_STR_WATCHDOG_DELAY:		XY_STRING  4,  5, "WATCHDOG DELAY..."
 XY_STR_WATCHDOG_TEXT_REMAINS:	XY_STRING  4,  8, "IF THIS TEXT REMAINS HERE..."
@@ -5637,21 +5549,21 @@ STR_TESTING_PALETTE_RAM:	STRING "TESTING PALETTE RAM..."
 STR_TESTING_VRAM:		STRING "TESTING VRAM..."
 STR_TESTING_MMIO:		STRING "TESTING MMIO..."
 
-XYP_STR_Z80_SWITCHING_M1:	XYP_STRING  4,  5,  0, "SWITCHING TO CART M1..."
-XYP_STR_Z80_IGNORED_SM1:	XYP_STRING  4,  5,  0, "Z80 SLOT SWITCH IGNORED (SM1)"
-XYP_STR_Z80_SM1_UNRESPONSIVE:	XYP_STRING  4,  7,  0, "SM1 OTHERWISE LOOKS UNRESPONSIVE"
-XYP_STR_Z80_MV1BC_HOLD_B:	XYP_STRING  4, 10,  0, "IF MV-1B/1C: SOFT RESET & HOLD B"
-XYP_STR_Z80_PRESS_START:	XYP_STRING  4, 12,  0, "PRESS START TO CONTINUE"
-XYP_STR_Z80_TESTING_COMM_PORT:	XYP_STRING  4,  5,  0, "TESTING Z80 COMM. PORT..."
-XYP_STR_Z80_COMM_NO_HELLO:	XYP_STRING  4,  5,  0, "Z80->68k COMM ISSUE (HELLO)"
-XYP_STR_Z80_COMM_NO_ACK:	XYP_STRING  4,  5,  0, "Z80->68k COMM ISSUE (ACK)"
-XYP_STR_Z80_SKIP_TEST:		XYP_STRING  4, 24,  0, "TO SKIP Z80 TESTING, RELEASE"
-XYP_STR_Z80_PRESS_D_RESET:	XYP_STRING  4, 25,  0, "D BUTTON AND SOFT RESET."
-XYP_STR_Z80_MAKE_SURE:		XYP_STRING  4, 21,  0, "FOR Z80 TESTING, MAKE SURE TEST"
-XYP_STR_Z80_CART_CLEAN:		XYP_STRING  4, 22,  0, "CART IS CLEAN AND FUNCTIONAL."
-XYP_STR_Z80_M1_ENABLED:		XYP_STRING 34,  4,  0, "[M1]"
-XYP_STR_Z80_SLOT_SWITCH_NUM:	XYP_STRING 29,  4,  0, "[SS ]"
-XYP_STR_Z80_SM1_TESTS:		XYP_STRING 24,  4,  0, "[SM1]"
+XY_STR_Z80_SWITCHING_M1:	XY_STRING  4,  5, "SWITCHING TO CART M1..."
+XY_STR_Z80_IGNORED_SM1:		XY_STRING  4,  5, "Z80 SLOT SWITCH IGNORED (SM1)"
+XY_STR_Z80_SM1_UNRESPONSIVE:	XY_STRING  4,  7, "SM1 OTHERWISE LOOKS UNRESPONSIVE"
+XY_STR_Z80_MV1BC_HOLD_B:	XY_STRING  4, 10, "IF MV-1B/1C: SOFT RESET & HOLD B"
+XY_STR_Z80_PRESS_START:		XY_STRING  4, 12, "PRESS START TO CONTINUE"
+XY_STR_Z80_TESTING_COMM_PORT:	XY_STRING  4,  5, "TESTING Z80 COMM. PORT..."
+XY_STR_Z80_COMM_NO_HELLO:	XY_STRING  4,  5, "Z80->68k COMM ISSUE (HELLO)"
+XY_STR_Z80_COMM_NO_ACK:		XY_STRING  4,  5, "Z80->68k COMM ISSUE (ACK)"
+XY_STR_Z80_SKIP_TEST:		XY_STRING  4, 24, "TO SKIP Z80 TESTING, RELEASE"
+XY_STR_Z80_PRESS_D_RESET:	XY_STRING  4, 25, "D BUTTON AND SOFT RESET."
+XY_STR_Z80_MAKE_SURE:		XY_STRING  4, 21, "FOR Z80 TESTING, MAKE SURE TEST"
+XY_STR_Z80_CART_CLEAN:		XY_STRING  4, 22, "CART IS CLEAN AND FUNCTIONAL."
+XY_STR_Z80_M1_ENABLED:		XY_STRING 34,  4, "[M1]"
+XY_STR_Z80_SLOT_SWITCH_NUM:	XY_STRING 29,  4, "[SS ]"
+XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
 
 STR_Z80_M1_CRC:			STRING "M1 CRC ERROR (fixed region)"
 STR_Z80_M1_UPPER_ADDRESS:	STRING "M1 UPPER ADDRESS (fixed region)"
@@ -5768,36 +5680,36 @@ STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
 STR_MM_MEMCARD_TESTS:		STRING "MEMORY CARD TESTS"
 
 ; strings for calender io screen
-XYP_STR_CAL_A_1HZ_PULSE:	XYP_STRING  4,  8,  0, "A: 1Hz pulse"
-XYP_STR_CAL_B_64HZ_PULSE:	XYP_STRING  4, 10,  0, "B: 64Hz pulse"
-XYP_STR_CAL_C_4096HZ_PULSE:	XYP_STRING  4, 12,  0, "C: 4096Hz pulse"
-XYP_STR_CAL_D_MAIN_MENU:	XYP_STRING  4, 14,  0, "D: Return to menu"
-XYP_STR_CAL_4990_TP:		XYP_STRING  4, 21,  0, "4990 TP:"
-XYP_STR_CAL_WAITING_PULSE:	XYP_STRING  4, 27,  0, "WAITING FOR CALENDAR PULSE..."
+XY_STR_CAL_A_1HZ_PULSE:		XY_STRING  4,  8, "A: 1Hz pulse"
+XY_STR_CAL_B_64HZ_PULSE:	XY_STRING  4, 10, "B: 64Hz pulse"
+XY_STR_CAL_C_4096HZ_PULSE:	XY_STRING  4, 12, "C: 4096Hz pulse"
+XY_STR_CAL_D_MAIN_MENU:		XY_STRING  4, 14, "D: Return to menu"
+XY_STR_CAL_4990_TP:		XY_STRING  4, 21, "4990 TP:"
+XY_STR_CAL_WAITING_PULSE:	XY_STRING  4, 27, "WAITING FOR CALENDAR PULSE..."
 
 ; strings for controller test screen
-XYP_STR_CT_D_MAIN_MENU:		XYP_STRING  4, 27,  0, "D: Return to menu"
-XYP_STR_CT_P1:			XYP_STRING  1,  4,  0, "P1"
-XYP_STR_CT_P2:			XYP_STRING  1, 17,  0, "P2"
+XY_STR_CT_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
+XY_STR_CT_P1:			XY_STRING  1,  4, "P1"
+XY_STR_CT_P2:			XY_STRING  1, 17, "P2"
 
 ; strings wram/bram test screens
-XYP_STR_WBRAM_PASSES:		XYP_STRING  4, 14,  0, "PASSES:"
-XYP_STR_WBRAM_HOLD_ABCD:	XYP_STRING  4, 27,  0, "HOLD ABCD TO STOP"
-XYP_STR_WBRAM_WRAM_AES_ONLY:	XYP_STRING  4, 16,  0, "WRAM TEST ONLY (AES)"
+XY_STR_WBRAM_PASSES:		XY_STRING  4, 14, "PASSES:"
+XY_STR_WBRAM_HOLD_ABCD:		XY_STRING  4, 27, "HOLD ABCD TO STOP"
+XY_STR_WBRAM_WRAM_AES_ONLY:	XY_STRING  4, 16, "WRAM TEST ONLY (AES)"
 
 ; strings for palette test screen
-XYP_STR_PAL_PASSES:		XYP_STRING  4, 14,  0, "PASSES:"
-XYP_STR_PAL_A_TO_RESUME:	XYP_STRING  4, 27,  0, "RELEASE A TO RESUME"
-XYP_STR_PAL_HOLD_ABCD:		XYP_STRING  4, 25,  0, "HOLD ABCD TO STOP"
+XY_STR_PAL_PASSES:		XY_STRING  4, 14, "PASSES:"
+XY_STR_PAL_A_TO_RESUME:		XY_STRING  4, 27, "RELEASE A TO RESUME"
+XY_STR_PAL_HOLD_ABCD:		XY_STRING  4, 25, "HOLD ABCD TO STOP"
 
 ; strings for vram test screens
-XYP_STR_VRAM_32K_A_TO_RESUME:	XYP_STRING  4, 27,  0, "RELEASE A TO RESUME"
+XY_STR_VRAM_32K_A_TO_RESUME:	XY_STRING  4, 27, "RELEASE A TO RESUME"
 STR_VRAM_HOLD_ABCD:		STRING "HOLD ABCD TO STOP"
 
 ; strings for misc input screen
-XYP_STR_MI_D_MAIN_MENU:		XYP_STRING  4, 27,  0, "D: Return to menu"
-XYP_STR_MI_MEMORY_CARD:		XYP_STRING  4,  8,  0, "MEMORY CARD:"
-XYP_STR_MI_SYSTEM_TYPE:		XYP_STRING  4, 13,  0, "SYSTEM TYPE:"
+XY_STR_MI_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
+XY_STR_MI_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
+XY_STR_MI_SYSTEM_TYPE:		XY_STRING  4, 13, "SYSTEM TYPE:"
 STR_MI_CD1:			STRING "/CD1"
 STR_MI_CARD1_DETECTED:		STRING "(CARD DETECTED)"
 STR_MI_CARD1_EMPTY:		STRING "(CARD SLOT EMPTY)"
@@ -5818,20 +5730,20 @@ STR_MI_CFG_B_LOW:		STRING "(CFG-B LOW)"
 STR_MI_CFG_B_HIGH:		STRING "(CFG-B HIGH)"
 
 ; strings for memory card screen
-XYP_STR_MC_A_C_RUN_TEST:	XYP_STRING  4, 26,  0, "A+C: Run Test"
-XYP_STR_MC_D_MAIN_MENU:		XYP_STRING  4, 27,  0, "D: Return to menu"
-XYP_STR_MC_WARNING1:		XYP_STRING  4,  8,  0, "WARNING: ALL DATA ON THE MEMORY"
-XYP_STR_MC_WARNING2:		XYP_STRING  4,  9,  0, "CARD WILL BE OVERWRITTEN!"
-XYP_STR_MC_NOT_DETECTED:	XYP_STRING  4,  8,  0, "ERROR: MEMORY CARD NOT DETECTED"
-XYP_STR_MC_WRITE_PROTECT:	XYP_STRING  4,  8,  0, "ERROR: MEMORY CARD WRITE PROTECTED"
-XYP_STR_MC_DETECT:		XYP_STRING  4, 22,  0, "DETECTED"
-XYP_STR_MC_BAD_DATA:		XYP_STRING 13, 22,  0, "(BAD DATA)"
-XYP_STR_MC_DBUS_8BIT:		XYP_STRING  4, 24,  0, "DATA BUS: 8-BIT"
-XYP_STR_MC_DBUS_16BIT:		XYP_STRING  4, 24,  0, "DATA BUS: 16-BIT"
-XYP_STR_MC_DBUS_WIDE:		XYP_STRING 21, 24,  0, "(WIDE)"
-XYP_STR_MC_SIZE:		XYP_STRING  8, 25,  0, "SIZE:      KB"
-XYP_STR_MC_TESTS_PASSED:	XYP_STRING  4,  9,  0, "ALL TESTS PASSED"
-XYP_STR_MC_RUNNING_TESTS:	XYP_STRING  4,  9,  0, "RUNNING TESTS..."
+XY_STR_MC_A_C_RUN_TEST:		XY_STRING  4, 26, "A+C: Run Test"
+XY_STR_MC_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
+XY_STR_MC_WARNING1:		XY_STRING  4,  8, "WARNING: ALL DATA ON THE MEMORY"
+XY_STR_MC_WARNING2:		XY_STRING  4,  9, "CARD WILL BE OVERWRITTEN!"
+XY_STR_MC_NOT_DETECTED:		XY_STRING  4,  8, "ERROR: MEMORY CARD NOT DETECTED"
+XY_STR_MC_WRITE_PROTECT:	XY_STRING  4,  8, "ERROR: MEMORY CARD WRITE PROTECTED"
+XY_STR_MC_DETECT:		XY_STRING  4, 22, "DETECTED"
+XY_STR_MC_BAD_DATA:		XY_STRING 13, 22, "(BAD DATA)"
+XY_STR_MC_DBUS_8BIT:		XY_STRING  4, 24, "DATA BUS: 8-BIT"
+XY_STR_MC_DBUS_16BIT:		XY_STRING  4, 24, "DATA BUS: 16-BIT"
+XY_STR_MC_DBUS_WIDE:		XY_STRING 21, 24, "(WIDE)"
+XY_STR_MC_SIZE:			XY_STRING  8, 25, "SIZE:      KB"
+XY_STR_MC_TESTS_PASSED:		XY_STRING  4,  9, "ALL TESTS PASSED"
+XY_STR_MC_RUNNING_TESTS:	XY_STRING  4,  9, "RUNNING TESTS..."
 
 
 	rorg	$7ffb, $ff
