@@ -368,13 +368,17 @@ HEX_LOOKUP:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data (bit 0)
-print_bit:
-	RSUB	fix_seek_xy
-	move.w	#$ffe0, (2,a6)			; write backwards, pointless instruction?
+print_bit_dsub:
+	ext.w	d0
+	ext.w	d1
+	lsl.w	#5, d0
+	or.w	d0, d1
+	or.w	#FIXMAP, d1			; seek to x, y
+	move.w 	d1, (-2, a6)
 	and.w	#1, d2
 	add.b	#$30, d2
 	move.w	d2, (a6)
-	rts
+	DSUB_RETURN
 
 
 ; prints a digit start at x,y
@@ -382,53 +386,33 @@ print_bit:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = digit
-print_digit:
-	RSUB	fix_seek_xy
+print_digit_dsub:
+	ext.w	d0
+	ext.w	d1
+	lsl.w	#5, d0
+	or.w	d0, d1
+	or.w	#FIXMAP, d1			; seek to x, y
+	move.w 	d1, (-2, a6)
 	moveq	#0, d1
-	bra	print_digits			; handles rts
+	bra	print_digits_dsub
 
 ; prints 3 digits starting at x,y
 ; params:
 ;  d0 = x
 ;  d1 = y
 ;  d2 = data
-print_3_digits:
+print_3_digits_dsub:
 	addq.w	#2, d0
-	RSUB	fix_seek_xy			; seek to x + 2, y
+	ext.w	d0
+	ext.w	d1
+	lsl.w	#5, d0
+	or.w	d0, d1
+	or.w	#FIXMAP, d1			; seek to x, y
+	move.w 	d1, (-2, a6)
 	moveq	#2, d1
-	bra	print_digits			; handles rts
+	bra	print_digits_dsub
 
 ; prints 5 digits starting at x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = data
-; unused code?
-print_5_digits:
-	addq.w	#4, d0
-	RSUB	fix_seek_xy			; seek to x + 4, y
-	moveq	#4, d1
-	nop					; falls through to print_digits
-
-; prints digits
-; params:
-;  d1 = number of digits - 1
-;  d2 = data
-; prints backwards so caller must have x,y at the end location you want
-print_digits:
-	move.w	#$ffe0, (2,a6)			; write backwards
-	moveq	#$30, d0
-.loop_next_digit:
-	divu.w	#10, d2				; divide by 10 and print the remainder
-	swap	d2
-	add.b	d0, d2
-	move.w	d2, (a6)
-	clr.w	d2
-	swap	d2
-	dbeq	d1, .loop_next_digit
-	rts
-
-; prints 5 digits starting at x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -440,10 +424,17 @@ print_5_digits_dsub:
 	ext.w	d1
 	lsl.w	#5, d0
 	or.w	d0, d1
-	or.w	#FIXMAP, d1
-	move.w	d1, (-2,a6)			; seek to x + 4, y
+	or.w	#FIXMAP, d1			; seek to x, y
+	move.w 	d1, (-2, a6)
 	moveq	#4, d1
-	nop
+	nop					; falls through to print_digits_dsub
+
+; prints digits
+; params:
+;  d1 = number of digits - 1
+;  d2 = data
+; prints backwards so caller must have x,y at the end location you want
+print_digits_dsub:
 	move.w	#$ffe0, (2,a6)			; write backwards
 	moveq	#$30, d0
 .loop_next_digit:
@@ -454,7 +445,15 @@ print_5_digits_dsub:
 	clr.w	d2
 	swap	d2
 	dbeq	d1, .loop_next_digit
+
+	; any remaining digit slots pad with spaces
+	bra	.loop_pad_space_start
+.loop_pad_space:
+	move.w	#$20, (a6)
+.loop_pad_space_start:
+	dbra	d1, .loop_pad_space
 	DSUB_RETURN
+
 
 ; start
 _start:
@@ -730,7 +729,7 @@ z80_slot_switch:
 	moveq	#4, d1
 	moveq	#0, d2
 	move.b	d3, d2
-	bsr	print_digit			; print the slot number
+	RSUB	print_digit			; print the slot number
 
 	subq	#1, d3				; convert to what REG_SLOT expects, 0 to 5
 	move.b	d3, REG_SLOT			; set slot
@@ -4279,7 +4278,7 @@ controller_print_player_data:
 	move.b	d5, d0
 	move.b	d6, d1
 	move.w	d4, d2
-	bsr	print_bit
+	RSUB	print_bit
 	lsr.w	#1, d4
 	addq.b	#1, d6
 	dbra	d3, .loop_next_bit
@@ -4294,8 +4293,8 @@ controller_print_player_data:
 	addq.b	#1, d1
 	move.w	(a7)+, d2
 	and.w	#$ff, d2
-	bsr	print_3_digits		; will rts for us
-
+	RSUB	print_3_digits
+	rts
 
 manual_wbram_test_loop:
 	lea	XY_STR_WBRAM_PASSES,a0
@@ -4858,7 +4857,7 @@ manual_memcard_tests:
 	move.l	memcard_size, d2
 	moveq	#10, d3			; print the size in KB
 	lsr.l	d3, d2
-	bsr	print_5_digits
+	RSUB	print_5_digits
 
 	bsr	memcard_we_tests
 	bne	.test_failed_abort
