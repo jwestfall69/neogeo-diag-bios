@@ -168,49 +168,7 @@ print_xy_char:
 	move.w	d2, (a6)
 	rts
 
-; clears the line that an xy string will be on, then falls through to print_xy_string_struct
-; params:
-;  a0 = start of xy string struct
-print_xy_string_struct_clear:
-	move.b	(1, a0), d0
-	RSUB	fix_clear_line
-
-; prints xy string at x,y
-; params:
-;  a0 - start of xy string struct
-print_xy_string_struct:
-	move.b	(a0)+, d0
-	move.b	(a0)+, d1
-	bra	print_xy_string
-
-; clears the line that an string will be on, then falls through to print_xy_string
-; params:
-;  d0 = x
-;  d1 = y
-;  a0 = string location
-print_xy_string_clear:
-	movem.w	d0-d1, -(a7)
-	move.b	d1, d0
-	RSUB	fix_clear_line
-	movem.w	(a7)+, d0-d1
-
-; print string to x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  a0 = string location
-print_xy_string:
-	bsr	fix_seek_xy
-	move.w	#$20, (2,a6)
-	moveq	#$0, d0
-	move.b	(a0)+, d0
-.loop_next_char:
-	move.w	d0, (a6)
-	move.b	(a0)+, d0
-	bne	.loop_next_char
-	rts
-
-; clears the line the string will be printed on, then falls through to print_xy_string_dsub - dsub version
+; clears the line the string will be printed on, then falls through to print_xy_string_dsub
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -225,7 +183,7 @@ print_xy_string_clear_dsub:
 	swap	d2
 	move.b	d2, d0
 
-; print string to x,y - dsub version
+; print string to x,y
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -246,14 +204,14 @@ print_xy_string_dsub:
 	bne	.loop_next_char
 	DSUB_RETURN
 
-; clears the line that an xy string will be on, then falls through to print_xy_string_struct_dsub - dsub version
+; clears the line that an xy string will be on, then falls through to print_xy_string_struct_dsub
 ; params:
 ;  a0 = start of xy string struct
 print_xy_string_struct_clear_dsub:
-	move.b	(1,a0), d0
+	move.b	(1, a0), d0
 	DSUB	fix_clear_line
 
-; prints xy string at x,y - dsub version
+; prints xy string at x,y
 ; params:
 ;  a0 - start of xy string struct
 print_xy_string_struct_dsub:
@@ -275,24 +233,6 @@ print_xy_string_struct_dsub:
 	DSUB_RETURN
 
 ; prints the char n times starting at x,y
-; params:
-;  d0 = x
-;  d1 = y
-;  d2 = upper byte of fix map entry
-;  d3 = char
-;  d4 = number of times to print
-print_char_repeat:
-	bsr	fix_seek_xy
-	move.w	#$20, (2,a6)
-	lsl.w	#8, d2
-	move.b	d3, d2
-	subq.w	#1, d4
-.loop_next_tile:
-	move.w	d2, (a6)
-	dbra	d4, .loop_next_tile
-	rts
-
-; prints the char n times starting at x,y - dsub version
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -640,7 +580,7 @@ skip_slot_switch:
 
 	bsr	z80_comm_test
 	lea	XY_STR_Z80_WAITING, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 .loop_try_again:
 	WATCHDOG
@@ -653,23 +593,23 @@ skip_z80_test:
 
 	bsr	automatic_function_tests
 	lea	XY_STR_ALL_TESTS_PASSED, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	XY_STR_ABCD_MAIN_MENU, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	tst.b	z80_test_flags
 
 	bne	.loop_user_input
 
 	lea	XY_STR_Z80_TESTS_SKIPPED, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	XY_STR_Z80_HOLD_D_AND_SOFT, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	XY_STR_Z80_RESET_WITH_CART, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 .loop_user_input
 	WATCHDOG
@@ -759,7 +699,7 @@ automatic_function_tests:
 	movea.l	a0, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	bsr	print_xy_string_clear		; at 4,5 print test name
+	RSUB	print_xy_string_clear		; at 4,5 print test name
 
 	move.l	a5, -(a7)
 	move.w	d6, -(a7)
@@ -806,7 +746,7 @@ z80_slot_switch:
 	bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
 
 	lea	XY_STR_Z80_SWITCHING_M1, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	move.b	#$01, REG_SOUND				; tell z80 to prep for m1 switch
 
@@ -839,10 +779,11 @@ z80_slot_switch:
 
 	move.b	(a0), d3
 	lea	(XY_STR_Z80_SLOT_SWITCH_NUM), a0	; "[SS ]"
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	move.b	#32, d0
 	moveq	#4, d1
+	moveq	#0, d2
 	move.b	d3, d2
 	bsr	print_digit			; print the slot number
 
@@ -869,13 +810,13 @@ Z80_SLOT_SELECT_END:
 
 z80_slot_switch_ignored:
 	lea	XY_STR_Z80_IGNORED_SM1, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_Z80_SM1_UNRESPONSIVE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_Z80_MV1BC_HOLD_B, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_Z80_PRESS_START, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	bsr	print_hold_ss_to_reset
 
@@ -973,7 +914,7 @@ z80_check_sm1_test:
 	move.b	#COMM_SM1_TEST_SWITCH_SM1_DONE, REG_SOUND
 
 	lea	(XY_STR_Z80_SM1_TESTS), a0		; "[SM1]" to indicate m1 is running sm1 tests
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	bsr	z80_wait_clear
 	rts
@@ -1010,10 +951,10 @@ z80_check_done:
 z80_comm_test:
 
 	lea	XY_STR_Z80_M1_ENABLED, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	lea	XY_STR_Z80_TESTING_COMM_PORT, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	move.b	#COMM_TEST_HELLO, d1
 	move.w  #500, d2
@@ -1116,7 +1057,7 @@ check_reset_request:
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_RELEASE_SS, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 .loop_ss_pressed:
 	WATCHDOG
@@ -1136,7 +1077,7 @@ print_hold_ss_to_reset:
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_HOLD_SS_TO_RESET, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 	rts
 
 ; prints headers - dsub version
@@ -1166,22 +1107,22 @@ print_header_dsub:
 z80_print_comm_error:
 	move.w	d0, -(a7)
 
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	moveq	#4, d0
 	moveq	#8, d1
 	lea	STR_EXPECTED, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	moveq	#4, d0
 	moveq	#10, d1
 	lea	STR_ACTUAL, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	lea	XY_STR_Z80_SKIP_TEST, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_Z80_PRESS_D_RESET, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	move.w	(a7)+, d2
 	moveq	#14, d0
@@ -1194,10 +1135,10 @@ z80_print_comm_error:
 	bsr	print_hex_byte				; actual value
 
 	lea	XY_STR_Z80_MAKE_SURE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	XY_STR_Z80_CART_CLEAN, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	bsr	z80_check_error
 	bra	loop_reset_check
@@ -1552,22 +1493,22 @@ print_error_memory:
 	lea	STR_ADDRESS.l, a0
 	moveq	#4, d0
 	moveq	#8, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	lea	STR_EXPECTED.l, a0
 	moveq	#4, d0
 	moveq	#12, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	lea	STR_ACTUAL.l, a0
 	moveq	#4, d0
 	moveq	#10, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	bsr	print_xy_string_clear		; error description
+	RSUB	print_xy_string_clear		; error description
 	rts
 
 ; prints actual/expected data for a memory address
@@ -1630,7 +1571,7 @@ print_error_mmio:
 	lea	STR_ADDRESS.l, a0
 	moveq	#4, d0
 	moveq	#8, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	lea	(MMIO_ERROR_LOOKUP_TABLE_START - 4), a0
 .loop_next_entry:
@@ -1640,14 +1581,14 @@ print_error_mmio:
 	movea.l	(a0), a0
 
 .loop_next_xy_string_struct:
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 	tst.b	(a0)
 	bne	.loop_next_xy_string_struct
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 	rts
 
 MMIO_ERROR_LOOKUP_TABLE_START:
@@ -1685,7 +1626,7 @@ print_error_string:
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 	rts
 
 ; prints just the error description
@@ -1709,17 +1650,17 @@ print_error_invalid:
 	moveq	#9, d0
 	moveq	#5, d1
 	lea	STR_INVALID_ERROR, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	moveq	#4, d0
 	moveq	#6, d1
 	lea	STR_ERROR_CODE, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	moveq	#4, d0
 	moveq	#7, d1
 	lea	STR_PRINT_FUNCTION, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	move.w	(a7)+, d2
 	moveq	#24, d0
@@ -1793,12 +1734,12 @@ print_error_z80:
 	bsr	print_hex_byte
 
 	lea	XY_STR_Z80_ERROR_CODE.l, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#14, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	moveq	#21, d0
 	RSUB	fix_clear_line
@@ -2127,7 +2068,7 @@ main_menu_draw:
 .print_entry:
 	moveq	#6, d0
 	move.b	d5, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 	addq.b	#1, d3
 	addq.b	#1, d5
 	dbra	d4, .loop_next_entry
@@ -2210,7 +2151,7 @@ main_menu_loop:
 	movea.l	(a1)+, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	movea.l	(a1), a0
 	jsr	(a0)					; call the test function
@@ -3854,26 +3795,26 @@ check_mmio_oe_word:
 
 manual_calendar_test:
 	lea	XY_STR_CAL_A_1HZ_PULSE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_CAL_B_64HZ_PULSE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_CAL_C_4096HZ_PULSE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_CAL_D_MAIN_MENU, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	moveq	#$4, d0
 	moveq	#$11, d1
 	lea	STR_ACTUAL, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	moveq	#$4, d0
 	moveq	#$13, d1
 	lea	STR_EXPECTED, a0
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	lea	XY_STR_CAL_4990_TP, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	bsr	rtc_set_1_hz
 
@@ -3933,7 +3874,7 @@ rtc_update_hz:
 
 	move.l	d1, -(a7)
 	lea	XY_STR_CAL_WAITING_PULSE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	bsr	rtc_wait_pulse
 
@@ -3993,7 +3934,7 @@ rtc_print_data:
 ; white = tile 0x20, palette bank1
 manual_color_bars_test:
 	lea	XY_STR_CT_D_MAIN_MENU, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	bsr	color_bar_setup_palettes
 	bsr	color_bar_draw_tiles
 
@@ -4288,9 +4229,9 @@ manual_controller_test:
 
 controller_print_labels:
 	lea	XY_STR_CT_P1, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_CT_P2, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	moveq	#$7, d3
 	moveq	#$25, d4
 .loop_next_header:
@@ -4316,7 +4257,7 @@ controller_print_player_buttons:
 .loop_next_buttom:
 	moveq	#$4, d0
 	move.b	d3, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 	addq.b	#1, d3
 	tst.b	(a0)
 	bne	.loop_next_buttom
@@ -4413,16 +4354,16 @@ controller_print_player_data:
 
 manual_wbram_test_loop:
 	lea	XY_STR_WBRAM_PASSES,a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_WBRAM_HOLD_ABCD, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	moveq	#$0, d6
 	tst.b	REG_STATUS_B
 	bmi	.system_mvs
 	bset	#$1f, d6
 	lea	XY_STR_WBRAM_WRAM_AES_ONLY, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 .system_mvs:
 	moveq	#DSUB_INIT_PSEUDO, d7		; init dsub for pseudo subroutines
@@ -4482,11 +4423,11 @@ manual_wbram_test_loop:
 
 manual_palette_ram_test_loop:
 	lea	XY_STR_PAL_PASSES, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_PAL_A_TO_RESUME, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_PAL_HOLD_ABCD, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	bsr	palette_ram_backup
 
@@ -4542,15 +4483,15 @@ manual_palette_ram_test_loop:
 
 manual_vram_32k_test_loop:
 	lea	XY_STR_VRAM_32K_A_TO_RESUME, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	XY_STR_PASSES.l, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	lea	STR_VRAM_HOLD_ABCD.l, a0
 	moveq	#$4, d0
 	moveq	#$19, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	bsr	fix_backup
 
@@ -4615,10 +4556,10 @@ manual_vram_2k_test_loop:
 	lea	STR_VRAM_HOLD_ABCD, a0
 	moveq	#$4, d0
 	moveq	#$1b, d1
-	bsr	print_xy_string_clear
+	RSUB	print_xy_string_clear
 
 	lea	XY_STR_PASSES.l, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	moveq	#$0, d6
 	bra	.loop_start_run_test
@@ -4657,7 +4598,7 @@ manual_vram_2k_test_loop:
 
 manual_misc_input_tests:
 	lea	XY_STR_MI_D_MAIN_MENU, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	bsr	misc_input_print_static
 .loop_run_test
 	bsr	p1p2_input_update
@@ -4669,7 +4610,7 @@ manual_misc_input_tests:
 
 misc_input_print_static:
 	lea	XY_STR_MI_MEMORY_CARD, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	MI_ITEM_CD1, a0
 	moveq	#$9, d0
@@ -4677,7 +4618,7 @@ misc_input_print_static:
 	bsr	misc_input_print_static_items
 
 	lea	XY_STR_MI_SYSTEM_TYPE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	lea	MI_ITEM_TYPE, a0
 	moveq	#$e, d0
@@ -4718,7 +4659,7 @@ misc_input_update_dynamic:
 	lea	STR_SYSTEM_CONFIG_AS, a0
 	moveq	#$4, d0
 	moveq	#$12, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	btst	#$6, REG_SYSTYPE
 	bne	.system_4_or_6_slots
@@ -4737,7 +4678,7 @@ misc_input_update_dynamic:
 .system_type_print:
 	moveq	#$19, d0
 	moveq	#$12, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 .system_aes:
 	rts
 
@@ -4793,11 +4734,11 @@ misc_input_print_dynamic_items:
 	moveq	#$0, d2
 	moveq	#$20, d3
 	moveq	#$13, d4
-	bsr	print_char_repeat		; empty out part of the line stuff
+	RSUB	print_char_repeat		; empty out part of the line stuff
 
 	moveq	#$15, d0
 	move.b	d5, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	lea	($10,a1), a1			; load up next struct
 	addq.b	#1, d5
@@ -4838,7 +4779,7 @@ misc_input_print_static_items:
 	movea.l	(a1)+, a0			; load bit_name_string_address
 	moveq	#$f, d0
 	move.b	d3, d1
-	bsr	print_xy_string
+	RSUB	print_xy_string
 
 	addq.l	#8, a1				; skip over bit_(disabled|enabled)_string_address
 	addq.b	#1, d3
@@ -4868,14 +4809,14 @@ misc_input_print_static_items:
 manual_memcard_tests:
 
 	lea	XY_STR_MC_D_MAIN_MENU, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	move.b	REG_STATUS_B, d0
 	and.b	#$30, d0
 	beq	.memcard_inserted
 
 	lea	XY_STR_MC_NOT_DETECTED, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	bra	.loop_wait_input_return_menu
 
 .memcard_inserted:
@@ -4884,17 +4825,17 @@ manual_memcard_tests:
 	beq	.memcard_not_write_protect
 
 	lea	XY_STR_MC_WRITE_PROTECT, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	bra	.loop_wait_input_return_menu
 
 .memcard_not_write_protect:
 
 	lea	XY_STR_MC_WARNING1, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_MC_WARNING2, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 	lea	XY_STR_MC_A_C_RUN_TEST, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 .loop_wait_input_run_test:
 
@@ -4921,7 +4862,7 @@ manual_memcard_tests:
 	moveq	#27, d0
 	RSUB	fix_clear_line
 	lea	XY_STR_MC_RUNNING_TESTS, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	moveq	#$0, d0
 	move.b	d0, REG_CRDNORMAL
@@ -4938,13 +4879,13 @@ manual_memcard_tests:
 	bsr	memcard_get_size
 
 	lea	XY_STR_MC_DETECT, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	; add (BAD DATA) if we weren't able to detect
 	btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
 	beq	.skip_bad_data
 	lea	XY_STR_MC_BAD_DATA, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 .skip_bad_data:
 
@@ -4954,17 +4895,17 @@ manual_memcard_tests:
 	lea	XY_STR_MC_DBUS_16BIT, a0
 
 .print_dbus_size:
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	; add (WIDE) if double wide bus
 	btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
 	beq	.print_size
 	lea	XY_STR_MC_DBUS_WIDE, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 .print_size:
 	lea	XY_STR_MC_SIZE, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 	moveq	#13, d0
 	moveq	#25, d1
@@ -4983,7 +4924,7 @@ manual_memcard_tests:
 	bne	.test_failed_abort
 
 	lea	XY_STR_MC_TESTS_PASSED, a0
-	bsr	print_xy_string_struct
+	RSUB	print_xy_string_struct
 
 	bra	.wait_input_return_menu
 
@@ -4997,7 +4938,7 @@ manual_memcard_tests:
 	move.b  d0, REG_CRDLOCK2
 
 	lea	XY_STR_MC_D_MAIN_MENU, a0
-	bsr	print_xy_string_struct_clear
+	RSUB	print_xy_string_struct_clear
 
 .loop_wait_input_return_menu:
 
