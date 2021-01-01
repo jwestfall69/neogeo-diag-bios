@@ -129,18 +129,6 @@ fix_seek_xy:
 	move.w	d0, (-2,a6)
 	rts
 
-; clears the fix layer by setting all tiles to space/empty
-fix_clear:
-	move.w	#FIXMAP, (-2,a6)
-	move.w	#1, (2,a6)
-	move.w	#$20, d0
-	move.w	#$4ff, d1
-.loop_next_tile:
-	move.w	d0, (a6)
-	dbra	d1, .loop_next_tile
-	WATCHDOG
-	rts
-
 ; clears the fix layer - dsub version;
 fix_clear_dsub:
 	move.w	#FIXMAP, (-2,a6)
@@ -152,24 +140,6 @@ fix_clear_dsub:
 	dbra	d1, .loop_next_tile
 	WATCHDOG
 	DSUB_RETURN
-
-
-; clears a line of the fix layer
-; params:
-;  d0 = line to clear
-fix_clear_line:
-	move.w	d6, -(a7)
-	ext.w	d0
-	add.w	#FIXMAP, d0
-	move.w	d0, (-2,a6)
-	move.w	#$20, (2,a6)
-	moveq	#$20, d0
-	move.w	#$27, d6
-.loop_next_tile:
-	move.w	d0, (a6)
-	dbra	d6, .loop_next_tile
-	move.w	(a7)+, d6
-	rts
 
 ; clears a line of the fix layer - dsub version
 ; params:
@@ -203,7 +173,7 @@ print_xy_char:
 ;  a0 = start of xy string struct
 print_xy_string_struct_clear:
 	move.b	(1, a0), d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 
 ; prints xy string at x,y
 ; params:
@@ -219,10 +189,10 @@ print_xy_string_struct:
 ;  d1 = y
 ;  a0 = string location
 print_xy_string_clear:
-	move.w	d0, -(a7)
+	movem.w	d0-d1, -(a7)
 	move.b	d1, d0
-	bsr	fix_clear_line
-	move.w	(a7)+, d0
+	RSUB	fix_clear_line
+	movem.w	(a7)+, d0-d1
 
 ; print string to x,y
 ; params:
@@ -712,7 +682,7 @@ skip_z80_test:
 	movea.l	$0, a7			; re-init SP
 	moveq	#DSUB_INIT_REAL, d7	; init dsub for real subroutines
 	clr.b	main_menu_cursor
-	bsr	fix_clear
+	RSUB	fix_clear
 	bra	manual_tests
 
 watchdog_stuck_test_dsub:
@@ -921,13 +891,14 @@ z80_slot_switch_ignored:
 	btst	#0, REG_STATUS_B
 	beq	.loop_start_pressed		; loop waiting for user to release start or do a reboot request
 
-	bsr	fix_clear_line_27		; unclear why this one has its own subroutine
+	moveq	#27, d0
+	RSUB	fix_clear_line
 	moveq	#7, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	moveq	#10, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	moveq	#12, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	rts
 
 
@@ -1165,31 +1136,6 @@ print_hold_ss_to_reset:
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_HOLD_SS_TO_RESET, a0
-	bsr	print_xy_string_clear
-	rts
-
-; clears line 27 of fix layer, only seems to be called once;
-fix_clear_line_27:
-	moveq	#27, d0
-	bsr	fix_clear_line
-	rts
-
-
-
-; prints headers
-; NEO DIAGNOSTICS v0.19 - BY SMKDAN
-; ---------------------------------
-print_header:
-	moveq	#0, d0
-	moveq	#4, d1
-	moveq	#1, d2
-	moveq	#$16, d3
-	moveq	#40, d4
-	bsr	print_char_repeat			; $116 which is an overscore line
-
-	moveq	#2, d0
-	moveq	#3, d1
-	lea	STR_VERSION_HEADER, a0
 	bsr	print_xy_string_clear
 	rts
 
@@ -1855,9 +1801,9 @@ print_error_z80:
 	bsr	print_xy_string
 
 	moveq	#21, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	moveq	#22, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	rts
 
 ; ack an error sent to us by the z80 by sending
@@ -2152,7 +2098,7 @@ manual_tests:
 
 
 main_menu_draw:
-	bsr	print_header
+	RSUB	print_header
 	lea	MAIN_MENU_ITEMS_START, a1
 	moveq	#((MAIN_MENU_ITEMS_END - MAIN_MENU_ITEMS_START) / 10 - 1), d4
 	moveq	#5, d5					; row to start drawing menu items at
@@ -2259,7 +2205,7 @@ main_menu_loop:
 	cmp.w	($8,a1), d0
 	beq	.loop_run_menu				; flags saw its not valid for this system, ignore and loop again
 
-	bsr	fix_clear
+	RSUB	fix_clear
 
 	movea.l	(a1)+, a0
 	moveq	#4, d0
@@ -2268,7 +2214,7 @@ main_menu_loop:
 
 	movea.l	(a1), a0
 	jsr	(a0)					; call the test function
-	bsr	fix_clear
+	RSUB	fix_clear
 	rts
 
 
@@ -3992,7 +3938,7 @@ rtc_update_hz:
 	bsr	rtc_wait_pulse
 
 	moveq	#$1b, d0
-	bsr	fix_clear_line		; removes waiting for calendar pulse... line
+	RSUB	fix_clear_line		; removes waiting for calendar pulse... line
 
 	move.l	(a7)+, ($6,a6)		; timer high
 	move.w	#$90, ($4,a6)		; lspcmode
@@ -4316,7 +4262,7 @@ smpte_color_bar_draw_section:
 
 manual_controller_test:
 	moveq	#$5, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	bsr	controller_print_labels
 
 
@@ -4587,7 +4533,7 @@ manual_palette_ram_test_loop:
 	bsr	print_error
 
 	moveq	#$19, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	bra	loop_reset_check
 
 .test_exit:
@@ -4657,7 +4603,7 @@ manual_vram_32k_test_loop:
 	bsr	print_error
 
 	moveq	#$19, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 
 	bra	loop_reset_check
 
@@ -4702,7 +4648,7 @@ manual_vram_2k_test_loop:
 	bsr	print_error
 
 	moveq	#$19, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 
 	bra	loop_reset_check
 
@@ -4969,11 +4915,11 @@ manual_memcard_tests:
 
 .run_tests:
 	moveq	#8, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	moveq	#26, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	moveq	#27, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 	lea	XY_STR_MC_RUNNING_TESTS, a0
 	bsr	print_xy_string_struct_clear
 
@@ -5044,7 +4990,7 @@ manual_memcard_tests:
 .test_failed_abort:
 	bsr	print_error
 	moveq	#9, d0
-	bsr	fix_clear_line
+	RSUB	fix_clear_line
 
 .wait_input_return_menu:
 	move.b	d0, REG_CRDLOCK1
