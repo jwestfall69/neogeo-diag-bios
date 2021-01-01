@@ -124,17 +124,17 @@ fix_clear_psub:
 ; params:
 ;  d0 = line to clear
 fix_clear_line:
-	move.w	d7, -(a7)
+	move.w	d6, -(a7)
 	ext.w	d0
 	add.w	#FIXMAP, d0
 	move.w	d0, (-2,a6)
 	move.w	#$20, (2,a6)
 	moveq	#$20, d0
-	move.w	#$27, d7
+	move.w	#$27, d6
 .loop_next_tile:
 	move.w	d0, (a6)
-	dbra	d7, .loop_next_tile
-	move.w	(a7)+, d7
+	dbra	d6, .loop_next_tile
+	move.w	(a7)+, d6
 	rts
 
 ; clears a line of the fix layer - psub version
@@ -567,50 +567,6 @@ print_5_digits_psub:
 	dbeq	d1, .loop_next_digit
 	PSUB_RETURN
 
-; moves fix memory from src to dst, src memory will be ovewritten with $20 tile
-; params:
-;  d0 = src addr
-;  d1 = dst addr
-;  d7 = length (words)
-fix_move_memory:
-	move.w	#1, (2,a6)
-	move.w	d0, (-2,a6)
-	lea	REG_WATCHDOG, a0
-	move.w	#$20, d6
-	subq.w	#1, d7
-.loop_next_address:
-	move.w	(a6), d2
-	move.w	d6, (a6)			; clear src location
-	move.w	d1, (-2,a6)
-	addq.w	#1, d0
-	move.w	d2, (a6)
-	move.w	d0, (-2,a6)
-	addq.w	#1, d1
-	move.b	d0, (a0)			; WATCHDOG
-	nop
-	dbra	d7, .loop_next_address
-	rts
-
-
-; moves all of fix memory to ext
-; unused code
-fix_move_to_ext:
-	move.w	#FIXMAP, d0
-	move.w	#FIXMAP_EXT, d1
-	move.w	#$500, d7
-	bsr	fix_move_memory
-	rts
-
-; moves all ext memory to fix
-; unused code
-fix_move_from_ext:
-	move.w	#FIXMAP_EXT, d0
-	move.w	#FIXMAP, d1
-	move.w	#$500, d7
-	bsr	fix_move_memory
-	rts
-
-
 ; start
 _start:
 	WATCHDOG
@@ -788,7 +744,7 @@ AUTOMATIC_PSUB_TEST_STRUCT_END:
 ; runs automatic tests that are subroutine based;
 automatic_function_tests:
 	lea	AUTOMATIC_FUNC_TEST_STRUCT_START, a5
-	moveq	#((AUTOMATIC_FUNC_TEST_STRUCT_END - AUTOMATIC_FUNC_TEST_STRUCT_START)/8 - 1), d7
+	moveq	#((AUTOMATIC_FUNC_TEST_STRUCT_END - AUTOMATIC_FUNC_TEST_STRUCT_START)/8 - 1), d6
 
 .loop_next_test:
 	movea.l	(a5)+, a4			; test function address
@@ -799,9 +755,9 @@ automatic_function_tests:
 	bsr	print_xy_string_clear		; at 4,5 print test name
 
 	move.l	a5, -(a7)
-	move.w	d7, -(a7)
+	move.w	d6, -(a7)
 	jsr	(a4)				; run function
-	move.w	(a7)+, d7
+	move.w	(a7)+, d6
 	movea.l	(a7)+, a5
 
 	tst.b	d0				; check result
@@ -824,7 +780,7 @@ automatic_function_tests:
 	bra	loop_reset_check
 
 .test_passed:
-	dbra	d7, .loop_next_test
+	dbra	d6, .loop_next_test
 	rts
 
 
@@ -3816,7 +3772,7 @@ auto_mmio_tests:
 ; MMIO_ADDRESSES_TABLE_START table
 check_mmio_oe:
 	lea	MMIO_ADDRESSES_TABLE_START, a1
-	moveq	#((MMIO_ADDRESSES_TABLE_END - MMIO_ADDRESSES_TABLE_START)/4 - 1), d7
+	moveq	#((MMIO_ADDRESSES_TABLE_END - MMIO_ADDRESSES_TABLE_START)/4 - 1), d6
 
 .loop_next_test:
 	movea.l	(a1)+, a0
@@ -3833,7 +3789,7 @@ check_mmio_oe:
 	beq	.test_failed
 
 .system_aes:
-	dbra	d7, .loop_next_test
+	dbra	d6, .loop_next_test
 
 	moveq	#0, d0
 	rts
@@ -4402,10 +4358,10 @@ CONTROLLER_BUTTONS_LIST:
 
 controller_update_player_data:
 	moveq	#$0, d3
-	moveq	#$0, d7
+	moveq	#$0, d6
 
 .loop_next_sample:
-	move.b	d7, d0
+	move.b	d6, d0
 	bsr	send_p1p2_controller
 	bsr	p1p2_input_update
 
@@ -4416,9 +4372,9 @@ controller_update_player_data:
 	or.w	d1, d0			; merge input/input_aux into d0
 	move.b	d3, d1
 	moveq	#$4, d2
-	movem.w	d3/d7, -(a7)
+	movem.w	d3/d6, -(a7)
 	bsr	controller_print_player_data
-	movem.w	(a7)+, d3/d7
+	movem.w	(a7)+, d3/d6
 
 	clr.w	d0
 	move.b	p2_input, d0
@@ -4427,12 +4383,12 @@ controller_update_player_data:
 	or.w	d1, d0
 	move.b	d3, d1
 	moveq	#$11, d2
-	movem.w	d3/d7, -(a7)
+	movem.w	d3/d6, -(a7)
 	bsr	controller_print_player_data
-	movem.w	(a7)+, d3/d7
+	movem.w	(a7)+, d3/d6
 	addq.b	#4, d3
-	addq.b	#1, d7
-	cmp.b	#$8, d7
+	addq.b	#1, d6
+	cmp.b	#$8, d6
 	bne	.loop_next_sample
 	rts
 
@@ -4448,8 +4404,7 @@ controller_print_player_data:
 
 	add.b	d1, d5
 	move.b	d2, d6
-	moveq	#$4, d3
-	moveq	#$9, d7
+	moveq	#$9, d3
 
 .loop_next_bit:
 	move.b	d5, d0
@@ -4458,7 +4413,7 @@ controller_print_player_data:
 	bsr	print_bit
 	lsr.w	#1, d4
 	addq.b	#1, d6
-	dbra	d7, .loop_next_bit
+	dbra	d3, .loop_next_bit
 
 	move.b	d5, d0
 	move.b	d6, d1
@@ -4830,9 +4785,9 @@ STR_6SLOT:		STRING "6SLOT      ";
 misc_input_print_dynamic_items:
 	movea.l	a0, a1
 	move.b	d0, d5
-	moveq	#$7f, d7
-	and.w	d1, d7
-	subq.w	#1, d7
+	moveq	#$7f, d6
+	and.w	d1, d6
+	subq.w	#1, d6
 
 .loop_next_entry:
 	movea.l	(a1), a2
@@ -4863,7 +4818,7 @@ misc_input_print_dynamic_items:
 
 	lea	($10,a1), a1			; load up next struct
 	addq.b	#1, d5
-	dbra	d7, .loop_next_entry
+	dbra	d6, .loop_next_entry
 	rts
 
 ; d0 = start row
@@ -4872,9 +4827,9 @@ misc_input_print_dynamic_items:
 misc_input_print_static_items:
 	movea.l	a0, a1
 	move.b	d0, d3
-	moveq	#$7f, d7
-	and.w	d1, d7
-	subq.w	#1, d7
+	moveq	#$7f, d6
+	and.w	d1, d6
+	subq.w	#1, d6
 
 .loop_next_entry:
 	move.l	(a1)+, d2			; load the test_bit and mmio_address
@@ -4904,7 +4859,7 @@ misc_input_print_static_items:
 
 	addq.l	#8, a1				; skip over bit_(disabled|enabled)_string_address
 	addq.b	#1, d3
-	dbra	d7, .loop_next_entry
+	dbra	d6, .loop_next_entry
 	rts
 
 ; notes:
