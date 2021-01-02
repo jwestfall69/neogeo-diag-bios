@@ -62,16 +62,16 @@ VECTORS:
 ; subroutine names.
 ;
 ; A couple macros are set to deal with calling/returning from dsubs
-;  DSUB <function>
+;  DSUB <subroutine>
 ;   This will deal with setting the return label, populating a2, a3
 ;   and then jumping dsub_enter.  Note that the macro will automatically
-;   append _dsub onto the supplied function name.  This macro should be used
+;   append _dsub onto the supplied subroutine name.  This macro should be used
 ;   when a dsub calling another dsub
-;  DSUB <function>
+;  DSUB <subrouting>
 ;   This is meant to be called when using dsub in pseudo mode.  Its the exact
 ;   same as the DSUB macro.  It just exists to make it easier to follow the
 ;   code, by making it clear the call is meant to be pseudo.
-;  RSUB <function>
+;  RSUB <subroutine>
 ;   This is meant to be called when using dsub in real mode.  Its the same
 ;   as the DSUB macro but will push/pop a2/a3 onto the stack around the dsub
 ;   call.
@@ -116,18 +116,41 @@ dsub_return:
 	nop
 	rts
 
+; Simple|Small Subroutine A3 (SSA3)
+; One of the limitations with dsubs is only being able to nest 2 times.  This
+; is mainly a problem with the print related dsubs as most will want to either
+; seek to an x,y location in the fix layer and/or clearing a fix layer line.
+; If print dsub were to dsub call fix_seek_xy|fix_clear_line it would be one
+; to many nests, so a bunch of the print dsub's had a copy of the code for
+; fix_seek_xy|fix_clear_line in them.  SSA3 is meant to get around this by
+; calling a simple|small subroutine that will always jmp (a3) to return.  This
+; way we can get around having another dsub nest.
+;
+; ssa3 code blocks should be kept simple and should never call any other
+; subroutines.  They should not touch a3/a4/a5/a7/d7 registers and/or use
+; the stack.
+
+; Two macros are setup to handle these
+;  SSA3 <subroutine>
+;   This will deal with setting up the return label and pushing it into a3,
+;   then calling the subroutine. Note that the macro will automatically
+;   append _ssa3 onto the supplied subroutine name.
+;  SSA3_RETURN
+;   When in a ssa3, SSA3_RETURN should be used to return from the subroutine.
+
+
 ; set vram addr so its at location x,y of fix layer
 ; params:
 ;  d0 = x
 ;  d1 = y
-fix_seek_xy_dsub:
+fix_seek_xy_ssa3:
 	ext.w	d0
 	ext.w	d1
 	lsl.w	#5, d0
 	or.w	d1, d0
 	or.w	#FIXMAP, d0
 	move.w	d0, (-2,a6)
-	DSUB_RETURN
+	SSA3_RETURN
 
 ; clears the fix layer - dsub version;
 fix_clear_dsub:
@@ -156,19 +179,13 @@ fix_clear_line_dsub:
 	dbra	d1, .loop_next_tile
 	DSUB_RETURN
 
-
 ; prints a char at x,y of fix layer
 ; parms:
 ; d0 = x
 ; d1 = y
 ; d2 = char
 print_xy_char_dsub:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d1, d0
-	or.w	#FIXMAP, d0
-	move.w	d0, (-2, a6)	; seek to x,y
+	SSA3	fix_seek_xy
 	and.w	#$ff, d2
 	move.w	d2, (a6)
 	DSUB_RETURN
@@ -195,12 +212,7 @@ print_xy_string_clear_dsub:
 ;  d1 = y
 ;  a0 = string location
 print_xy_string_dsub:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1
-	move.w	d1, (-2,a6)		; seek to xy
+	SSA3	fix_seek_xy
 	move.w	#$20, (2,a6)
 	moveq	#0, d2
 	move.b	(a0)+, d2
@@ -223,12 +235,7 @@ print_xy_string_struct_clear_dsub:
 print_xy_string_struct_dsub:
 	move.b	(a0)+, d0
 	move.b	(a0)+, d1
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1		; seek to xy
-	move.w	d1, (-2,a6)
+	SSA3	fix_seek_xy
 	move.w	#$20, (2,a6)
 	moveq	#0, d2
 	move.b	(a0)+, d2
@@ -246,12 +253,7 @@ print_xy_string_struct_dsub:
 ;  d3 = char
 ;  d4 = number of times to print
 print_char_repeat_dsub:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1
-	move.w	d1, (-2,a6)		; seek to x,y
+	SSA3	fix_seek_xy
 	move.w	#$20, (2,a6)
 	lsl.w	#8, d2
 	move.b	d3, d2
@@ -267,12 +269,7 @@ print_char_repeat_dsub:
 ;  d1 = y
 ;  d2 = data
 print_hex_nibble_dsub:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x, y
-	move.w	d1, (-2,a6)
+	SSA3	fix_seek_xy
 	moveq	#0, d1
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
@@ -283,12 +280,7 @@ print_hex_nibble_dsub:
 ;  d2 = data
 print_hex_byte_dsub:
 	addq.w	#1, d0
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x + 1, y
-	move.w	d1, (-2,a6)
+	SSA3	fix_seek_xy
 	moveq	#1, d1
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
@@ -299,12 +291,7 @@ print_hex_byte_dsub:
 ;  d2 = data
 print_hex_word_dsub:
 	addq.w	#3, d0
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x + 3, y
-	move.w	d1, (-2,a6)
+	SSA3	fix_seek_xy
 	moveq	#3, d1
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
@@ -316,12 +303,7 @@ print_hex_word_dsub:
 ;  d2 = data
 print_hex_3_bytes_dsub:
 	addq.w	#5, d0
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x + 5, y
-	move.w	d1, (-2,a6)
+	SSA3	fix_seek_xy
 	moveq	#5, d1
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
@@ -333,12 +315,7 @@ print_hex_3_bytes_dsub:
 ;  d2 = data
 print_hex_long_dsub:
 	addq.w	#7, d0
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x + 7, y
-	move.w	d1, (-2,a6)
+	SSA3	fix_seek_xy
 	moveq	#7, d1				; falls through to print_hex_dsub
 
 ; prints N hex chars, caller must already be at end x,y location as this function prints backwards - dsub version
@@ -369,12 +346,7 @@ HEX_LOOKUP:
 ;  d1 = y
 ;  d2 = data (bit 0)
 print_bit_dsub:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x, y
-	move.w 	d1, (-2, a6)
+	SSA3	fix_seek_xy
 	and.w	#1, d2
 	add.b	#$30, d2
 	move.w	d2, (a6)
@@ -387,12 +359,7 @@ print_bit_dsub:
 ;  d1 = y
 ;  d2 = digit
 print_digit_dsub:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x, y
-	move.w 	d1, (-2, a6)
+	SSA3	fix_seek_xy
 	moveq	#0, d1
 	bra	print_digits_dsub
 
@@ -403,12 +370,7 @@ print_digit_dsub:
 ;  d2 = data
 print_3_digits_dsub:
 	addq.w	#2, d0
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x, y
-	move.w 	d1, (-2, a6)
+	SSA3	fix_seek_xy
 	moveq	#2, d1
 	bra	print_digits_dsub
 
@@ -420,12 +382,7 @@ print_3_digits_dsub:
 ; unused code?
 print_5_digits_dsub:
 	addq.w	#4, d0
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d0, d1
-	or.w	#FIXMAP, d1			; seek to x, y
-	move.w 	d1, (-2, a6)
+	SSA3	fix_seek_xy
 	moveq	#4, d1
 	nop					; falls through to print_digits_dsub
 
@@ -3664,7 +3621,7 @@ rtc_print_data:
 
 	moveq	#$e, d0
 	moveq	#$15, d1
-	RSUB	fix_seek_xy
+	SSA3	fix_seek_xy
 
 	moveq	#$18, d0
 	move.b	REG_STATUS_A, d1
@@ -3755,7 +3712,7 @@ color_bar_setup_palette_bank:
 color_bar_draw_tiles:
 	moveq	#$4, d0
 	moveq	#$7, d1
-	RSUB	fix_seek_xy			; d0 on return will have current vram address
+	SSA3	fix_seek_xy			; d0 on return will have current vram address
 	move.w	#$1, (2,a6)			; increment vram writes one at a time
 
 	moveq	#$e, d1				; 15 total shades in the gradients

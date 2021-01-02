@@ -31,6 +31,16 @@
 		movem.l	(a7)+, a2-a3
 	endm
 
+	macro SSA3
+		lea (.\@), a3
+		jmp \1_ssa3
+.\@:
+	endm
+
+	macro SSA3_RETURN
+		jmp (a3)
+	endm
+
 	macro STRING
 		dc.b \1, $0
 		align 1
