@@ -655,7 +655,7 @@ automatic_function_tests:
 	beq	.test_passed
 
 	move.w	d0, -(a7)
-	bsr	print_error
+	RSUB	print_error
 	move.w	(a7)+, d0
 
 	tst.b	z80_test_flags			; if z80 test enabled, send error code to z80
@@ -824,7 +824,7 @@ z80_check_error:
 	; z80 might have sent a corrupt error code which we
 	; still want to print with print_error_z80
 	move.w	d0, -(a7)
-	bsr	error_code_lookup
+	DSUB	error_code_lookup
 	bsr	print_error_z80
 	move.w	(a7)+, d0
 
@@ -1211,73 +1211,15 @@ EC_LOOKUP_TABLE_END:
 ;  byte function_id;
 ;  long function_address;
 ;}
-PRINT_ERROR_PSUB_TABLE:
+PRINT_ERROR_TABLE:
 	PRINT_ERROR_STRUCT PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_dsub
 	PRINT_ERROR_STRUCT PRINT_ERROR_HEX_BYTE, print_error_hex_byte_dsub
 	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory_dsub
+	PRINT_ERROR_STRUCT PRINT_ERROR_MMIO, print_error_mmio_dsub
 	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string_dsub
-PRINT_ERROR_PSUB_TABLE_END:
-
-PRINT_ERROR_FUNC_TABLE:
-	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory
-	PRINT_ERROR_STRUCT PRINT_ERROR_MMIO, print_error_mmio
-	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string
-PRINT_ERROR_FUNC_TABLE_END:
+PRINT_ERROR_TABLE_END:
 
 STR_INVALID_ERROR_CODE:		STRING "INVALID ERROR CODE"
-; figure out error description and print error function
-; params;
-;  d0 = error code
-;  d1 = error data
-;  d2 = error data
-;  a0 = error data
-; returns
-;  a1 = error description string
-;  a2 = print error function
-;  d0-d2, a0 are unmodified
-error_code_lookup:
-	lea	(EC_LOOKUP_TABLE), a1
-	moveq	#((EC_LOOKUP_TABLE_END - EC_LOOKUP_TABLE)/6 - 1), d3
-	bra	.loop_ec_lookup_start
-
-.loop_ec_lookup_next_entry:
-	addq.l	#6, a1
-.loop_ec_lookup_start:
-	cmp.b 	(a1), d0
-	dbeq	d3, .loop_ec_lookup_next_entry
-	beq	.ec_found
-
-	; error code not found
-	lea	print_error_invalid, a2
-	lea	STR_INVALID_ERROR_CODE, a1
-	move.b	#PRINT_ERROR_INVALID, d1
-	bra	.not_found
-
-.ec_found:
-	move.b	(1, a1), d4	; print error data function id
-	and.w	#$ff, d4
-	movea.l (2, a1), a1	; error description string
-
-	lea	(PRINT_ERROR_FUNC_TABLE), a2
-	moveq	#((PRINT_ERROR_FUNC_TABLE_END - PRINT_ERROR_FUNC_TABLE)/6 - 1), d3
-	bra	.loop_print_error_start
-
-.loop_print_error_next_entry:
-	addq.l	#6, a2
-.loop_print_error_start
-	cmp.w	(a2), d4
-	dbeq	d3, .loop_print_error_next_entry
-	beq	.function_found
-
-	; no function was found
-	lea	print_error_invalid, a2
-	move.b	d4, d1
-	bra	.not_found
-
-.function_found:
-	movea.l	(2, a2), a2	; print error data function
-.not_found
-	rts
 
 ; figure out error description and print error dsub
 ; params:
@@ -1312,8 +1254,8 @@ error_code_lookup_dsub:
 	and.w	#$ff, d4
 	movea.l (2, a1), a1	; error description string
 
-	lea	(PRINT_ERROR_PSUB_TABLE), a2
-	moveq	#((PRINT_ERROR_PSUB_TABLE_END - PRINT_ERROR_PSUB_TABLE)/6), d3
+	lea	(PRINT_ERROR_TABLE), a2
+	moveq	#((PRINT_ERROR_TABLE_END - PRINT_ERROR_TABLE)/6), d3
 	bra	.loop_print_error_start
 
 .loop_print_error_next_entry:
@@ -1333,11 +1275,6 @@ error_code_lookup_dsub:
 
 .not_found:
 	DSUB_RETURN
-
-; lookup/print error
-print_error:
-	bsr	error_code_lookup
-	jmp	(a2)
 
 ; lookup/print error
 print_error_dsub:
@@ -1416,52 +1353,6 @@ print_error_hex_byte_dsub:
 ;  d2 = actual data
 ;  a0 = address location
 ;  a1 = error description
-print_error_memory:
-	move.w	d1, d3
-	move.w	d2, d4
-	moveq	#14, d0
-	moveq	#8, d1
-	move.l	a0, d2
-	RSUB	print_hex_3_bytes		; address
-
-	moveq	#14, d0
-	moveq	#12, d1
-	move.w	d3, d2
-	RSUB	print_hex_word			; expected
-
-	moveq	#14, d0
-	moveq	#10, d1
-	move.w	d4, d2
-	RSUB	print_hex_word			; actual
-
-	lea	STR_ADDRESS.l, a0
-	moveq	#4, d0
-	moveq	#8, d1
-	RSUB	print_xy_string
-
-	lea	STR_EXPECTED.l, a0
-	moveq	#4, d0
-	moveq	#12, d1
-	RSUB	print_xy_string
-
-	lea	STR_ACTUAL.l, a0
-	moveq	#4, d0
-	moveq	#10, d1
-	RSUB	print_xy_string
-
-	movea.l	a1, a0
-	moveq	#4, d0
-	moveq	#5, d1
-	RSUB	print_xy_string_clear		; error description
-	rts
-
-; prints actual/expected data for a memory address
-; params:
-;  d0 = error code
-;  d1 = expected data
-;  d2 = actual data
-;  a0 = address location
-;  a1 = error description
 print_error_memory_dsub:
 	move.w	d1, d3
 	move.w	d2, d4
@@ -1505,17 +1396,17 @@ print_error_memory_dsub:
 ; params:
 ;  a0 = mmio address
 ;  a1 = error description
-print_error_mmio:
+print_error_mmio_dsub:
 	move.l	a0, d3
 	moveq	#13, d0
 	moveq	#8, d1
 	move.l	a0, d2
-	RSUB	print_hex_3_bytes
+	DSUB	print_hex_3_bytes
 
 	lea	STR_ADDRESS.l, a0
 	moveq	#4, d0
 	moveq	#8, d1
-	RSUB	print_xy_string
+	DSUB	print_xy_string
 
 	lea	(MMIO_ERROR_LOOKUP_TABLE_START - 4), a0
 .loop_next_entry:
@@ -1525,15 +1416,14 @@ print_error_mmio:
 	movea.l	(a0), a0
 
 .loop_next_xy_string_struct:
-	RSUB	print_xy_string_struct
+	DSUB	print_xy_string_struct
 	tst.b	(a0)
 	bne	.loop_next_xy_string_struct
 
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
-	RSUB	print_xy_string_clear
-	rts
+	jmp	print_xy_string_clear_dsub
 
 MMIO_ERROR_LOOKUP_TABLE_START:
 	dc.l REG_DIPSW, XY_MMIO_ERROR_C1_1_TO_F0_47
@@ -1566,56 +1456,11 @@ XY_MMIO_ERROR_REG_VRAMRW:
 ; prints just the error description
 ; params:
 ;  a1 = error description
-print_error_string:
-	movea.l	a1, a0
-	moveq	#4, d0
-	moveq	#5, d1
-	RSUB	print_xy_string_clear
-	rts
-
-; prints just the error description
-; params:
-;  a1 = error description
 print_error_string_dsub:
 	movea.l	a1, a0
 	moveq	#4, d0
 	moveq	#5, d1
 	jmp	print_xy_string_clear_dsub		; error description and DSUB_RETURN
-
-; called if there was an error looking up the
-; error code or its print function
-; params:
-;  d0 = error code
-;  d1 = print function id
-print_error_invalid:
-
-	movem.w	d0-d1, -(a7)
-
-	moveq	#9, d0
-	moveq	#5, d1
-	lea	STR_INVALID_ERROR, a0
-	RSUB	print_xy_string_clear
-
-	moveq	#4, d0
-	moveq	#6, d1
-	lea	STR_ERROR_CODE, a0
-	RSUB	print_xy_string_clear
-
-	moveq	#4, d0
-	moveq	#7, d1
-	lea	STR_PRINT_FUNCTION, a0
-	RSUB	print_xy_string_clear
-
-	move.w	(a7)+, d2
-	moveq	#24, d0
-	moveq	#6, d1
-	RSUB	print_hex_byte				; error code
-
-	move.w	(a7)+, d2
-	moveq	#24, d0
-	moveq	#7, d1
-	RSUB	print_hex_byte				; print function id
-	rts
 
 ; called if there was an error looking up the
 ; error code or its print function
@@ -2139,33 +1984,6 @@ timer_interrupt:
 	addq.w	#$1, timer_count
 	move.w	#$2, ($a,a6)		; ack int
 	rte
-
-
-; seems likely this is never called
-print_error_data_bram_aes_dsub:
-	bra	.skip_aes_test
-
-	tst.b	REG_STATUS_B			; next 4 lines seem to be dead code?
-	bmi	.skip_print_error		; test for MVS
-	cmp.b	#EC_BRAM_DEAD_OUTPUT_UPPER, d0	;
-	bne	.skip_print_error		;
-
-.skip_aes_test:
-
-	lea	XY_STR_AES_BRAM_NOT_MOD, a0
-	DSUB	print_xy_string_struct
-
-	lea	XY_STR_AES_BRAM_C_RESET, a0
-	DSUB	print_xy_string_struct
-.skip_print_error:
-
-	DSUB_RETURN
-
-XY_STR_AES_BRAM_NOT_MOD:	XY_STRING 4, 24, "IF USING AES W/OUT BACKUP RAM MOD,"
-XY_STR_AES_BRAM_C_RESET:	XY_STRING 4, 25, "RELEASE C BUTTON AND SOFT RESET."
-
-
-
 
 ; The bios code is only 32k ($8000).  3 copies/mirrors
 ; of it are used to fill the entire 128k of the bios rom.
@@ -4416,7 +4234,7 @@ manual_palette_ram_test_loop:
 	move.b	d0, REG_PALBANK0
 	bsr	palette_ram_restore
 
-	bsr	print_error
+	RSUB	print_error
 
 	moveq	#$19, d0
 	RSUB	fix_clear_line
@@ -4486,7 +4304,7 @@ manual_vram_32k_test_loop:
 	RSUB	print_hex_3_bytes		; print pass number
 	movem.l	(a7)+, d0-d2
 
-	bsr	print_error
+	RSUB	print_error
 
 	moveq	#$19, d0
 	RSUB	fix_clear_line
@@ -4531,7 +4349,7 @@ manual_vram_2k_test_loop:
 	bra	.loop_run_test
 
 .test_failed_abort:
-	bsr	print_error
+	RSUB	print_error
 
 	moveq	#$19, d0
 	RSUB	fix_clear_line
@@ -4874,7 +4692,7 @@ manual_memcard_tests:
 	bra	.wait_input_return_menu
 
 .test_failed_abort:
-	bsr	print_error
+	RSUB	print_error
 	moveq	#9, d0
 	RSUB	fix_clear_line
 
