@@ -29,6 +29,57 @@ VECTORS:
 
 	rorg	$80, $ff
 
+; Simple|Small Subroutine A3 (SSA3)
+; One of the limitations with dsubs is only being able to nest 2 times.  This
+; is mainly a problem with the print related dsubs as most will want to either
+; seek to an x,y location in the fix layer and/or clearing a fix layer line.
+; If print dsub were to dsub call fix_seek_xy|fix_clear_line it would often
+; be one to many nests, so a bunch of the print dsub's had a copy of the code
+; for fix_seek_xy|fix_clear_line in them.  SSA3 is meant to get around this by
+; calling a simple|small subroutine that will always jmp (a3) to return.  This
+; way we can get around having another dsub nest.
+;
+; ssa3 code blocks should be kept simple and should never call any other
+; subroutines.  They should not touch a3/a4/a5/a7/d7 registers and/or use
+; the stack.
+;
+; Two macros are setup to handle these
+;  SSA3 <subroutine>
+;   This will deal with setting up the return label and pushing it into a3,
+;   then calling the subroutine. Note that the macro will automatically
+;   append _ssa3 onto the supplied subroutine name.
+;  SSA3_RETURN
+;   When in a ssa3, SSA3_RETURN should be used to return from the subroutine.
+
+
+; set vram addr so its at location x,y of fix layer
+; params:
+;  d0 = x
+;  d1 = y
+fix_seek_xy_ssa3:
+	ext.w	d0
+	ext.w	d1
+	lsl.w	#5, d0
+	or.w	d1, d0
+	or.w	#FIXMAP, d0
+	move.w	d0, (-2,a6)
+	SSA3_RETURN
+
+; clears a line of the fix layer - dsub version
+; params:
+;  d0 = line to clear
+fix_clear_line_ssa3:
+	ext.w	d0
+	add.w	#FIXMAP, d0
+	move.w	d0, (-2,a6)
+	move.w	#$20, (2,a6)
+	moveq	#$20, d0
+	moveq	#$27, d1
+.loop_next_tile:
+	move.w	d0, (a6)
+	dbra	d1, .loop_next_tile
+	SSA3_RETURN
+
 ; dsub_enter/dsub_return allows creating and using dynamic subroutines.
 ; There are 2 modes for calling dynamic subroutines.
 ;
@@ -116,42 +167,6 @@ dsub_return:
 	nop
 	rts
 
-; Simple|Small Subroutine A3 (SSA3)
-; One of the limitations with dsubs is only being able to nest 2 times.  This
-; is mainly a problem with the print related dsubs as most will want to either
-; seek to an x,y location in the fix layer and/or clearing a fix layer line.
-; If print dsub were to dsub call fix_seek_xy|fix_clear_line it would be one
-; to many nests, so a bunch of the print dsub's had a copy of the code for
-; fix_seek_xy|fix_clear_line in them.  SSA3 is meant to get around this by
-; calling a simple|small subroutine that will always jmp (a3) to return.  This
-; way we can get around having another dsub nest.
-;
-; ssa3 code blocks should be kept simple and should never call any other
-; subroutines.  They should not touch a3/a4/a5/a7/d7 registers and/or use
-; the stack.
-
-; Two macros are setup to handle these
-;  SSA3 <subroutine>
-;   This will deal with setting up the return label and pushing it into a3,
-;   then calling the subroutine. Note that the macro will automatically
-;   append _ssa3 onto the supplied subroutine name.
-;  SSA3_RETURN
-;   When in a ssa3, SSA3_RETURN should be used to return from the subroutine.
-
-
-; set vram addr so its at location x,y of fix layer
-; params:
-;  d0 = x
-;  d1 = y
-fix_seek_xy_ssa3:
-	ext.w	d0
-	ext.w	d1
-	lsl.w	#5, d0
-	or.w	d1, d0
-	or.w	#FIXMAP, d0
-	move.w	d0, (-2,a6)
-	SSA3_RETURN
-
 ; clears the fix layer - dsub version;
 fix_clear_dsub:
 	move.w	#FIXMAP, (-2,a6)
@@ -162,21 +177,6 @@ fix_clear_dsub:
 	move.w	d0, (a6)
 	dbra	d1, .loop_next_tile
 	WATCHDOG
-	DSUB_RETURN
-
-; clears a line of the fix layer - dsub version
-; params:
-;  d0 = line to clear
-fix_clear_line_dsub:
-	ext.w	d0
-	add.w	#FIXMAP, d0
-	move.w	d0, (-2,a6)
-	move.w	#$20, (2,a6)
-	moveq	#$20, d0
-	moveq	#$27, d1
-.loop_next_tile:
-	move.w	d0, (a6)
-	dbra	d1, .loop_next_tile
 	DSUB_RETURN
 
 ; prints a char at x,y of fix layer
@@ -197,11 +197,11 @@ print_xy_char_dsub:
 ;  d1 = y
 ;  a0 = string location
 print_xy_string_clear_dsub:
-	move.b	d0, d2			; fix_clear_line expect d0 to be y
+	move.b	d0, d2			; fix_clear_line expects d0 to be y
 	swap	d2			; backup d0.b and d1.b into d2
 	move.b	d1, d2			; then make d0.b be y
 	move.b	d1, d0
-	DSUB	fix_clear_line
+	SSA3	fix_clear_line
 	move.b	d2, d1			; restore d0.b and d1.b
 	swap	d2
 	move.b	d2, d0
@@ -227,7 +227,7 @@ print_xy_string_dsub:
 ;  a0 = start of xy string struct
 print_xy_string_struct_clear_dsub:
 	move.b	(1, a0), d0
-	DSUB	fix_clear_line
+	SSA3	fix_clear_line
 
 ; prints xy string at x,y
 ; params:
@@ -538,9 +538,9 @@ watchdog_stuck_test_dsub:
 	DSUB	delay
 
 	moveq	#8, d0
-	DSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#10, d0
-	DSUB	fix_clear_line
+	SSA3	fix_clear_line
 	DSUB_RETURN
 
 ; runs automatic tests that are psub based
@@ -734,13 +734,13 @@ z80_slot_switch_ignored:
 	beq	.loop_start_pressed		; loop waiting for user to release start or do a reboot request
 
 	moveq	#27, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#7, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#10, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#12, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	rts
 
 
@@ -914,13 +914,10 @@ loop_reset_check:
 
 ; loop forever checking for reset request - dsub version
 loop_reset_check_dsub:
-	moveq	#27, d0
-	DSUB	fix_clear_line
-
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_HOLD_SS_TO_RESET, a0
-	DSUB	print_xy_string
+	DSUB	print_xy_string_clear
 
 .loop_ss_not_pressed:
 	WATCHDOG
@@ -928,13 +925,10 @@ loop_reset_check_dsub:
 	and.b	REG_STATUS_B, d0
 	bne	.loop_ss_not_pressed		; loop until P1 start+select both held down
 
-	moveq	#27, d0
-	DSUB	fix_clear_line
-
 	moveq	#4, d0
 	moveq	#27, d1
 	lea	STR_RELEASE_SS, a0
-	DSUB	print_xy_string
+	DSUB	print_xy_string_clear
 
 .loop_ss_pressed:
 	WATCHDOG
@@ -992,13 +986,10 @@ print_header_dsub:
 	moveq	#40, d4
 	DSUB	print_char_repeat			; $116 which is an overscore line
 
-	moveq	#3, d0
-	DSUB	fix_clear_line
-
 	moveq	#2, d0
 	moveq	#3, d1
 	lea	STR_VERSION_HEADER, a0
-	DSUB	print_xy_string
+	DSUB	print_xy_string_clear
 	DSUB_RETURN
 
 ; prints the z80 related communication error
@@ -1428,30 +1419,20 @@ print_error_invalid_dsub:
 	move.b	d0, d3				; print function id
 	move.b	d1, d4				; error code
 
-	; using print_xy_string_clear_dsub will cause the dsub
-	; nest to go to deep and a crash, so we need to break
-	; it up into fix_clear_line_dsub and print_xy_string_dsub
-	moveq	#5, d0
-	DSUB	fix_clear_line
-	moveq	#6, d0
-	DSUB	fix_clear_line
-	moveq	#7, d0
-	DSUB	fix_clear_line
-
 	moveq	#9, d0
 	moveq	#5, d1
 	lea	STR_INVALID_ERROR, a0
-	DSUB	print_xy_string
+	DSUB	print_xy_string_clear
 
 	moveq	#4, d0
 	moveq	#6, d1
 	lea	STR_ERROR_CODE, a0
-	DSUB	print_xy_string
+	DSUB	print_xy_string_clear
 
 	moveq	#4, d0
 	move	#7, d1
 	lea	STR_PRINT_FUNCTION, a0
-	DSUB	print_xy_string
+	DSUB	print_xy_string_clear
 
 	move.b	d3, d2
 	moveq	#24, d0
@@ -1488,9 +1469,9 @@ print_error_z80:
 	RSUB	print_xy_string
 
 	moveq	#21, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#22, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	rts
 
 ; ack an error sent to us by the z80 by sending
@@ -3598,7 +3579,7 @@ rtc_update_hz:
 	bsr	rtc_wait_pulse
 
 	moveq	#$1b, d0
-	RSUB	fix_clear_line		; removes waiting for calendar pulse... line
+	SSA3	fix_clear_line		; removes waiting for calendar pulse... line
 
 	move.l	(a7)+, ($6,a6)		; timer high
 	move.w	#$90, ($4,a6)		; lspcmode
@@ -3922,7 +3903,7 @@ smpte_color_bar_draw_section:
 
 manual_controller_test:
 	moveq	#$5, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	bsr	controller_print_labels
 
 
@@ -4194,7 +4175,7 @@ manual_palette_ram_test_loop:
 	RSUB	print_error
 
 	moveq	#$19, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	bra	loop_reset_check
 
 .test_exit:
@@ -4264,7 +4245,7 @@ manual_vram_32k_test_loop:
 	RSUB	print_error
 
 	moveq	#$19, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 
 	bra	loop_reset_check
 
@@ -4309,7 +4290,7 @@ manual_vram_2k_test_loop:
 	RSUB	print_error
 
 	moveq	#$19, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 
 	bra	loop_reset_check
 
@@ -4576,11 +4557,11 @@ manual_memcard_tests:
 
 .run_tests:
 	moveq	#8, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#26, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	moveq	#27, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 	lea	XY_STR_MC_RUNNING_TESTS, a0
 	RSUB	print_xy_string_struct_clear
 
@@ -4651,7 +4632,7 @@ manual_memcard_tests:
 .test_failed_abort:
 	RSUB	print_error
 	moveq	#9, d0
-	RSUB	fix_clear_line
+	SSA3	fix_clear_line
 
 .wait_input_return_menu:
 	move.b	d0, REG_CRDLOCK1
