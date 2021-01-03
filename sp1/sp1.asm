@@ -2144,14 +2144,14 @@ auto_bram_tests:
 
 .do_bram_tests:
 	move.b	d0, REG_SRAMUNLOCK		; unlock bram
-	bsr	bram_data_tests
+	RSUB	bram_data_tests
+	tst.b	d0
 	bne	.test_failed
-	bsr	bram_address_tests
+	RSUB	bram_address_tests
 
 .test_failed:
 	move.b	d0, REG_SRAMLOCK		; lock bram
 	rts
-
 
 auto_palette_ram_tests:
 	lea	PALETTE_RAM_START.l, a0
@@ -2351,46 +2351,6 @@ auto_wram_data_tests_dsub:
 	moveq	#0, d0
 	DSUB_RETURN
 
-bram_data_tests:
-	lea	BACKUP_RAM_START.l, a0
-	moveq	#0, d0
-	move.w	#$8000, d1
-	bsr	check_ram_data
-	beq	.test_passed_0000
-	moveq	#EC_BRAM_DATA_0000, d0
-	rts
-
-.test_passed_0000:
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$5555, d0
-	move.w	#$8000, d1
-	bsr	check_ram_data
-	beq	.test_passed_5555
-	moveq	#EC_BRAM_DATA_5555, d0
-	rts
-
-.test_passed_5555
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$aaaa, d0
-	move.w	#$8000, d1
-	bsr	check_ram_data
-	beq	.test_passed_aaaa
-	moveq	#EC_BRAM_DATA_AAAA, d0
-	rts
-
-.test_passed_aaaa:
-	lea	BACKUP_RAM_START.l, a0
-	moveq	#-1, d0
-	move.w	#$8000, d1
-	bsr	check_ram_data
-	beq	.test_passed_ffff
-	moveq	#EC_BRAM_DATA_FFFF, d0
-	rts
-
-.test_passed_ffff:
-	moveq	#0, d0
-	rts
-
 bram_data_tests_dsub:
 	lea	BACKUP_RAM_START.l, a0
 	moveq	#$0, d0
@@ -2439,7 +2399,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	moveq	#$0, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank0_0000
 
 	moveq	#EC_PAL_BANK0_DATA_0000, d0
@@ -2449,7 +2410,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$5555, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank0_5555
 
 	moveq	#EC_PAL_BANK0_DATA_5555, d0
@@ -2459,7 +2421,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$aaaa, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank0_aaaa
 
 	moveq	#EC_PAL_BANK0_DATA_AAAA, d0
@@ -2469,7 +2432,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	moveq	#-1, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank0_ffff
 
 	moveq	#EC_PAL_BANK0_DATA_FFFF, d0
@@ -2481,7 +2445,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	moveq	#$0, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank1_0000
 
 	moveq	#EC_PAL_BANK1_DATA_0000, d0
@@ -2491,7 +2456,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$5555, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank1_5555
 
 	moveq	#EC_PAL_BANK1_DATA_5555, d0
@@ -2501,7 +2467,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$aaaa, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank1_aaaa
 
 	moveq	#EC_PAL_BANK1_DATA_AAAA, d0
@@ -2511,7 +2478,8 @@ palette_ram_data_tests:
 	lea	PALETTE_RAM_START.l, a0
 	moveq	#-1, d0
 	move.w	#$1000, d1
-	bsr	check_ram_data
+	RSUB	check_ram_data
+	tst.b	d0
 	beq	.test_passed_bank1_ffff
 
 	moveq	#EC_PAL_BANK1_DATA_FFFF, d0
@@ -2521,38 +2489,6 @@ palette_ram_data_tests:
 	move.b	d0, REG_PALBANK0
 	moveq	#0, d0
 	rts
-
-; Does a full write/read test
-; params:
-;  a0 = start address
-;  d0 = value
-;  d1 = length
-; returns:
-;  d0 = 0 (pass), $ff (fail)
-;  a0 = failed address
-;  d1 = wrote value
-;  d2 = read (bad) value
-check_ram_data:
-	subq.w	#1, d1
-
-.loop_next_address:
-	move.w	d0, (a0)
-	move.w	(a0)+, d2
-	cmp.w	d0, d2
-	dbne	d1, .loop_next_address
-	bne	.test_failed
-	WATCHDOG
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	subq.l	#2, a0
-	move.w	d0, d1
-	WATCHDOG
-	moveq	#-1, d0
-	rts
-
-
 
 ; Does a full write/read test
 ; params:
@@ -2610,36 +2546,13 @@ auto_wram_address_tests_dsub:
 	moveq	#0, d0
 	DSUB_RETURN
 
-bram_address_tests:
-	lea	BACKUP_RAM_START.l, a0
-	moveq	#$2, d0
-	move.w	#$100, d1
-	bsr	check_ram_address
-	beq	.test_passed_a0_a7
-	moveq	#EC_BRAM_ADDRESS_A0_A7, d0
-	rts
-
-.test_passed_a0_a7:
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$200, d0
-	move.w	#$80, d1
-	bsr	check_ram_address
-	beq	.test_passed_a8_a14
-	moveq	#EC_BRAM_ADDRESS_A8_A14, d0
-	rts
-
-.test_passed_a8_a14:
-	moveq	#0, d0
-	rts
-
-; dont think this is ever called
 bram_address_tests_dsub:
 	lea	BACKUP_RAM_START.l, a0
 	moveq	#$2, d0
 	move.w	#$100, d1
 	DSUB	check_ram_address
-	tst.b	d0
 
+	tst.b	d0
 	beq	.test_passed_a0_a7
 	moveq	#EC_BRAM_ADDRESS_A0_A7, d0
 	DSUB_RETURN
@@ -2658,52 +2571,6 @@ bram_address_tests_dsub:
 .test_passed_a8_a14:
 	moveq	#0, d0
 	DSUB_RETURN
-
-; params:
-;  a0 = address start
-;  d0 = increment
-;  d1 = iterations
-; returns:
-; d0 = 0 (pass), $ff (fail)
-; d1 = expected value
-; d2 = actual value
-check_ram_address:
-	subq.w	#1, d1
-	move.w	d1, d2
-	moveq	#0, d3
-	move.w	#$101, d4
-
-.loop_write_next_address:
-	move.w	d3, (a0)
-	add.w	d4, d3
-	adda.w	d0, a0
-	dbra	d2, .loop_write_next_address
-
-	move.l	a0, d3
-	and.l	#$f00000, d3
-	movea.l	d3, a0
-	moveq	#0, d3
-	bra	.loop_start_address_read
-
-.loop_read_next_address:
-	add.w	d4, d3
-	adda.w	d0, a0
-.loop_start_address_read:
-	move.w	(a0), d2
-	cmp.w	d2, d3
-	dbne	d1, .loop_read_next_address
-	bne	.test_failed
-
-	WATCHDOG
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	move.w	d3, d1
-	WATCHDOG
-	moveq	#-1, d0
-	rts
-
 
 ; params:
 ;  a0 = address start
