@@ -652,7 +652,7 @@ z80_slot_switch:
 	move.b	#$01, REG_SOUND				; tell z80 to prep for m1 switch
 
 	move.l	#$1388, d0				; 12500us / 12.5ms
-	bsr	delay
+	RSUB	delay
 
 	cmpi.b	#$01, REG_SOUND
 	beq	.z80_slot_switch_ready
@@ -743,22 +743,12 @@ z80_slot_switch_ignored:
 	SSA3	fix_clear_line
 	rts
 
-
 ; params:
 ;  d0 * 2.5us = how long to delay
-delay:
+delay_dsub:
 	move.b	d0, REG_WATCHDOG	; 16 cycles
 	subq.l	#1, d0			; 4 cycles
-	bne	delay			; 10 cycles
-	rts
-
-; params:
-;  d0 * 2.5us = how long to delay
-; never called
-delay_dsub:
-	move.b	d0, REG_WATCHDOG
-	subq.l	#1, d0
-	bne	delay_dsub
+	bne	delay_dsub		; 10 cycles
 	DSUB_RETURN
 
 ; see if the z80 sent us an error
@@ -864,7 +854,7 @@ z80_comm_test:
 ; wait up to 5 seconds for hello (10ms * 500 loops)
 .loop_wait_hello
 	move.w	#4000, d0
-	bsr	delay
+	RSUB	delay
 .loop_start_wait_hello
 	cmp.b	REG_SOUND, d1
 	dbeq	d2, .loop_wait_hello
@@ -883,7 +873,7 @@ z80_comm_test:
 ; otherwise we will just get the last thing to wrote (Z80_RECV_HELLO).
 .loop_wait_ack:
 	move.w	#4000, d0
-	bsr	delay
+	RSUB	delay
 .loop_start_wait_ack:
 	cmp.b	REG_SOUND, d1
 	dbeq	d2, .loop_wait_ack
@@ -1532,17 +1522,17 @@ error_to_credit_leds:
 	; player 2 led
 	move.b	#LED_NO_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	bsr	delay				; 40us
+	RSUB	delay				; 40us
 
 	move.b	d4, REG_LEDDATA
 
 	move.b	#LED_P2_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	bsr	delay
+	RSUB	delay
 
 	move.b	#LED_NO_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	bsr	delay
+	RSUB	delay
 
 	; player 1 led
 	lsr.w	#8, d4
@@ -1550,7 +1540,7 @@ error_to_credit_leds:
 
 	move.b	#LED_P1_LATCH, REG_LEDLATCHES
 	move.w	#$10, d0
-	bsr	delay
+	RSUB	delay
 
 	move.b	#LED_P1_LATCH, REG_LEDLATCHES
 
@@ -1754,7 +1744,7 @@ send_p1p2_controller:
 	or.b	d1, d0
 	move.b	d0, REG_POUTPUT
 	move.l	#$1f4, d0		; 1250us / 1.25ms
-	bsr	delay
+	RSUB	delay
 	move.w	(a7)+, d1
 	rts
 
@@ -2185,7 +2175,8 @@ auto_palette_ram_tests:
 palette_ram_we_tests:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$ff, d0
-	jsr	check_ram_we.l
+	RSUB	check_ram_we
+	tst.b	d0
 	beq	.test_passed_lower
 	moveq	#EC_PAL_UNWRITABLE_LOWER, d0
 	rts
@@ -2193,7 +2184,8 @@ palette_ram_we_tests:
 .test_passed_lower:
 	lea	PALETTE_RAM_START.l, a0
 	move.w	#$ff00, d0
-	jsr	check_ram_we.l
+	RSUB	check_ram_we
+	tst.b	d0
 	beq	.test_passed_upper
 	moveq	#EC_PAL_UNWRITABLE_UPPER, d0
 	rts
@@ -2254,32 +2246,6 @@ auto_ram_we_tests_dsub:
 	move.b	d0, REG_SRAMLOCK			; lock bram
 	moveq	#0, d0
 	DSUB_RETURN
-
-; params:
-;  a0 = address
-;  d0 = bitmask
-check_ram_we:
-	move.w	(a0), d1
-	and.w	d0, d1
-	moveq	#0, d2
-	move.w	#$101, d5		; incr amount for each loop
-	move.w	#$ff, d3		; loop $ff times
-
-.loop_next_address:
-	move.w	d2, (a0)
-	add.w	d5, d2
-	move.w	(a0), d4
-	and.w	d0, d4
-	cmp.w	d1, d4			; check if write and re-read values match
-	dbne	d3, .loop_next_address
-	beq	.test_failed
-
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	moveq	#-1, d0
-	rts
 
 ; params:
 ;  a0 = address
@@ -2699,17 +2665,19 @@ check_palette_ram_address:
 ; The first 2 tests are checking for output from the IC's, while the last 2
 ; tests are checking for output on the palette memory chips
 palette_ram_output_tests:
-	move.w	#$ff, d0
+	moveq	#1, d0
 	lea	PALETTE_RAM_START, a0
-	bsr	check_memory_output
+	RSUB	check_ram_oe
+	tst.b	d0
 	beq	.test_passed_memory_output_lower
 	moveq	#EC_PAL_245_DEAD_OUTPUT_LOWER, d0
 	rts
 
 .test_passed_memory_output_lower:
-	move.w	#$ff00, d0
+	moveq	#0, d0
 	lea	PALETTE_RAM_START, a0
-	bsr	check_memory_output
+	RSUB	check_ram_oe
+	tst.b	d0
 	beq	.test_passed_memory_output_upper
 	moveq	#EC_PAL_245_DEAD_OUTPUT_UPPER, d0
 	rts
@@ -2771,50 +2739,6 @@ check_palette_ram_to_245_output:
 .test_failed:
 	moveq	#-1, d0
 	rts
-
-; This really the same thing as check_ram_oe_dsub
-;  d0 = compare mask
-;  a0 = address for testing
-; return
-;  d0 = 0 is passed, -1 = failed
-check_memory_output:
-	moveq	#$31, d2
-
-.loop_test_again:
-	move.w	(a0), d1
-	nop
-	move.w	*-2(PC), d3
-	and.w	d0, d1
-	and.w	d0, d3
-	cmp.w	d1, d3
-	bne	.test_passed
-
-	move.w	(a0), d1
-	add.w	#0, d0
-	move.w	*-4(PC), d3
-	and.w	d0, d1
-	and.w	d0, d3
-	cmp.w	d1, d3
-	bne	.test_passed
-
-	move.w	(a0), d1
-	seq	d3
-	move.w	*-2(PC), d3
-	and.w	d0, d1
-	and.w	d0, d3
-	cmp.w	d1, d3
-
-.test_passed:
-	dbeq	d2, .loop_test_again
-
-	beq	.test_failed
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	moveq	#-1, d0
-	rts
-
 
 auto_vram_tests:
 	bsr	fix_backup
@@ -4534,17 +4458,19 @@ manual_memcard_tests:
 ; is 16 bit.  Figuring out if the card is 16 bit requires the upper
 ; byte to be outputing data.
 memcard_oe_tests:
-	move.w	#$ff, d0			; lower byte
+	moveq	#1, d0				; lower byte
 	lea	MEMCARD_START, a0
-	bsr	check_memory_output
+	RSUB	check_ram_oe
+	tst.b	d0
 	beq	.test_passed_memory_output_lower
 	move.b	#EC_MC_245_DEAD_OUTPUT_LOWER, d0
 	rts
 
 .test_passed_memory_output_lower:
-	move.w	#$ff00, d0			; high byte
+	moveq	#0, d0				; high byte
 	lea	MEMCARD_START, a0
-	bsr	check_memory_output
+	RSUB	check_ram_oe
+	tst.b	d0
 	beq	.test_passed_memory_output_upper
 	move.b	#EC_MC_245_DEAD_OUTPUT_UPPER, d0
 	rts
