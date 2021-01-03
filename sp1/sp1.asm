@@ -621,8 +621,8 @@ automatic_function_tests:
 
 .skip_error_to_z80:
 	tst.b	REG_STATUS_B
-	bpl	.skip_error_to_credit_leds		; skip if aes
-	bsr	error_to_credit_leds
+	bpl	.skip_error_to_credit_leds	; skip if aes
+	RSUB	error_to_credit_leds
 
 .skip_error_to_credit_leds
 	bra	loop_reset_check
@@ -777,7 +777,7 @@ z80_check_error:
 
 	tst.b	REG_STATUS_B
 	bpl	.skip_error_to_credit_leds	; skip if aes
-	bsr	error_to_credit_leds
+	RSUB	error_to_credit_leds
 
 .skip_error_to_credit_leds
 
@@ -1500,52 +1500,6 @@ z80_ack_error:
 ;
 ; params:
 ;  d0 = error code
-error_to_credit_leds:
-	moveq	#3, d2
-	moveq	#0, d3
-	moveq	#0, d4
-
-; convert error code to bcd
-.loop_next_digit:
-	divu.w	#10, d0
-	swap	d0
-	move.b	d0, d3
-	and.l	d3, d3
-	or.w	d3, d4
-	clr.w	d0
-	swap	d0
-	ror.w	#4, d4
-	dbra	d2, .loop_next_digit
-
-	not.w	d4				; inverted per dev wiki
-
-	; player 2 led
-	move.b	#LED_NO_LATCH, REG_LEDLATCHES
-	move.w	#$10, d0
-	RSUB	delay				; 40us
-
-	move.b	d4, REG_LEDDATA
-
-	move.b	#LED_P2_LATCH, REG_LEDLATCHES
-	move.w	#$10, d0
-	RSUB	delay
-
-	move.b	#LED_NO_LATCH, REG_LEDLATCHES
-	move.w	#$10, d0
-	RSUB	delay
-
-	; player 1 led
-	lsr.w	#8, d4
-	move.b	d4, REG_LEDDATA
-
-	move.b	#LED_P1_LATCH, REG_LEDLATCHES
-	move.w	#$10, d0
-	RSUB	delay
-
-	move.b	#LED_P1_LATCH, REG_LEDLATCHES
-
-	rts
-
 error_to_credit_leds_dsub:
 	moveq	#3, d2
 	moveq	#0, d3
@@ -1668,24 +1622,6 @@ wait_frame:
 
 	move.w	(a7)+, d0
 	rts
-
-
-; wait for a full frame, dsub
-; never called..
-wait_frame_dsub:
-	WATCHDOG
-	move.w	(4,a6), d0
-	and.w	#$ff80, d0
-	cmp.w	#$f800, d0
-	beq	wait_frame_dsub
-
-.loop_not_bottom_border:
-	WATCHDOG
-	move.w	(4,a6), d0
-	and.w	#$ff80, d0
-	cmp.w	#$f800, d0
-	bne	.loop_not_bottom_border
-	DSUB_RETURN
 
 ; d0 = scanline to wait for
 wait_scanline:
