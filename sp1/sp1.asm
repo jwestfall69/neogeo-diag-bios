@@ -65,7 +65,7 @@ fix_seek_xy_ssa3:
 	move.w	d0, (-2,a6)
 	SSA3_RETURN
 
-; clears a line of the fix layer - dsub version
+; clears a line of the fix layer
 ; params:
 ;  d0 = line to clear
 fix_clear_line_ssa3:
@@ -168,7 +168,7 @@ dsub_return:
 	nop
 	rts
 
-; clears the fix layer - dsub version;
+; clears the fix layer
 fix_clear_dsub:
 	move.w	#FIXMAP, (-2,a6)
 	move.w	#1, (2,a6)
@@ -274,7 +274,7 @@ print_hex_nibble_dsub:
 	moveq	#0, d1
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
-; prints 1 byte in hex starting at location x,y - dsub version
+; prints 1 byte in hex starting at location x,y
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -285,7 +285,7 @@ print_hex_byte_dsub:
 	moveq	#1, d1
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
-; prints 2 bytes in hex starting at location x,y - dsub version
+; prints 2 bytes in hex starting at location x,y
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -297,7 +297,7 @@ print_hex_word_dsub:
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
 
-; prints 3 bytes in hex starting at location x,y - dsub version
+; prints 3 bytes in hex starting at location x,y
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -309,7 +309,7 @@ print_hex_3_bytes_dsub:
 	bra	print_hex_dsub			; handles DSUB_RETURN for us
 
 
-; prints 4 bytes in hex starting at location x,y - dsub version
+; prints 4 bytes in hex starting at location x,y
 ; params:
 ;  d0 = x
 ;  d1 = y
@@ -319,7 +319,7 @@ print_hex_long_dsub:
 	SSA3	fix_seek_xy
 	moveq	#7, d1				; falls through to print_hex_dsub
 
-; prints N hex chars, caller must already be at end x,y location as this function prints backwards - dsub version
+; prints N hex chars, caller must already be at end x,y location as this function prints backwards
 ; params:
 ;  d1 = number of chars to print - 1
 ;  d2 = data
@@ -903,7 +903,7 @@ loop_reset_check:
 	bra	.loop_forever
 
 
-; loop forever checking for reset request - dsub version
+; loop forever checking for reset request
 loop_reset_check_dsub:
 	moveq	#4, d0
 	moveq	#27, d1
@@ -966,8 +966,8 @@ print_hold_ss_to_reset:
 	RSUB	print_xy_string_clear
 	rts
 
-; prints headers - dsub version
-; NEO DIAGNOSTICS v0.19 - BY SMKDAN
+; prints headers
+; NEO DIAGNOSTICS v0.19aXX - BY SMKDAN
 ; ---------------------------------
 print_header_dsub:
 	moveq	#0, d0
@@ -1028,7 +1028,7 @@ z80_print_comm_error:
 
 ; struct ec_lookup {
 ;  byte error_code;
-;  byte print_error_function_id;
+;  byte print_error_dsub_id;
 ;  long error_code_description_string;  // macro fills in for us
 ; }
 EC_LOOKUP_TABLE:
@@ -1147,8 +1147,8 @@ EC_LOOKUP_TABLE_END:
 
 ; struct print_error {
 ;  byte padding; 0x00;
-;  byte function_id;
-;  long function_address;
+;  byte dsub_id;
+;  long dsub_address;
 ;}
 PRINT_ERROR_TABLE:
 	PRINT_ERROR_STRUCT PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_dsub
@@ -1189,7 +1189,7 @@ error_code_lookup_dsub:
 	bra	.not_found
 
 .ec_found:
-	move.b	(1, a1), d4	; print error data code block id
+	move.b	(1, a1), d4	; print error dsub id
 	and.w	#$ff, d4
 	movea.l (2, a1), a1	; error description string
 
@@ -1405,9 +1405,9 @@ print_error_string_dsub:
 ; error code or its print function
 ; params:
 ;  d0 = error code
-;  d1 = print function id
+;  d1 = print dsub id
 print_error_invalid_dsub:
-	move.b	d0, d3				; print function id
+	move.b	d0, d3				; print dsub id
 	move.b	d1, d4				; error code
 
 	moveq	#9, d0
@@ -1433,7 +1433,7 @@ print_error_invalid_dsub:
 	move.b	d4, d2
 	moveq	#24, d0
 	moveq	#7, d1
-	jmp	print_hex_byte_dsub			; print function id
+	jmp	print_hex_byte_dsub			; print dsub id
 
 
 STR_INVALID_ERROR:	STRING "INVALID ERROR"
