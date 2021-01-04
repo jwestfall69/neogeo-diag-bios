@@ -23,12 +23,8 @@
 	endm
 
 	macro RSUB
-		movem.l	a2-a3, -(a7)
-		lea (\1_dsub), a2
-		lea (.\@), a3
-		bra dsub_enter
-.\@:
-		movem.l	(a7)+, a2-a3
+		subq.w #4, d7
+		bsr \1_dsub
 	endm
 
 	macro SSA3

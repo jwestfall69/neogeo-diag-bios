@@ -118,14 +118,15 @@ fix_clear_line_ssa3:
 ;   and then jumping dsub_enter.  Note that the macro will automatically
 ;   append _dsub onto the supplied subroutine name.  This macro should be used
 ;   when a dsub calling another dsub
-;  DSUB <subrouting>
+;  PSUB <subrouting>
 ;   This is meant to be called when using dsub in pseudo mode.  Its the exact
 ;   same as the DSUB macro.  It just exists to make it easier to follow the
 ;   code, by making it clear the call is meant to be pseudo.
 ;  RSUB <subroutine>
-;   This is meant to be called when using dsub in real mode.  Its the same
-;   as the DSUB macro but will push/pop a2/a3 onto the stack around the dsub
-;   call.
+;   This is meant to be called when using dsub in real mode.  It bypasses
+;   using dsub_enter and will instead directly adjust d7 then do an actual
+;   bsr to the dsub.  Note that the macro will automatically append
+;   _dsub onto the supplied subroutine name.
 ;  DSUB_RETURN
 ;   When in a dsub, DSUB_RETURN should be used to return from the subroutine
 dsub_enter:
