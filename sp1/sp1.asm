@@ -1079,15 +1079,13 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_STRUCT BRAM_UNWRITABLE_LOWER, PRINT_ERROR_STRING
 	EC_LOOKUP_STRUCT BRAM_UNWRITABLE_UPPER, PRINT_ERROR_STRING
 
-	EC_LOOKUP_STRUCT WRAM_DATA_0000, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT WRAM_DATA_5555, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT WRAM_DATA_AAAA, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT WRAM_DATA_FFFF, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT WRAM_DATA_LOWER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT WRAM_DATA_UPPER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT WRAM_DATA_BOTH, PRINT_ERROR_MEMORY
 
-	EC_LOOKUP_STRUCT BRAM_DATA_0000, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT BRAM_DATA_5555, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT BRAM_DATA_AAAA, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT BRAM_DATA_FFFF, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT BRAM_DATA_LOWER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT BRAM_DATA_UPPER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT BRAM_DATA_BOTH, PRINT_ERROR_MEMORY
 
 	EC_LOOKUP_STRUCT WRAM_ADDRESS_A0_A7, PRINT_ERROR_STRING
 	EC_LOOKUP_STRUCT WRAM_ADDRESS_A8_A14, PRINT_ERROR_STRING
@@ -1103,15 +1101,13 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_STRUCT PAL_UNWRITABLE_LOWER, PRINT_ERROR_STRING
 	EC_LOOKUP_STRUCT PAL_UNWRITABLE_UPPER, PRINT_ERROR_STRING
 
-	EC_LOOKUP_STRUCT PAL_BANK0_DATA_0000, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT PAL_BANK0_DATA_5555, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT PAL_BANK0_DATA_AAAA, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT PAL_BANK0_DATA_FFFF, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_LOWER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_UPPER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK0_DATA_BOTH, PRINT_ERROR_MEMORY
 
-	EC_LOOKUP_STRUCT PAL_BANK1_DATA_0000, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT PAL_BANK1_DATA_5555, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT PAL_BANK1_DATA_AAAA, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT PAL_BANK1_DATA_FFFF, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_LOWER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_UPPER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT PAL_BANK1_DATA_BOTH, PRINT_ERROR_MEMORY
 
 	EC_LOOKUP_STRUCT PAL_ADDRESS_A0_A7, PRINT_ERROR_STRING
 	EC_LOOKUP_STRUCT PAL_ADDRESS_A0_A12, PRINT_ERROR_STRING
@@ -2210,187 +2206,90 @@ check_ram_we_dsub:
 	moveq	#-1, d0
 	DSUB_RETURN
 
+MEMORY_DATA_TEST_PATTERNS:
+	dc.w	$0000, $5555, $aaaa, $ffff
+MEMORY_DATA_TEST_PATTERNS_END:
+
+
 auto_wram_data_tests_dsub:
-	lea	WORK_RAM_START.l, a0
-	moveq	#0, d0
+	lea	MEMORY_DATA_TEST_PATTERNS, a1
+	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+
+.loop_next_pattern:
+	lea	WORK_RAM_START, a0
 	move.w	#$8000, d1
+	move.w	(a1)+, d0
 	DSUB	check_ram_data
 	tst.b	d0
-	beq	.test_passed_0000
-	moveq	#EC_WRAM_DATA_0000, d0
+	bne	.test_failed
+	dbra	d3, .loop_next_pattern
 	DSUB_RETURN
 
-.test_passed_0000:
-	lea	WORK_RAM_START.l, a0
-	move.w	#$5555, d0
-	move.w	#$8000, d1
-	DSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_5555
-	moveq	#EC_WRAM_DATA_5555, d0
+.test_failed:
+	subq.b	#1, d0
+	add.b	#EC_WRAM_DATA_LOWER, d0
 	DSUB_RETURN
 
-.test_passed_5555:
-	lea	WORK_RAM_START.l, a0
-	move.w	#$aaaa, d0
-	move.w	#$8000, d1
-	DSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_aaaa
-	moveq	#EC_WRAM_DATA_AAAA, d0
-	DSUB_RETURN
-
-.test_passed_aaaa:
-	lea	WORK_RAM_START.l, a0
-	moveq	#-1, d0
-	move.w	#$8000, d1
-	DSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_ffff
-	moveq	#EC_WRAM_DATA_FFFF, d0
-	DSUB_RETURN
-
-.test_passed_ffff:
-	moveq	#0, d0
-	DSUB_RETURN
 
 bram_data_tests_dsub:
-	lea	BACKUP_RAM_START.l, a0
-	moveq	#$0, d0
+	lea	MEMORY_DATA_TEST_PATTERNS, a1
+	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+
+.loop_next_pattern:
+	lea	BACKUP_RAM_START, a0
 	move.w	#$8000, d1
+	move.w	(a1)+, d0
 	DSUB	check_ram_data
 	tst.b	d0
-	beq	.test_passed_0000
-	moveq	#EC_BRAM_DATA_0000, d0
+	bne	.test_failed
+	dbra	d3, .loop_next_pattern
 	DSUB_RETURN
 
-.test_passed_0000:
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$5555, d0
-	move.w	#$8000, d1
-	DSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_5555
-	moveq	#EC_BRAM_DATA_5555, d0
+.test_failed:
+	subq.b	#1, d0
+	add.b	#EC_BRAM_DATA_LOWER, d0
 	DSUB_RETURN
 
-.test_passed_5555:
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$aaaa, d0
-	move.w	#$8000, d1
-	DSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_aaaa
-	moveq	#EC_BRAM_DATA_AAAA, d0
-	DSUB_RETURN
-
-.test_passed_aaaa:
-	lea	BACKUP_RAM_START.l, a0
-	moveq	#-$1, d0
-	move.w	#$8000, d1
-	DSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_ffff
-	moveq	#EC_BRAM_DATA_FFFF, d0
-	DSUB_RETURN
-
-.test_passed_ffff:
-	moveq	#$0, d0
-	DSUB_RETURN
 
 palette_ram_data_tests:
-	lea	PALETTE_RAM_START.l, a0
-	moveq	#$0, d0
+	lea	MEMORY_DATA_TEST_PATTERNS, a1
+	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+
+.loop_next_pattern_bank0:
+	lea	PALETTE_RAM_START, a0
 	move.w	#$1000, d1
-	RSUB	check_ram_data
+	move.w	(a1)+, d0
+	DSUB	check_ram_data
 	tst.b	d0
-	beq	.test_passed_bank0_0000
+	bne	.test_failed_bank0
+	dbra	d3, .loop_next_pattern_bank0
+	bra	.test_passed_bank0
 
-	moveq	#EC_PAL_BANK0_DATA_0000, d0
-	rts
+.test_passed_bank0:
+	lea	MEMORY_DATA_TEST_PATTERNS, a1
+	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
 
-.test_passed_bank0_0000:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$5555, d0
+.loop_next_pattern_bank1:
+	lea	PALETTE_RAM_START, a0
 	move.w	#$1000, d1
-	RSUB	check_ram_data
+	move.w	(a1)+, d0
+	DSUB	check_ram_data
 	tst.b	d0
-	beq	.test_passed_bank0_5555
+	bne	.test_failed_bank1
+	dbra	d3, .loop_next_pattern_bank1
 
-	moveq	#EC_PAL_BANK0_DATA_5555, d0
-	rts
-
-.test_passed_bank0_5555:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$aaaa, d0
-	move.w	#$1000, d1
-	RSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_bank0_aaaa
-
-	moveq	#EC_PAL_BANK0_DATA_AAAA, d0
-	rts
-
-.test_passed_bank0_aaaa:
-	lea	PALETTE_RAM_START.l, a0
-	moveq	#-1, d0
-	move.w	#$1000, d1
-	RSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_bank0_ffff
-
-	moveq	#EC_PAL_BANK0_DATA_FFFF, d0
-	rts
-
-.test_passed_bank0_ffff:
-	move.b	d0, REG_PALBANK1
-
-	lea	PALETTE_RAM_START.l, a0
-	moveq	#$0, d0
-	move.w	#$1000, d1
-	RSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_bank1_0000
-
-	moveq	#EC_PAL_BANK1_DATA_0000, d0
-	rts
-
-.test_passed_bank1_0000:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$5555, d0
-	move.w	#$1000, d1
-	RSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_bank1_5555
-
-	moveq	#EC_PAL_BANK1_DATA_5555, d0
-	rts
-
-.test_passed_bank1_5555:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$aaaa, d0
-	move.w	#$1000, d1
-	RSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_bank1_aaaa
-
-	moveq	#EC_PAL_BANK1_DATA_AAAA, d0
-	rts
-
-.test_passed_bank1_aaaa:
-	lea	PALETTE_RAM_START.l, a0
-	moveq	#-1, d0
-	move.w	#$1000, d1
-	RSUB	check_ram_data
-	tst.b	d0
-	beq	.test_passed_bank1_ffff
-
-	moveq	#EC_PAL_BANK1_DATA_FFFF, d0
-	rts
-
-.test_passed_bank1_ffff:
 	move.b	d0, REG_PALBANK0
 	moveq	#0, d0
+	rts
+
+.test_failed_bank0:
+	subq.b	#1, d0
+	add.b	#EC_PAL_BANK0_DATA_LOWER, d0
+	rts
+
+.test_failed_bank1:
+	subq.b	#1, d0
+	add.b	#EC_PAL_BANK1_DATA_LOWER, d0
 	rts
 
 ; Does a full write/read test
@@ -2399,7 +2298,7 @@ palette_ram_data_tests:
 ;  d0 = value
 ;  d1 = length
 ; returns:
-;  d0 = 0 (pass), $ff (fail)
+;  d0 = 0 (pass), 1 (lower bad), 2 (upper bad), 3 (both bad)
 ;  a0 = failed address
 ;  d1 = wrote value
 ;  d2 = read (bad) value
@@ -2421,7 +2320,24 @@ check_ram_data_dsub:
 	subq.l	#2, a0
 	move.w	d0, d1
 	WATCHDOG
-	moveq	#-1, d0
+
+	; set error code based on which byte(s) were bad
+	moveq	#0, d0
+
+	cmp.b	d1, d2
+	beq	.check_upper
+	or.b	#1, d0
+
+.check_upper:
+	ror.l	#8, d1
+	ror.l	#8, d2
+	cmp.b	d1, d2
+	beq	.check_done
+	or.b	#2, d0
+
+.check_done:
+	rol.l	#8, d1
+	rol.l	#8, d2
 	DSUB_RETURN
 
 
@@ -4915,14 +4831,13 @@ STR_WRAM_UNWRITABLE_UPPER:	STRING "WRAM UNWRITABLE (UPPER)"
 STR_BRAM_UNWRITABLE_LOWER:	STRING "BRAM UNWRITABLE (LOWER)"
 STR_BRAM_UNWRITABLE_UPPER:	STRING "BRAM UNWRITABLE (UPPER)"
 
-STR_WRAM_DATA_0000:		STRING "WRAM DATA (0000)"
-STR_WRAM_DATA_5555:		STRING "WRAM DATA (5555)"
-STR_WRAM_DATA_AAAA:		STRING "WRAM DATA (AAAA)"
-STR_WRAM_DATA_FFFF:		STRING "WRAM DATA (FFFF)"
-STR_BRAM_DATA_0000:		STRING "BRAM DATA (0000)"
-STR_BRAM_DATA_5555:		STRING "BRAM DATA (5555)"
-STR_BRAM_DATA_AAAA:		STRING "BRAM DATA (AAAA)"
-STR_BRAM_DATA_FFFF:		STRING "BRAM DATA (FFFF)"
+STR_WRAM_DATA_LOWER:		STRING "WRAM DATA (LOWER)"
+STR_WRAM_DATA_UPPER:		STRING "WRAM DATA (UPPER)"
+STR_WRAM_DATA_BOTH:		STRING "WRAM DATA (BOTH)"
+
+STR_BRAM_DATA_LOWER:		STRING "BRAM DATA (LOWER)"
+STR_BRAM_DATA_UPPER:		STRING "BRAM DATA (UPPER)"
+STR_BRAM_DATA_BOTH:		STRING "BRAM DATA (BOTH)"
 
 STR_WRAM_ADDRESS_A0_A7:		STRING "WRAM ADDRESS (A0-A7)"
 STR_WRAM_ADDRESS_A8_A14:	STRING "WRAM ADDRESS (A8-A14)"
@@ -4937,14 +4852,13 @@ STR_PAL_DEAD_OUTPUT_UPPER:	STRING "PALETTE RAM DEAD OUTPUT (UPPER)"
 STR_PAL_UNWRITABLE_LOWER:	STRING "PALETTE RAM UNWRITABLE (LOWER)"
 STR_PAL_UNWRITABLE_UPPER:	STRING "PALETTE RAM UNWRITABLE (UPPER)"
 
-STR_PAL_BANK0_DATA_0000:	STRING "PALETTE BANK0 DATA (0000)"
-STR_PAL_BANK0_DATA_5555:	STRING "PALETTE BANK0 DATA (5555)"
-STR_PAL_BANK0_DATA_AAAA:	STRING "PALETTE BANK0 DATA (AAAA)"
-STR_PAL_BANK0_DATA_FFFF:	STRING "PALETTE BANK0 DATA (FFFF)"
-STR_PAL_BANK1_DATA_0000:	STRING "PALETTE BANK1 DATA (0000)"
-STR_PAL_BANK1_DATA_5555:	STRING "PALETTE BANK1 DATA (5555)"
-STR_PAL_BANK1_DATA_AAAA:	STRING "PALETTE BANK1 DATA (AAAA)"
-STR_PAL_BANK1_DATA_FFFF:	STRING "PALETTE BANK1 DATA (FFFF)"
+STR_PAL_BANK0_DATA_LOWER:	STRING "PALETTE BANK0 DATA (LOWER)"
+STR_PAL_BANK0_DATA_UPPER:	STRING "PALETTE BANK0 DATA (UPPER)"
+STR_PAL_BANK0_DATA_BOTH:	STRING "PALETTE BANK0 DATA (BOTH)"
+
+STR_PAL_BANK1_DATA_LOWER:	STRING "PALETTE BANK1 DATA (LOWER)"
+STR_PAL_BANK1_DATA_UPPER:	STRING "PALETTE BANK1 DATA (UPPER)"
+STR_PAL_BANK1_DATA_BOTH:	STRING "PALETTE BANK1 DATA (BOTH)"
 
 STR_PAL_ADDRESS_A0_A7:		STRING "PALETTE ADDRESS (A0-A7)"
 STR_PAL_ADDRESS_A0_A12:		STRING "PALETTE ADDRESS (A8-A12)"

@@ -71,26 +71,22 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x45 |     69 |  *1000101 |       x0 / 69 | [WRAM DEAD OUTPUT (UPPER)](tests/68k/wbram_oe.md) |
 |  0x46 |     70 |  *1000110 |       x0 / 70 | [BRAM DEAD OUTPUT (LOWER)](tests/68k/wbram_oe.md) |
 |  0x47 |     71 |  *1000111 |       x0 / 71 | [BRAM DEAD OUTPUT (UPPER)](tests/68k/wbram_oe.md) |
-|  0x48 |     72 |  *1001000 |       x0 / 72 | WRAM DATA (0000) |
-|  0x49 |     73 |  *1001001 |       x0 / 73 | WRAM DATA (5555) |
-|  0x4a |     74 |  *1001010 |       x0 / 74 | WRAM DATA (AAAA) |
-|  0x4b |     75 |  *1001011 |       x0 / 75 | WRAM DATA (FFFF) |
-|  0x4c |     76 |   1001100 |       x0 / 76 | BRAM DATA (0000) |
-|  0x4d |     77 |   1001101 |       x0 / 77 | BRAM DATA (5555) |
-|  0x4e |     78 |   1001110 |       x0 / 78 | BRAM DATA (AAAA) |
-|  0x4f |     79 |   1001111 |       x0 / 79 | BRAM DATA (FFFF) |
+|  0x48 |     72 |  *1001000 |       x0 / 72 | WRAM DATA (LOWER) |
+|  0x49 |     73 |  *1001001 |       x0 / 73 | WRAM DATA (UPPER) |
+|  0x4a |     74 |  *1001010 |       x0 / 74 | WRAM DATA (BOTH) |
+|  0x4c |     76 |   1001100 |       x0 / 76 | BRAM DATA (LOWER) |
+|  0x4d |     77 |   1001101 |       x0 / 77 | BRAM DATA (UPPER) |
+|  0x4e |     78 |   1001110 |       x0 / 78 | BRAM DATA (BOTH) |
 |  0x50 |     80 |   1010000 |       x0 / 80 | WRAM ADDRESS (A0-A7) |
 |  0x51 |     81 |   1010001 |       x0 / 81 | WRAM ADDRESS (A8-A14) |
 |  0x52 |     82 |   1010010 |       x0 / 82 | BRAM ADDRESS (A0-A7) |
 |  0x53 |     83 |   1010011 |       x0 / 83 | BRAM ADDRESS (A8-A14) |
-|  0x54 |     84 |   1010100 |       x0 / 84 | PALETTE BANK0 DATA (0000) |
-|  0x55 |     85 |   1010101 |       x0 / 85 | PALETTE BANK0 DATA (5555) |
-|  0x56 |     86 |   1010110 |       x0 / 86 | PALETTE BANK0 DATA (AAAA) |
-|  0x57 |     87 |   1010111 |       x0 / 87 | PALETTE BANK0 DATA (FFFF) |
-|  0x58 |     88 |   1011100 |       x0 / 88 | PALETTE BANK1 DATA (0000) |
-|  0x59 |     89 |   1011101 |       x0 / 89 | PALETTE BANK1 DATA (5555) |
-|  0x5a |     90 |   1011110 |       x0 / 90 | PALETTE BANK1 DATA (AAAA) |
-|  0x5b |     91 |   1011111 |       x0 / 91 | PALETTE BANK1 DATA (FFFF) |
+|  0x54 |     84 |   1010100 |       x0 / 84 | PALETTE BANK0 DATA (LOWER) |
+|  0x55 |     85 |   1010101 |       x0 / 85 | PALETTE BANK0 DATA (UPPER) |
+|  0x56 |     86 |   1010110 |       x0 / 86 | PALETTE BANK0 DATA (BOTH) |
+|  0x58 |     88 |   1011100 |       x0 / 88 | PALETTE BANK1 DATA (LOWER) |
+|  0x59 |     89 |   1011101 |       x0 / 89 | PALETTE BANK1 DATA (UPPER) |
+|  0x5a |     90 |   1011110 |       x0 / 90 | PALETTE BANK1 DATA (BOTH) |
 |  0x5c |     92 |   1011100 |       x0 / 92 | PALETTE ADDRESS (A0-A7) |
 |  0x5d |     93 |   1011101 |       x0 / 93 | PALETTE ADDRESS (A8-A12) |
 |  0x60 |     96 |   1100000 |       x0 / 96 | VRAM DATA (0000) |
