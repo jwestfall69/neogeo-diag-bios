@@ -1112,10 +1112,13 @@ EC_LOOKUP_TABLE:
 	EC_LOOKUP_STRUCT PAL_ADDRESS_A0_A7, PRINT_ERROR_STRING
 	EC_LOOKUP_STRUCT PAL_ADDRESS_A0_A12, PRINT_ERROR_STRING
 
-	EC_LOOKUP_STRUCT VRAM_DATA_0000, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT VRAM_DATA_5555, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT VRAM_DATA_AAAA, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT VRAM_DATA_FFFF, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_32K_DATA_LOWER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_32K_DATA_UPPER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_32K_DATA_BOTH, PRINT_ERROR_MEMORY
+
+	EC_LOOKUP_STRUCT VRAM_2K_DATA_LOWER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_2K_DATA_UPPER, PRINT_ERROR_MEMORY
+	EC_LOOKUP_STRUCT VRAM_2K_DATA_BOTH, PRINT_ERROR_MEMORY
 
 	EC_LOOKUP_STRUCT VRAM_ADDRESS_A0_A7, PRINT_ERROR_STRING
 	EC_LOOKUP_STRUCT VRAM_ADDRESS_A8_A14, PRINT_ERROR_STRING
@@ -2757,103 +2760,59 @@ vram_data_tests:
 	rts
 
 vram_32k_data_tests:
+
+	lea	MEMORY_DATA_TEST_PATTERNS, a1
+	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d5
+
+.loop_next_pattern:
+	move.w	(a1)+, d0
 	moveq	#0, d1
-	moveq	#0, d0
 	move.w	#$8000, d2
 	bsr	check_vram_data
-	beq	.test_passed_0000
-	moveq	#EC_VRAM_DATA_0000, d0
+	tst.b	d0
+	bne	.test_failed
+	dbra	d5, .loop_next_pattern
 	rts
 
-.test_passed_0000:
-	moveq	#0, d1
-	moveq	#$55, d0
-	move.w	#$8000, d2
-	bsr	check_vram_data
-	beq	.test_passed_5555
-	moveq	#EC_VRAM_DATA_5555, d0
-	rts
-
-.test_passed_5555:
-	moveq	#0, d1
-	moveq	#-$56, d0
-	move.w	#$8000, d2
-	bsr	check_vram_data
-	beq	.test_passed_aaaa
-	moveq	#EC_VRAM_DATA_AAAA, d0
-	rts
-
-.test_passed_aaaa:
-	moveq	#0, d1
-	moveq	#-1, d0
-	move.w	#$8000, d2
-	bsr	check_vram_data
-	beq	.test_passed_ffff
-	moveq	#EC_VRAM_DATA_FFFF, d0
-	rts
-
-.test_passed_ffff				; check_vram_data will set d0 = 0 for us
+.test_failed:
+	subq.b	#1, d0
+	add.b	#EC_VRAM_32K_DATA_LOWER, d0
 	rts
 
 ; 2k (words) vram tests (data and address) only look at the
 ; first 1536 (0x600) words, since the remaining 512 words
 ; are used by the LSPC for buffers per dev wiki
 vram_2k_data_tests:
-	moveq	#-$80, d1
-	moveq	#0, d0
+
+	lea	MEMORY_DATA_TEST_PATTERNS, a1
+	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d5
+
+.loop_next_pattern:
+	move.w	(a1)+, d0
+	move.w	#$8000, d1
 	move.w	#$600, d2
 	bsr	check_vram_data
-	beq	.test_passed_0000
-	moveq	#EC_VRAM_DATA_0000, d0
+	tst.b	d0
+	bne	.test_failed
+	dbra	d5, .loop_next_pattern
 	rts
 
-.test_passed_0000:
-	moveq	#-$80, d1
-	moveq	#$55, d0
-	move.w	#$600, d2
-	bsr	check_vram_data
-	beq	.test_passed_5555
-	moveq	#EC_VRAM_DATA_5555, d0
-	rts
-
-.test_passed_5555:
-	moveq	#-$80, d1
-	moveq	#-$56, d0
-	move.w	#$600, d2
-	bsr	check_vram_data
-	beq	.test_passed_aaaa
-	moveq	#EC_VRAM_DATA_AAAA, d0
-	rts
-
-.test_passed_aaaa
-	moveq	#-$80, d1
-	moveq	#-1, d0
-	move.w	#$600, d2
-	bsr	check_vram_data
-	beq	.test_passed_ffff
-	moveq	#EC_VRAM_DATA_FFFF, d0
-	rts
-
-.test_passed_ffff				; check_vram_data will set d0 = 0 for us
+.test_failed:
+	subq.b	#1, d0
+	add.b	#EC_VRAM_2K_DATA_LOWER, d0
 	rts
 
 ; params:
-;  d0 = pattern (byte)
-;  d1 = vram start address (byte) gets shifted left 8
+;  d0 = pattern
+;  d1 = vram start address
 ;  d2 = length in words
 ; returns:
-;  d0 = 0 (pass), $ff (fail)
+;  d0 = 0 (pass), 1 (lower bad), 2 (upper bad), 3 (both bad)
 ;  a0 = fail address
 ;  d1 = expected value
 ;  d2 = actual value
-; Its unclear why this functions params were made complex like this
-; since all other ones just pass in the full pattern and full address
 check_vram_data:
-	move.b	d0, d3
-	lsl.w	#8, d0
-	move.b	d3, d0				; double up d0 so $YY becomes $YYYY for the pattern
 	move.w	#1, (2,a6)
-	lsl.w	#8, d1				; increase d1 (vram start address) by 256
 	move.w	d1, (-2,a6)
 	subq.w	#1, d2
 	move.w	d2, d3
@@ -2886,7 +2845,24 @@ check_vram_data:
 	movea.l	d1, a0
 	move.w	d0, d1
 	move.w	d4, d2
-	moveq	#-1, d0
+
+	; set error code based on which byte(s) were bad
+	moveq	#0, d0
+
+	cmp.b	d1, d2
+	beq	.check_upper
+	or.b	#1, d0
+
+.check_upper:
+	ror.l	#8, d1
+	ror.l	#8, d2
+	cmp.b	d1, d2
+	beq	.check_done
+	or.b	#2, d0
+
+.check_done:
+	rol.l	#8, d1
+	rol.l	#8, d2
 	rts
 
 
@@ -4863,10 +4839,13 @@ STR_PAL_BANK1_DATA_BOTH:	STRING "PALETTE BANK1 DATA (BOTH)"
 STR_PAL_ADDRESS_A0_A7:		STRING "PALETTE ADDRESS (A0-A7)"
 STR_PAL_ADDRESS_A0_A12:		STRING "PALETTE ADDRESS (A8-A12)"
 
-STR_VRAM_DATA_0000:		STRING "VRAM DATA (0000)"
-STR_VRAM_DATA_5555:		STRING "VRAM DATA (5555)"
-STR_VRAM_DATA_AAAA:		STRING "VRAM DATA (AAAA)"
-STR_VRAM_DATA_FFFF:		STRING "VRAM DATA (FFFF)"
+STR_VRAM_32K_DATA_LOWER:	STRING "VRAM 32K DATA (LOWER)"
+STR_VRAM_32K_DATA_UPPER:	STRING "VRAM 32K DATA (UPPER)"
+STR_VRAM_32K_DATA_BOTH:		STRING "VRAM 32K DATA (BOTH)"
+
+STR_VRAM_2K_DATA_LOWER:		STRING "VRAM 2K DATA (LOWER)"
+STR_VRAM_2K_DATA_UPPER:		STRING "VRAM 2K DATA (UPPER)"
+STR_VRAM_2K_DATA_BOTH:		STRING "VRAM 2K DATA (BOTH)"
 
 STR_VRAM_ADDRESS_A0_A7:		STRING "VRAM ADDRESS (A0-A7)"
 STR_VRAM_ADDRESS_A8_A14:	STRING "VRAM ADDRESS (A8-A10/A8-A14)"

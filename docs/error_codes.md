@@ -89,10 +89,12 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x5a |     90 |   1011110 |       x0 / 90 | PALETTE BANK1 DATA (BOTH) |
 |  0x5c |     92 |   1011100 |       x0 / 92 | PALETTE ADDRESS (A0-A7) |
 |  0x5d |     93 |   1011101 |       x0 / 93 | PALETTE ADDRESS (A8-A12) |
-|  0x60 |     96 |   1100000 |       x0 / 96 | VRAM DATA (0000) |
-|  0x61 |     97 |   1100001 |       x0 / 97 | VRAM DATA (5555) |
-|  0x62 |     98 |   1100010 |       x0 / 98 | VRAM DATA (AAAA) |
-|  0x63 |     99 |   1100011 |       x0 / 99 | VRAM DATA (FFFF) |
+|  0x5e |     94 |   1011110 |       x0 / 94 | VRAM 32K DATA (LOWER) |
+|  0x5f |     95 |   1011111 |       x0 / 95 | VRAM 32K DATA (UPPER) |
+|  0x60 |     96 |   1100000 |       x0 / 96 | VRAM 32K DATA (BOTH) |
+|  0x61 |     97 |   1100001 |       x0 / 97 | VRAM 2K DATA (LOWER) |
+|  0x62 |     98 |   1100010 |       x0 / 98 | VRAM 2K DATA (UPPER) |
+|  0x63 |     99 |   1100011 |       x0 / 99 | VRAM 2K DATA (BOTH) |
 |  0x64 |    100 |   1100100 |       x1 / x0 | VRAM ADDRESS (A0-A7) |
 |  0x65 |    101 |   1100101 |       x1 / x1 | VRAM ADDRESS (A8-A10/A8-A14) |
 |  0x68 |    104 |   1101000 |       x1 / x4 | VRAM 32K DEAD OUTPUT (LOWER) |
