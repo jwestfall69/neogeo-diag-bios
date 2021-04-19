@@ -126,8 +126,8 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x85 |    133 |       N/A |           N/A | [MEMCARD DATA](tests/68k/memcard_data.md) |
 |  0x88 |    136 |       N/A |           N/A | [MEMCARD ADDRESS](tests/68k/memcard_address.md) |
 
-#### 68k Errors, No Code:
-The following are error messages do not generate an error code.
+#### 68k Errors, No Error Code:
+The following are error messages that do not generate an error code.
 
 These are all associated with the [68k <=> Z80 Comm Test](tests/comm_test.md).
 
