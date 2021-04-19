@@ -95,8 +95,10 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x61 |     97 |   1100001 |       x0 / 97 | VRAM 2K DATA (LOWER) |
 |  0x62 |     98 |   1100010 |       x0 / 98 | VRAM 2K DATA (UPPER) |
 |  0x63 |     99 |   1100011 |       x0 / 99 | VRAM 2K DATA (BOTH) |
-|  0x64 |    100 |   1100100 |       x1 / x0 | VRAM ADDRESS (A0-A7) |
-|  0x65 |    101 |   1100101 |       x1 / x1 | VRAM ADDRESS (A8-A10/A8-A14) |
+|  0x64 |    100 |   1100100 |       x1 / x0 | VRAM 32K ADDRESS (A0-A7) |
+|  0x65 |    101 |   1100101 |       x1 / x1 | VRAM 32K ADDRESS (A8-A14) |
+|  0x66 |    102 |   1100110 |       x1 / x2 | VRAM 2K ADDRESS (A0-A7) |
+|  0x67 |    103 |   1100111 |       x1 / x3 | VRAM 2K ADDRESS (A8-A10) |
 |  0x68 |    104 |   1101000 |       x1 / x4 | VRAM 32K DEAD OUTPUT (LOWER) |
 |  0x69 |    105 |   1101001 |       x1 / x5 | VRAM 32K DEAD OUTPUT (UPPER) |
 |  0x6a |    106 |   1101010 |       x1 / x6 | VRAM 2K DEAD OUTPUT (LOWER) |
