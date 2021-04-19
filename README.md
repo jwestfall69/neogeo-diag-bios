@@ -13,6 +13,11 @@ Please use the [v0.19](https://github.com/jwestfall69/neogeo-diag-bios/tree/v0.1
 branch of the disassembly if you want compiled rom files to match up with the
 original smkdan roms.
 
+## Pre-Built
+You can grab the lastest build from the master branch at
+
+https://www.mvs-scans.com/neogeo-diag-bios/19a00-master.zip
+
 ## Building
 I tried to make it as simple as possible to build the rom files.  All you really
 need are vasm and a host compiler.  (Additional steps maybe required if trying
