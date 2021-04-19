@@ -470,6 +470,9 @@ automatic_tests:
 
 	bset.b	#Z80_TEST_FLAG_ENABLED, z80_test_flags
 
+	cmp.b	REG_SOUND, d1
+	beq	skip_slot_switch		; skip slot switch if auto-detected m1
+
 	tst.b	REG_STATUS_B
 	bpl	skip_slot_switch		; skip slot switch if AES
 
