@@ -80,6 +80,18 @@ fix_clear_line_ssa3:
 	dbra	d1, .loop_next_tile
 	SSA3_RETURN
 
+; clears the fix layer
+fix_clear_ssa3:
+	move.w	#FIXMAP, (-2,a6)
+	move.w	#1, (2,a6)
+	move.w	#$20, d0
+	move.w	#$4ff, d1
+.loop_next_tile:
+	move.w	d0, (a6)
+	dbra	d1, .loop_next_tile
+	WATCHDOG
+	SSA3_RETURN
+
 ; dsub_enter/dsub_return allows creating and using dynamic subroutines.
 ; There are 2 modes for calling dynamic subroutines.
 ;
@@ -167,18 +179,6 @@ dsub_return:
 	rts
 	nop
 	rts
-
-; clears the fix layer
-fix_clear_dsub:
-	move.w	#FIXMAP, (-2,a6)
-	move.w	#1, (2,a6)
-	move.w	#$20, d0
-	move.w	#$4ff, d1
-.loop_next_tile:
-	move.w	d0, (a6)
-	dbra	d1, .loop_next_tile
-	WATCHDOG
-	DSUB_RETURN
 
 ; prints a char at x,y of fix layer
 ; parms:
@@ -430,7 +430,7 @@ _start:
 	clr.w	PALETTE_REFERENCE
 	clr.w	PALETTE_BACKDROP
 
-	PSUB	fix_clear
+	SSA3	fix_clear
 
 	moveq	#-$10, d0
 	and.b	REG_P1CNT, d0			; check for A+B+C+D being pressed, if not automatic_tests
@@ -527,7 +527,7 @@ skip_z80_test:
 	movea.l	$0, a7			; re-init SP
 	moveq	#DSUB_INIT_REAL, d7	; init dsub for real subroutines
 	clr.b	main_menu_cursor
-	RSUB	fix_clear
+	SSA3	fix_clear
 	bra	manual_tests
 
 watchdog_stuck_test_dsub:
@@ -1805,7 +1805,7 @@ main_menu_loop:
 	cmp.w	($8,a1), d0
 	beq	.loop_run_menu				; flags saw its not valid for this system, ignore and loop again
 
-	RSUB	fix_clear
+	SSA3	fix_clear
 
 	movea.l	(a1)+, a0
 	moveq	#4, d0
@@ -1814,7 +1814,7 @@ main_menu_loop:
 
 	movea.l	(a1), a0
 	jsr	(a0)					; call the test function
-	RSUB	fix_clear
+	SSA3	fix_clear
 	rts
 
 
@@ -3734,7 +3734,7 @@ manual_wbram_test_loop:
 	and.b	REG_P1CNT, d0
 	bne	.loop_run_test			; if a+b+c+d not pressed keep running test
 
-	PSUB	fix_clear
+	SSA3	fix_clear
 
 	; re-init stuff and return to menu
 	move.b	#4, main_menu_cursor
