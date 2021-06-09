@@ -3555,7 +3555,7 @@ manual_video_dac_test:
 	beq	.a_not_pressed
 	bsr	video_dac_draw_fullscreen
 
-	bra	manual_video_dac_test		; jump to the stop so we clear shadow/darker bit
+	bra	manual_video_dac_test		; jump to the top so we clear shadow/darker bit
 
 .a_not_pressed:
 	btst	#B_BUTTON, p1_input_edge
@@ -3590,6 +3590,11 @@ VDAC_FS_TILE_BASE_PAL_MAX 	equ $9000
 ; C button = toggle shadow register
 ; D button = return to main vdac screen
 video_dac_draw_fullscreen:
+
+	; clear shadow/darker bit that might have been enabled on main screen
+	moveq	#0, d6
+	move.b	d0, REG_NOSHADOW
+	bsr	video_dac_setup_palettes
 
 	move.w	#VDAC_FS_TILE_BASE_PAL_MIN, d0
 	SSA3	fix_fill				; fills the screen red/color bit 0
