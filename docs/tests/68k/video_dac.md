@@ -101,9 +101,13 @@ red/blue were always low.  Swapping the 74LS05 fixed the issue.
 
 ### MV4 colors are a bit off
 The colors are a bit off on the MV4.  Going to the Video DAC main screen the
-red B4 color block is missing (black).  Measuring red's 220 ohm resister with
-a multi-meter show its OL.  Replacing the 200 ohm resistor fixes the issue.
+red B4 color block is missing (black).  It looked like this (simulated in MAME)
+
+![video dac main mv4 example](images/video_dac_main_mv4_example.png)
+
+Measuring red's 220 ohm resister with a multi-meter show its OL.  Replacing the
+200 ohm resistor fixes the issue.
 
 The same type of missing color block can be caused by the input from the
-74LS273 being stuck low.  This would indicated the 74LS273 is bad or the
-input coming into it is.
+74LS273 being stuck low/floating.  This would indicated the 74LS273 is bad or
+the input coming into it is.
