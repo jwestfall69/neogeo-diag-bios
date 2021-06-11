@@ -1762,7 +1762,8 @@ main_menu_loop:
 
 	subq.b	#1, d1
 	bpl	.update_arrow
-	clr.b	d1					; if went negative, force to 0
+	moveq	#((MAIN_MENU_ITEMS_END - MAIN_MENU_ITEMS_START) / 10) - 1, d1
+	bra	.update_arrow
 
 .up_not_pressed:					; up wasnt pressed, see if down was
 	btst	#DOWN, d0
@@ -1771,7 +1772,7 @@ main_menu_loop:
 	addq.b	#1, d1
 	cmp.b	#((MAIN_MENU_ITEMS_END - MAIN_MENU_ITEMS_START) / 10), d1
 	bne	.update_arrow
-	subq.b	#1, d1
+	moveq	#0, d1
 
 .update_arrow:						; up or down was pressed, update the arrow location
 	move.w	d1, -(a7)
