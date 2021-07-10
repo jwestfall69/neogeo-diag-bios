@@ -1,6 +1,7 @@
 OBJS = obj/footer.o \
        obj/sp1.o \
-       obj/vector_table.o
+       obj/vector_table.o \
+       obj/video_dac.o
 
 INCS = include/macros.inc \
        include/neogeo.inc \
@@ -33,6 +34,9 @@ $(OBJ_DIR)/sp1.o: sp1.asm $(INCS)
 
 $(OBJ_DIR)/vector_table.o: vector_table.asm $(INCS)
 	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/vector_table.o vector_table.asm
+
+$(OBJ_DIR)/video_dac.o: video_dac.asm $(INCS)
+	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/video_dac.o video_dac.asm
 
 gen-crc-mirror: gen-crc-mirror.c
 	$(HOST_CC) gen-crc-mirror.c -o gen-crc-mirror
