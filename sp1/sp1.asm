@@ -1,13 +1,14 @@
 	include "neogeo.inc"
-	include "../common/error_codes.inc"
-	include "../common/comm.inc"
 	include "macros.inc"
 	include "sp1.inc"
+	include "../common/error_codes.inc"
+	include "../common/comm.inc"
 
-	; This stops vasm from doing a few optimizations
-	; which cause the resulting rom to not match
-	; the original (ie: cmp #0, d0 -> tst.b d0)
-	opt og-
+	global	_start
+	global	vblank_interrupt
+	global	timer_interrupt
+
+	section	text
 
 	; These are options to force the bios to do
 	; z80 or goto manual tests since its not
@@ -17,17 +18,6 @@
 ;force_z80_tests 	equ 1
 ;force_manual_tests 	equ 1
 
-	org	BIOS_ROM_START
-
-VECTORS:
-	dc.l	SP_INIT_ADDR
-	dc.l	_start
-
-	rorg	$64, $ff
-	dc.l	vblank_interrupt
-	dc.l	timer_interrupt
-
-	rorg	$80, $ff
 
 ; Simple|Small Subroutine A3 (SSA3)
 ; One of the limitations with dsubs is only being able to nest 2 times.  This
@@ -5046,8 +5036,6 @@ check_memcard_address:
 	moveq	#-1, d0
 	rts
 
-	rorg	$6000, $ff
-
 STR_ACTUAL:			STRING "ACTUAL:"
 STR_EXPECTED:			STRING "EXPECTED:"
 STR_ADDRESS:			STRING "ADDRESS:"
@@ -5286,9 +5274,3 @@ XY_STR_MC_DBUS_WIDE:		XY_STRING 21, 24, "(WIDE)"
 XY_STR_MC_SIZE:			XY_STRING  8, 25, "SIZE:      KB"
 XY_STR_MC_TESTS_PASSED:		XY_STRING  4,  9, "ALL TESTS PASSED"
 XY_STR_MC_RUNNING_TESTS:	XY_STRING  4,  9, "RUNNING TESTS..."
-
-
-	rorg	$7ffb, $ff
-; these get filled in by gen-crc-mirror
-	dc.b 	$00			; bios mirror, $00 is running copy, $01 1st copy, $02 2nd, $03 3rd
-	dc.b 	$00,$00,$00,$00		; bios crc32 value calculated from bios_start to $c07ffb

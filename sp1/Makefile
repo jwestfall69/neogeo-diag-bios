@@ -1,21 +1,48 @@
+OBJS = obj/footer.o \
+       obj/sp1.o \
+       obj/vector_table.o
+
+INCS = include/macros.inc \
+       include/neogeo.inc \
+       include/sp1.inc \
+       ../common/error_codes.inc \
+       ../common/comm.inc
+
 HOST_CC = cc
 VASM = vasmm68k_mot
-VASM_FLAGS = -Fbin -m68000 -spaces -L debug/sp1.asm.txt -chklabels
-ODIR = output
+VASM_FLAGS = -Fvobj -m68000 -spaces -chklabels -Iinclude -quiet
+VLINK = vlink
+VLINK_FLAGS = -brawbin1 -Tsp1.ld
+OUTPUT_DIR = output
+OBJ_DIR = obj
 MKDIR = mkdir
 DD = dd
 
-${ODIR}/sp1.bin: gen-crc-mirror sp1.asm sp1.inc macros.inc neogeo.inc ${ODIR}
-	${VASM} ${VASM_FLAGS} -o ${ODIR}/sp1.raw sp1.asm
-	./gen-crc-mirror ${ODIR}/sp1.raw
-	${DD} if=${ODIR}/sp1.raw of=${ODIR}/sp1.bin conv=swab
+$(OUTPUT_DIR)/sp1.bin: $(OUTPUT_DIR)/sp1.raw
+	./gen-crc-mirror $(OUTPUT_DIR)/sp1.raw
+	$(DD) if=$(OUTPUT_DIR)/sp1.raw of=$(OUTPUT_DIR)/sp1.bin conv=swab
+
+$(OUTPUT_DIR)/sp1.raw: gen-crc-mirror $(OUTPUT_DIR) $(OBJ_DIR) $(OBJS)
+	$(VLINK) $(VLINK_FLAGS) -o $(OUTPUT_DIR)/sp1.raw $(OBJS)
+
+$(OBJ_DIR)/footer.o: footer.asm $(INCS)
+	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/footer.o footer.asm
+
+$(OBJ_DIR)/sp1.o: sp1.asm $(INCS)
+	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/sp1.o sp1.asm
+
+$(OBJ_DIR)/vector_table.o: vector_table.asm $(INCS)
+	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/vector_table.o vector_table.asm
 
 gen-crc-mirror: gen-crc-mirror.c
-	${HOST_CC} gen-crc-mirror.c -o gen-crc-mirror
+	$(HOST_CC) gen-crc-mirror.c -o gen-crc-mirror
 
-${ODIR}:
-	${MKDIR} ${ODIR} debug
+$(OUTPUT_DIR):
+	$(MKDIR) $(OUTPUT_DIR)
+
+$(OBJ_DIR):
+	$(MKDIR) $(OBJ_DIR)
 
 clean:
-	rm -f gen-crc-mirror ${ODIR}/sp1.raw ${ODIR}/sp1.bin debug/sp1.asm.txt
+	rm -f gen-crc-mirror $(OUTPUT_DIR)/sp1.raw $(OUTPUT_DIR)/sp1.bin obj/*.o
 
