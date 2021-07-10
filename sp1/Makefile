@@ -1,4 +1,5 @@
-OBJS = obj/footer.o \
+OBJS = obj/dsub.o \
+       obj/footer.o \
        obj/sp1.o \
        obj/vector_table.o \
        obj/video_dac.o
@@ -25,6 +26,9 @@ $(OUTPUT_DIR)/sp1.bin: $(OUTPUT_DIR)/sp1.raw
 
 $(OUTPUT_DIR)/sp1.raw: gen-crc-mirror $(OUTPUT_DIR) $(OBJ_DIR) $(OBJS)
 	$(VLINK) $(VLINK_FLAGS) -o $(OUTPUT_DIR)/sp1.raw $(OBJS)
+
+$(OBJ_DIR)/dsub.o: dsub.asm $(INCS)
+	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/dsub.o dsub.asm
 
 $(OBJ_DIR)/footer.o: footer.asm $(INCS)
 	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/footer.o footer.asm
