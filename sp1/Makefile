@@ -1,4 +1,5 @@
-OBJS = obj/dsub.o \
+OBJS = obj/color_bars_smpte.o \
+       obj/dsub.o \
        obj/footer.o \
        obj/sp1.o \
        obj/vector_table.o \
@@ -26,6 +27,9 @@ $(OUTPUT_DIR)/sp1.bin: $(OUTPUT_DIR)/sp1.raw
 
 $(OUTPUT_DIR)/sp1.raw: gen-crc-mirror $(OUTPUT_DIR) $(OBJ_DIR) $(OBJS)
 	$(VLINK) $(VLINK_FLAGS) -o $(OUTPUT_DIR)/sp1.raw $(OBJS)
+
+$(OBJ_DIR)/color_bars_smpte.o: color_bars_smpte.asm $(INCS)
+	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/color_bars_smpte.o color_bars_smpte.asm
 
 $(OBJ_DIR)/dsub.o: dsub.asm $(INCS)
 	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/dsub.o dsub.asm
