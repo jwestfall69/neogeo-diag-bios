@@ -15,6 +15,8 @@
 	global timer_interrupt
 	global vblank_interrupt
 	global wait_frame
+	global wait_scanline
+	global XY_STR_CT_D_MAIN_MENU
 
 	section	text
 
@@ -1741,7 +1743,7 @@ main_menu_loop:
 ; }
 MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_MM_CALENDAR_IO, manual_calendar_test, 1
-	MAIN_MENU_ITEM STR_MM_COLOR_BARS, manual_color_bars_test, 0
+	MAIN_MENU_ITEM STR_COLOR_BARS_BASIC, manual_color_bars_basic_test, 0
 	MAIN_MENU_ITEM STR_COLOR_BARS_SMPTE, manual_color_bars_smpte_test, 0
 	MAIN_MENU_ITEM STR_VIDEO_DAC_TESTS, manual_video_dac_tests, 0
 	MAIN_MENU_ITEM STR_MM_CONTROLER_TEST, manual_controller_test, 0
@@ -3161,155 +3163,6 @@ rtc_print_data:
 .no_rtc_pulse:
 	rts
 
-
-; Tiles 0x00 and 0x20 along with palette bank switching are used to
-; generate the 4 color bars.
-; tile 0x00 is a solid color1
-; tile 0x20 is a solid color2
-; color1 and color2 are also used for text foreground and background,
-; so we need to leave palette0 untouched to allow for drawing text.
-; This leaves palettes 1 to 15 for the color bars.
-;
-; red   = tile 0x00, palette bank0
-; green = tile 0x20, palette bank0
-; blue  = tile 0x00, palette bank1
-; white = tile 0x20, palette bank1
-manual_color_bars_test:
-	lea	XY_STR_CT_D_MAIN_MENU, a0
-	RSUB	print_xy_string_struct_clear
-	bsr	color_bar_setup_palettes
-	bsr	color_bar_draw_tiles
-
-.loop_run_test
-	move.w	#$180, d0		; between green and blue, swap
-	bsr	wait_scanline		; watchdog will happen in wait_scanline
-	move.b	d0, REG_PALBANK1
-
-	move.w	#$1e7, d0		; near bottom swap back
-	bsr	wait_scanline
-	move.b	d0, REG_PALBANK0
-
-	bsr	p1p2_input_update
-	btst	#D_BUTTON, p1_input_edge	; D pressed?
-	beq	.loop_run_test
-
-	; palette1 was clobbered, restore our gray on black
-	move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+2
-	rts
-
-
-; setup color1&2 in palettes 1-15 for both banks.  Since the colors are
-; adjacent we can update them both at the same time with long writes
-color_bar_setup_palettes:
-
-	; bank1 may have never been initialized
-	move.b	d0, REG_PALBANK1
-	clr.w	PALETTE_REFERENCE
-	clr.w	PALETTE_BACKDROP
-	move.l  #$7fff0000, PALETTE_RAM_START+$2	; white on black for text
-
-	move.l	#$00010111, d0				; bluewhite
-	bsr	color_bar_setup_palette_bank
-
-	move.b	d0, REG_PALBANK0
-	move.l	#$01000010, d0				; redgreen
-	bsr	color_bar_setup_palette_bank
-
-	rts
-
-; setup an individual palette bank
-; d0 = start value and also increment amount for color1&2
-color_bar_setup_palette_bank:
-	move.l	d0, d1					; save for increment amount
-	moveq	#$e, d2					; 15 palettes to update
-	lea	PALETTE_RAM_START+PALETTE_SIZE+$2, a0	; goto palette1 color1
-
-.loop_next_palette
-	move.l	d0, (a0)
-	add.l	d1, d0
-	adda.l	#PALETTE_SIZE, a0			; next palette/color1
-	dbra	d2, .loop_next_palette
-	rts
-
-
-color_bar_draw_tiles:
-	moveq	#$4, d0
-	moveq	#$7, d1
-	SSA3	fix_seek_xy			; d0 on return will have current vram address
-	move.w	#$1, (2,a6)			; increment vram writes one at a time
-
-	moveq	#$e, d1				; 15 total shades in the gradients
-	move.w	#$1000, d4			; palette1, tile 0x00
-	move.w  #$1020, d5			; palette1, tile 0x20
-
-.loop_next_shade
-
-	moveq	#$1, d2				; each gradient shade is 2 tiles wide
-
-.loop_double_wide
-
-	; red
-	move.w	d4, (a6)
-	nop
-	move.w	d4, (a6)
-	nop
-	move.w	d4, (a6)
-	nop
-	move.w	d4, (a6)
-	nop
-	move.w	#$20, (a6)
-	nop
-
-	; green
-	move.w	d5, (a6)
-	nop
-	move.w	d5, (a6)
-	nop
-	move.w	d5, (a6)
-	nop
-	move.w	d5, (a6)
-	nop
-	move.w	#$20, (a6)
-	nop
-
-	; blue
-	move.w	d4, (a6)
-	nop
-	move.w	d4, (a6)
-	nop
-	move.w	d4, (a6)
-	nop
-	move.w	d4, (a6)
-	nop
-	move.w	#$20, (a6)
-	nop
-
-	; white
-	move.w	d5, (a6)
-	nop
-	move.w	d5, (a6)
-	nop
-	move.w	d5, (a6)
-	nop
-	move.w	d5, (a6)
-	nop
-	move.w	#$20, (a6)
-	nop
-
-	add.w	#$20, d0
-	move.w	d0, (-2,a6)			; move over a column
-	dbra	d2, .loop_double_wide
-
-	add.w	#$1000, d4			; next palette
-	add.w	#$1000, d5
-
-	dbra	d1, .loop_next_shade
-
-	rts
-
-
-
-
 manual_controller_test:
 	moveq	#$5, d0
 	SSA3	fix_clear_line
@@ -4661,7 +4514,6 @@ STR_MC_ADDRESS:			STRING "MEMCARD ADDRESS"
 
 ; main menu items
 STR_MM_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
-STR_MM_COLOR_BARS:		STRING "COLOR BARS"
 STR_MM_CONTROLER_TEST:		STRING "CONTROLLER TEST"
 STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
 STR_MM_PAL_RAM_TEST_LOOP:	STRING "PALETTE RAM TEST LOOP"
