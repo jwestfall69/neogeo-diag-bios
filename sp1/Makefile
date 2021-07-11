@@ -29,26 +29,8 @@ $(OUTPUT_DIR)/sp1.bin: $(OUTPUT_DIR)/sp1.raw
 $(OUTPUT_DIR)/sp1.raw: gen-crc-mirror $(OUTPUT_DIR) $(OBJ_DIR) $(OBJS)
 	$(VLINK) $(VLINK_FLAGS) -o $(OUTPUT_DIR)/sp1.raw $(OBJS)
 
-$(OBJ_DIR)/color_bars_basic.o: color_bars_basic.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/color_bars_basic.o color_bars_basic.asm
-
-$(OBJ_DIR)/color_bars_smpte.o: color_bars_smpte.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/color_bars_smpte.o color_bars_smpte.asm
-
-$(OBJ_DIR)/dsub.o: dsub.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/dsub.o dsub.asm
-
-$(OBJ_DIR)/footer.o: footer.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/footer.o footer.asm
-
-$(OBJ_DIR)/sp1.o: sp1.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/sp1.o sp1.asm
-
-$(OBJ_DIR)/vector_table.o: vector_table.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/vector_table.o vector_table.asm
-
-$(OBJ_DIR)/video_dac.o: video_dac.asm $(INCS)
-	$(VASM) $(VASM_FLAGS) -o $(OBJ_DIR)/video_dac.o video_dac.asm
+$(OBJ_DIR)/%.o: %.asm $(INCS)
+	 $(VASM) $(VASM_FLAGS) -o $@ $<
 
 gen-crc-mirror: gen-crc-mirror.c
 	$(HOST_CC) gen-crc-mirror.c -o gen-crc-mirror
