@@ -1,6 +1,7 @@
 OBJS = obj/color_bars_basic.o \
        obj/color_bars_smpte.o \
        obj/dsub.o \
+       obj/fix_util.o \
        obj/footer.o \
        obj/sp1.o \
        obj/vector_table.o \
