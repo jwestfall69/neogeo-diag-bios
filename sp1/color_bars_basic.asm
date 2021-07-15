@@ -20,7 +20,7 @@
 ; blue  = tile 0x00, palette bank1
 ; white = tile 0x20, palette bank1
 manual_color_bars_basic_test:
-		lea	XY_STR_CT_D_MAIN_MENU, a0
+		lea	XY_STR_D_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
 		bsr	setup_palettes
 		bsr	draw_tiles

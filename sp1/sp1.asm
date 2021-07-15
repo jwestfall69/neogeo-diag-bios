@@ -10,7 +10,8 @@
 	global vblank_interrupt
 	global wait_frame
 	global wait_scanline
-	global XY_STR_CT_D_MAIN_MENU
+	global send_p1p2_controller
+	global XY_STR_D_MAIN_MENU
 
 	section	text
 
@@ -1445,7 +1446,7 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_COLOR_BARS_BASIC, manual_color_bars_basic_test, 0
 	MAIN_MENU_ITEM STR_COLOR_BARS_SMPTE, manual_color_bars_smpte_test, 0
 	MAIN_MENU_ITEM STR_VIDEO_DAC_TESTS, manual_video_dac_tests, 0
-	MAIN_MENU_ITEM STR_MM_CONTROLER_TEST, manual_controller_test, 0
+	MAIN_MENU_ITEM STR_CONTROLLER_TESTS, manual_controller_tests, 0
 	MAIN_MENU_ITEM STR_MM_WBRAM_TEST_LOOP, manual_wbram_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_PAL_RAM_TEST_LOOP, manual_palette_ram_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_32K, manual_vram_32k_test_loop, 0
@@ -2862,156 +2863,6 @@ rtc_print_data:
 .no_rtc_pulse:
 	rts
 
-manual_controller_test:
-	moveq	#$5, d0
-	SSA3	fix_clear_line
-	bsr	controller_print_labels
-
-
-.loop_update:
-	WATCHDOG
-	bsr	p1p2_input_update
-	bsr	controller_update_player_data
-	moveq	#$0, d0
-	bsr	send_p1p2_controller
-	moveq	#$3, d0
-	and.b	REG_STATUS_B, d0
-	bne	.loop_update				; loop until p1 start + select pressed
-
-.loop_ss_still_pressed:
-	WATCHDOG
-	moveq	#$3, d0
-	move.b	REG_STATUS_B, d1
-	and.b	d0, d1
-	cmp.b	d0, d1
-	bne	.loop_ss_still_pressed			; wait for p1 start + select released
-	rts
-
-controller_print_labels:
-	lea	XY_STR_CT_P1, a0
-	RSUB	print_xy_string_struct_clear
-	lea	XY_STR_CT_P2, a0
-	RSUB	print_xy_string_struct_clear
-	moveq	#$7, d3
-	moveq	#$25, d4
-.loop_next_header:
-	move.b	d4, d0
-	moveq	#$3, d1
-	move.b	d3, d2
-	RSUB	print_hex_nibble
-	subq.w	#4, d4
-	dbra	d3, .loop_next_header
-
-	moveq	#$4, d0
-	bsr	controller_print_player_buttons
-	moveq	#$11, d0
-	bsr	controller_print_player_buttons
-	rts
-
-
-	dc.b "OUT", $0		; not used?
-
-controller_print_player_buttons:
-	move.b	d0, d3
-	lea	CONTROLLER_BUTTONS_LIST, a0
-.loop_next_buttom:
-	moveq	#$4, d0
-	move.b	d3, d1
-	RSUB	print_xy_string
-	addq.b	#1, d3
-	tst.b	(a0)
-	bne	.loop_next_buttom
-	rts
-
-
-CONTROLLER_BUTTONS_LIST:
-	dc.b "UP", $0
-	dc.b "DN", $0
-	dc.b "LF", $0
-	dc.b "RT", $0
-	dc.b "A", $0
-	dc.b "B", $0
-	dc.b "C", $0
-	dc.b "D", $0
-	dc.b "STA", $0
-	dc.b "SEL", $0
-	dc.b "HEX", $0
-	dc.b "DEC", $0
-	dc.b $0
-	align 2
-
-controller_update_player_data:
-	moveq	#$0, d3
-	moveq	#$0, d6
-
-.loop_next_sample:
-	move.b	d6, d0
-	bsr	send_p1p2_controller
-	bsr	p1p2_input_update
-
-	clr.w	d0
-	move.b	p1_input, d0
-	move.b	p1_input_aux, d1
-	lsl.w	#8, d1
-	or.w	d1, d0			; merge input/input_aux into d0
-	move.b	d3, d1
-	moveq	#$4, d2
-	movem.w	d3/d6, -(a7)
-	bsr	controller_print_player_data
-	movem.w	(a7)+, d3/d6
-
-	clr.w	d0
-	move.b	p2_input, d0
-	move.b	p2_input_aux, d1
-	lsl.w	#8, d1
-	or.w	d1, d0
-	move.b	d3, d1
-	moveq	#$11, d2
-	movem.w	d3/d6, -(a7)
-	bsr	controller_print_player_data
-	movem.w	(a7)+, d3/d6
-	addq.b	#4, d3
-	addq.b	#1, d6
-	cmp.b	#$8, d6
-	bne	.loop_next_sample
-	rts
-
-
-; params:
-;  d0 = data
-;  d1 = x offset?
-;  d2 = y start
-controller_print_player_data:
-	move.w	d0, -(a7)
-	move.w	d0, d4
-	moveq	#$8, d5
-
-	add.b	d1, d5
-	move.b	d2, d6
-	moveq	#$9, d3
-
-.loop_next_bit:
-	move.b	d5, d0
-	move.b	d6, d1
-	move.w	d4, d2
-	RSUB	print_bit
-	lsr.w	#1, d4
-	addq.b	#1, d6
-	dbra	d3, .loop_next_bit
-
-	move.b	d5, d0
-	move.b	d6, d1
-	move.w	(a7), d2
-	RSUB	print_hex_byte
-
-	move.b	d5, d0
-	move.b	d6, d1
-	addq.b	#1, d1
-	move.w	(a7)+, d2
-	and.w	#$ff, d2
-	RSUB	print_3_digits
-	rts
-
 manual_wbram_test_loop:
 	lea	XY_STR_WBRAM_PASSES,a0
 	RSUB	print_xy_string_struct_clear
@@ -3258,7 +3109,7 @@ manual_vram_2k_test_loop:
 	rts
 
 manual_misc_input_tests:
-	lea	XY_STR_MI_D_MAIN_MENU, a0
+	lea	XY_STR_D_MAIN_MENU, a0
 	RSUB	print_xy_string_struct_clear
 	bsr	misc_input_print_static
 .loop_run_test
@@ -3469,7 +3320,7 @@ misc_input_print_static_items:
 ;       800006         000002         3344
 manual_memcard_tests:
 
-	lea	XY_STR_MC_D_MAIN_MENU, a0
+	lea	XY_STR_D_MAIN_MENU, a0
 	RSUB	print_xy_string_struct_clear
 
 	move.b	REG_STATUS_B, d0
@@ -3598,7 +3449,7 @@ manual_memcard_tests:
 	move.b	d0, REG_CRDLOCK1
 	move.b  d0, REG_CRDLOCK2
 
-	lea	XY_STR_MC_D_MAIN_MENU, a0
+	lea	XY_STR_D_MAIN_MENU, a0
 	RSUB	print_xy_string_struct_clear
 
 .loop_wait_input_return_menu:
@@ -4065,6 +3916,7 @@ STR_COLON_SPACE:		STRING ": "
 STR_HOLD_SS_TO_RESET:		STRING "HOLD START/SELECT TO SOFT RESET"
 STR_RELEASE_SS:			STRING "RELEASE START/SELECT"
 STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a00 - BY SMKDAN"
+XY_STR_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
 
 XY_STR_PASSES:			XY_STRING  4, 14, "PASSES:"
 XY_STR_Z80_WAITING:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
@@ -4213,7 +4065,6 @@ STR_MC_ADDRESS:			STRING "MEMCARD ADDRESS"
 
 ; main menu items
 STR_MM_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
-STR_MM_CONTROLER_TEST:		STRING "CONTROLLER TEST"
 STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
 STR_MM_PAL_RAM_TEST_LOOP:	STRING "PALETTE RAM TEST LOOP"
 STR_MM_VRAM_TEST_LOOP_32K:	STRING "VRAM TEST LOOP (32K)"
@@ -4229,10 +4080,6 @@ XY_STR_CAL_D_MAIN_MENU:		XY_STRING  4, 14, "D: Return to menu"
 XY_STR_CAL_4990_TP:		XY_STRING  4, 21, "4990 TP:"
 XY_STR_CAL_WAITING_PULSE:	XY_STRING  4, 27, "WAITING FOR CALENDAR PULSE..."
 
-; strings for controller test screen
-XY_STR_CT_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
-XY_STR_CT_P1:			XY_STRING  1,  4, "P1"
-XY_STR_CT_P2:			XY_STRING  1, 17, "P2"
 
 ; strings wram/bram test screens
 XY_STR_WBRAM_PASSES:		XY_STRING  4, 14, "PASSES:"
@@ -4249,7 +4096,6 @@ XY_STR_VRAM_32K_A_TO_RESUME:	XY_STRING  4, 27, "RELEASE A TO RESUME"
 STR_VRAM_HOLD_ABCD:		STRING "HOLD ABCD TO STOP"
 
 ; strings for misc input screen
-XY_STR_MI_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
 XY_STR_MI_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
 XY_STR_MI_SYSTEM_TYPE:		XY_STRING  4, 13, "SYSTEM TYPE:"
 STR_MI_CD1:			STRING "/CD1"
@@ -4273,7 +4119,6 @@ STR_MI_CFG_B_HIGH:		STRING "(CFG-B HIGH)"
 
 ; strings for memory card screen
 XY_STR_MC_A_C_RUN_TEST:		XY_STRING  4, 26, "A+C: Run Test"
-XY_STR_MC_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
 XY_STR_MC_WARNING1:		XY_STRING  4,  8, "WARNING: ALL DATA ON THE MEMORY"
 XY_STR_MC_WARNING2:		XY_STRING  4,  9, "CARD WILL BE OVERWRITTEN!"
 XY_STR_MC_NOT_DETECTED:		XY_STRING  4,  8, "ERROR: MEMORY CARD NOT DETECTED"
