@@ -1,4 +1,5 @@
-OBJS = obj/color_bars_basic.o \
+OBJS = obj/calendar.o \
+       obj/color_bars_basic.o \
        obj/color_bars_smpte.o \
        obj/controller.o \
        obj/dsub.o \
