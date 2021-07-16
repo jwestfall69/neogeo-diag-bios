@@ -1,11 +1,11 @@
-        include "neogeo.inc"
-        include "macros.inc"
-        include "sp1.inc"
+	include "neogeo.inc"
+	include "macros.inc"
+	include "sp1.inc"
 
-        global manual_video_dac_tests
-        global STR_VIDEO_DAC_TESTS
+	global manual_video_dac_tests
+	global STR_VIDEO_DAC_TESTS
 
-        section text
+	section text
 
 ; A button = enter full screen mode
 ; B button = toggle darker bit

@@ -2,10 +2,10 @@
 	include "macros.inc"
 	include "sp1.inc"
 
-        global manual_color_bars_smpte_test
-        global STR_COLOR_BARS_SMPTE
+	global manual_color_bars_smpte_test
+	global STR_COLOR_BARS_SMPTE
 
-        section text
+	section text
 
 manual_color_bars_smpte_test:
 		bsr	setup_palettes

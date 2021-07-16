@@ -2,8 +2,8 @@
 	include "macros.inc"
 	include "sp1.inc"
 
-        global manual_controller_tests
-        global STR_CONTROLLER_TESTS
+	global manual_controller_tests
+	global STR_CONTROLLER_TESTS
 
 	section	text
 

@@ -3,11 +3,11 @@
 	include "sp1.inc"
 	include "../common/error_codes.inc"
 
-        global error_code_lookup_dsub
-        global print_error_dsub
-        global print_error_z80
+	global error_code_lookup_dsub
+	global print_error_dsub
+	global print_error_z80
 
-        section text
+	section text
 
 ; figure out error description and print error dsub
 ; params:

@@ -1,11 +1,11 @@
-        include "neogeo.inc"
-        include "macros.inc"
-        include "sp1.inc"
+	include "neogeo.inc"
+	include "macros.inc"
+	include "sp1.inc"
 
-        global manual_color_bars_basic_test
-        global STR_COLOR_BARS_BASIC
+	global manual_color_bars_basic_test
+	global STR_COLOR_BARS_BASIC
 
-        section text
+	section text
 
 ; Tiles 0x00 and 0x20 along with palette bank switching are used to
 ; generate the 4 color bars.

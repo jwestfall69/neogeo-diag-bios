@@ -3,10 +3,10 @@
 	include "sp1.inc"
 	include "../common/error_codes.inc"
 
-        global manual_memcard_tests
-        global STR_MEMCARD_TESTS
+	global manual_memcard_tests
+	global STR_MEMCARD_TESTS
 
-        section text
+	section text
 
 ; notes:
 ; - 68k a1 line to wired to a0 of memcard slot
