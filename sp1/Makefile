@@ -5,6 +5,7 @@ OBJS = obj/calendar.o \
        obj/dsub.o \
        obj/fix_util.o \
        obj/footer.o \
+       obj/memory_card.o \
        obj/print_error.o \
        obj/sp1.o \
        obj/vector_table.o \
