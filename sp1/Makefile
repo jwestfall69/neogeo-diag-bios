@@ -1,4 +1,6 @@
-OBJS = obj/calendar.o \
+OBJS = obj/bios_crc32.o \
+       obj/bios_mirror.o \
+       obj/calendar.o \
        obj/color_bars_basic.o \
        obj/color_bars_smpte.o \
        obj/controller.o \
