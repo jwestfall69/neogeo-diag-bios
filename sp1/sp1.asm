@@ -5,9 +5,14 @@
 	include "../common/comm.inc"
 
 	global _start
+	global check_ram_data_dsub
 	global check_ram_oe_dsub
+	global check_ram_we_dsub
 	global p1_input_update
+	global loop_reset_check
 	global p1p2_input_update
+	global palette_ram_backup
+	global palette_ram_restore
 	global send_p1p2_controller
 	global timer_interrupt
 	global vblank_interrupt
@@ -1009,7 +1014,7 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_VIDEO_DAC_TESTS, manual_video_dac_tests, 0
 	MAIN_MENU_ITEM STR_CONTROLLER_TESTS, manual_controller_tests, 0
 	MAIN_MENU_ITEM STR_MM_WBRAM_TEST_LOOP, manual_wbram_test_loop, 0
-	MAIN_MENU_ITEM STR_MM_PAL_RAM_TEST_LOOP, manual_palette_ram_test_loop, 0
+	MAIN_MENU_ITEM STR_PAL_RAM_TEST_LOOP, manual_palette_ram_tests, 0
 	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_32K, manual_vram_32k_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_2K, manual_vram_2k_test_loop, 0
 	MAIN_MENU_ITEM STR_MM_MISC_INPUT_TEST, manual_misc_input_tests, 0
@@ -1134,57 +1139,6 @@ auto_bram_tests:
 	move.b	d0, REG_SRAMLOCK		; lock bram
 	rts
 
-auto_palette_ram_tests:
-	lea	PALETTE_RAM_START.l, a0
-	lea	PALETTE_RAM_BACKUP_LOCATION.l, a1
-	move.w	#$2000, d0
-	bsr	copy_memory			; backup palette ram, unclean why palette_ram_backup function wasnt used
-
-	bsr	palette_ram_output_tests
-	bne	.test_failed_abort
-
-	bsr	palette_ram_we_tests
-	bne	.test_failed_abort
-
-	bsr	palette_ram_data_tests
-	bne	.test_failed_abort
-
-	bsr	palette_ram_address_tests
-
-.test_failed_abort:
-	move.b	d0, REG_PALBANK0
-
-	movem.l	d0-d2/a0, -(a7)			; restore palette ram
-	lea	PALETTE_RAM_BACKUP_LOCATION.l, a0
-	lea	PALETTE_RAM_START.l, a1
-	move.w	#$2000, d0
-	bsr	copy_memory
-	movem.l	(a7)+, d0-d2/a0
-	rts
-
-
-palette_ram_we_tests:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$ff, d0
-	RSUB	check_ram_we
-	tst.b	d0
-	beq	.test_passed_lower
-	moveq	#EC_PAL_UNWRITABLE_LOWER, d0
-	rts
-
-.test_passed_lower:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$ff00, d0
-	RSUB	check_ram_we
-	tst.b	d0
-	beq	.test_passed_upper
-	moveq	#EC_PAL_UNWRITABLE_UPPER, d0
-	rts
-
-.test_passed_upper:
-	moveq	#0, d0
-	rts
-
 auto_ram_we_tests_dsub:
 	lea	WORK_RAM_START.l, a0
 	move.w	#$ff, d0
@@ -1307,48 +1261,6 @@ bram_data_tests_dsub:
 	subq.b	#1, d0
 	add.b	#EC_BRAM_DATA_LOWER, d0
 	DSUB_RETURN
-
-
-palette_ram_data_tests:
-	lea	MEMORY_DATA_TEST_PATTERNS, a1
-	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
-
-.loop_next_pattern_bank0:
-	lea	PALETTE_RAM_START, a0
-	move.w	#$1000, d1
-	move.w	(a1)+, d0
-	DSUB	check_ram_data
-	tst.b	d0
-	bne	.test_failed_bank0
-	dbra	d3, .loop_next_pattern_bank0
-	bra	.test_passed_bank0
-
-.test_passed_bank0:
-	lea	MEMORY_DATA_TEST_PATTERNS, a1
-	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
-
-.loop_next_pattern_bank1:
-	lea	PALETTE_RAM_START, a0
-	move.w	#$1000, d1
-	move.w	(a1)+, d0
-	DSUB	check_ram_data
-	tst.b	d0
-	bne	.test_failed_bank1
-	dbra	d3, .loop_next_pattern_bank1
-
-	move.b	d0, REG_PALBANK0
-	moveq	#0, d0
-	rts
-
-.test_failed_bank0:
-	subq.b	#1, d0
-	add.b	#EC_PAL_BANK0_DATA_LOWER, d0
-	rts
-
-.test_failed_bank1:
-	subq.b	#1, d0
-	add.b	#EC_PAL_BANK1_DATA_LOWER, d0
-	rts
 
 ; Does a full write/read test
 ; params:
@@ -1492,164 +1404,6 @@ check_ram_address_dsub:
 	WATCHDOG
 	moveq	#-1, d0
 	DSUB_RETURN
-
-
-palette_ram_address_tests:
-	lea	PALETTE_RAM_START.l, a0
-	moveq	#2, d0
-	move.w	#$100, d1
-	bsr	check_palette_ram_address
-	beq	.test_passed_a0_a7
-	moveq	#EC_PAL_ADDRESS_A0_A7, d0
-	rts
-
-.test_passed_a0_a7:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$200, d0
-	moveq	#$20, d1
-	bsr	check_palette_ram_address
-	beq	.test_passed_a8_a12
-	moveq	#EC_PAL_ADDRESS_A0_A12, d0
-	rts
-
-.test_passed_a8_a12:
-	moveq	#0, d0
-	rts
-
-; params:
-;  d0 = increment amount
-;  d1 = number of increments
-check_palette_ram_address:
-	lea	PALETTE_RAM_START.l, a0
-	lea	PALETTE_RAM_MIRROR_START.l, a1
-	subq.w	#1, d1
-	move.w	d1, d2
-	moveq	#0, d3
-
-.loop_write_next_address:
-	move.w	d3, (a0)
-	add.w	#$101, d3
-	adda.w	d0, a0				; write to palette ram
-	cmpa.l	a0, a1				; continue until a0 == PALETTE_RAM_MIRROR
-	bne	.skip_bank_switch_write
-
-	move.b	d0, REG_PALBANK1
-	lea	PALETTE_RAM_START.l, a0
-.skip_bank_switch_write:
-	dbra	d2, .loop_write_next_address
-
-	move.b	d0, REG_PALBANK0
-	lea	PALETTE_RAM_START.l, a0
-	moveq	#0, d3
-	bra	.loop_start_address_read
-
-
-.loop_read_next_address:
-	add.w	#$101, d3
-	adda.w	d0, a0
-	cmpa.l	a0, a1
-	bne	.loop_start_address_read	; aka .skip_bank_switch_read
-
-	move.b	d0, REG_PALBANK1
-	lea	PALETTE_RAM_START.l, a0
-
-.loop_start_address_read:
-	move.w	(a0), d2
-	cmp.w	d2, d3
-	dbne	d1, .loop_read_next_address
-
-	bne	.test_failed
-	move.b	d0, REG_PALBANK0
-	WATCHDOG
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	move.w	d3, d1
-	move.b	d0, REG_PALBANK0
-	WATCHDOG
-	moveq	#-1, d0
-	rts
-
-; Depending on motherboard model there will either be 2x245s or a NEO-G0
-; sitting between the palette memory and the 68k data bus.
-; The first 2 tests are checking for output from the IC's, while the last 2
-; tests are checking for output on the palette memory chips
-palette_ram_output_tests:
-	moveq	#1, d0
-	lea	PALETTE_RAM_START, a0
-	RSUB	check_ram_oe
-	tst.b	d0
-	beq	.test_passed_memory_output_lower
-	moveq	#EC_PAL_245_DEAD_OUTPUT_LOWER, d0
-	rts
-
-.test_passed_memory_output_lower:
-	moveq	#0, d0
-	lea	PALETTE_RAM_START, a0
-	RSUB	check_ram_oe
-	tst.b	d0
-	beq	.test_passed_memory_output_upper
-	moveq	#EC_PAL_245_DEAD_OUTPUT_UPPER, d0
-	rts
-
-.test_passed_memory_output_upper:
-	move.w	#$ff, d0
-	bsr	check_palette_ram_to_245_output
-	beq	.test_passed_palette_ram_to_245_output_lower
-	moveq	#EC_PAL_DEAD_OUTPUT_LOWER, d0
-	rts
-
-.test_passed_palette_ram_to_245_output_lower:
-	move.w	#$ff00, d0
-	bsr	check_palette_ram_to_245_output
-	beq	.test_passed_palette_ram_to_245_output_upper
-	moveq	#EC_PAL_DEAD_OUTPUT_UPPER, d0
-	rts
-
-.test_passed_palette_ram_to_245_output_upper:
-	moveq	#0, d0
-	rts
-
-; palette ram and have 2x245s or a NEO-G0 between
-; them and the 68k data bus.  This function attempts
-; to check for dead output between the memory chip and
-; the 245s/NEO-G0.
-;
-; params
-;  d0 = compare mask
-; return
-;  d0 = 0 is passed, -1 = failed
-check_palette_ram_to_245_output:
-	lea	PALETTE_RAM_START.l, a0
-	move.w	#$ff, d2
-	moveq	#0, d3
-	move.w	#$101, d5
-
-.loop_next_address
-	move.w	d3, (a0)
-	move.w	#$7fff, d4
-
-.loop_delay:
-	WATCHDOG
-	dbra	d4, .loop_delay
-
-	move.w	(a0), d1
-	add.w	d5, d3
-	and.w	d0, d1
-
-	; note this is comparing the mask with the read data,
-	; dead output from the chip will cause $ff
-	cmp.w	d0, d1
-	dbne	d2, .loop_next_address
-
-	beq	.test_failed
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	moveq	#-1, d0
-	rts
 
 auto_vram_tests:
 	bsr	fix_backup
@@ -2236,68 +1990,6 @@ manual_wbram_test_loop:
 	PSUB	print_error
 	bra	loop_reset_check_dsub
 
-
-
-manual_palette_ram_test_loop:
-	lea	XY_STR_PAL_PASSES, a0
-	RSUB	print_xy_string_struct_clear
-	lea	XY_STR_PAL_A_TO_RESUME, a0
-	RSUB	print_xy_string_struct_clear
-	lea	XY_STR_PAL_HOLD_ABCD, a0
-	RSUB	print_xy_string_struct_clear
-
-	bsr	palette_ram_backup
-
-	moveq	#0, d6					; init pass count to 0
-	bra	.loop_start_run_test
-
-.loop_run_test:
-	WATCHDOG
-
-	bsr	palette_ram_data_tests
-	bne	.test_failed_abort
-
-	bsr	palette_ram_address_tests
-	bne	.test_failed_abort
-
-	addq.l	#1, d6
-
-.loop_start_run_test:
-	moveq	#$e, d0
-	moveq	#$e, d1
-	move.w	d6, d2
-	RSUB	print_hex_3_bytes			; print the number of passes in hex
-
-	btst	#$4, REG_P1CNT				; check for 'a' being presses
-	bne	.loop_run_test				; 'a' not pressed, loop and do another test
-
-	bsr	palette_ram_restore
-
-.loop_wait_a_release
-	WATCHDOG
-	moveq	#-$10, d0
-	and.b	REG_P1CNT, d0				; a+b+c+d pressed? exit
-	beq	.test_exit
-	btst	#$4, REG_P1CNT				; only 'a' pressed
-	beq	.loop_wait_a_release			; loop until either 'a' not pressed or 'a+b+c+d' pressed
-
-	bsr	palette_ram_backup
-	bra	.loop_run_test
-
-.test_failed_abort					; error occured, print info
-	move.b	d0, REG_PALBANK0
-	bsr	palette_ram_restore
-
-	RSUB	print_error
-
-	moveq	#$19, d0
-	SSA3	fix_clear_line
-	bra	loop_reset_check
-
-.test_exit:
-	rts
-
-
 manual_vram_32k_test_loop:
 	lea	XY_STR_VRAM_32K_A_TO_RESUME, a0
 	RSUB	print_xy_string_struct_clear
@@ -2653,7 +2345,6 @@ XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
 
 ; main menu items
 STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
-STR_MM_PAL_RAM_TEST_LOOP:	STRING "PALETTE RAM TEST LOOP"
 STR_MM_VRAM_TEST_LOOP_32K:	STRING "VRAM TEST LOOP (32K)"
 STR_MM_VRAM_TEST_LOOP_2K:	STRING "VRAM TEST LOOP (2K)"
 STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
@@ -2662,11 +2353,6 @@ STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
 XY_STR_WBRAM_PASSES:		XY_STRING  4, 14, "PASSES:"
 XY_STR_WBRAM_HOLD_ABCD:		XY_STRING  4, 27, "HOLD ABCD TO STOP"
 XY_STR_WBRAM_WRAM_AES_ONLY:	XY_STRING  4, 16, "WRAM TEST ONLY (AES)"
-
-; strings for palette test screen
-XY_STR_PAL_PASSES:		XY_STRING  4, 14, "PASSES:"
-XY_STR_PAL_A_TO_RESUME:		XY_STRING  4, 27, "RELEASE A TO RESUME"
-XY_STR_PAL_HOLD_ABCD:		XY_STRING  4, 25, "HOLD ABCD TO STOP"
 
 ; strings for vram test screens
 XY_STR_VRAM_32K_A_TO_RESUME:	XY_STRING  4, 27, "RELEASE A TO RESUME"
