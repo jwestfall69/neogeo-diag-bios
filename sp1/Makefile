@@ -8,11 +8,14 @@ OBJS = obj/bios_crc32.o \
        obj/fix_util.o \
        obj/footer.o \
        obj/memory_card.o \
+       obj/memory_common.o \
        obj/palette_ram.o \
        obj/print_error.o \
        obj/sp1.o \
        obj/vector_table.o \
-       obj/video_dac.o
+       obj/video_dac.o \
+       obj/video_ram_2k.o \
+       obj/video_ram_32k.o
 
 INCS = include/macros.inc \
        include/neogeo.inc \

@@ -5,9 +5,8 @@
 	include "../common/comm.inc"
 
 	global _start
-	global check_ram_data_dsub
-	global check_ram_oe_dsub
-	global check_ram_we_dsub
+	global fix_backup
+	global fix_restore
 	global p1_input_update
 	global loop_reset_check
 	global p1p2_input_update
@@ -21,7 +20,9 @@
 	global STR_ACTUAL
 	global STR_ADDRESS
 	global STR_EXPECTED
+	global STR_HOLD_ABCD_TO_STOP
 	global XY_STR_D_MAIN_MENU
+	global XY_STR_PASSES
 
 	section	text
 
@@ -265,7 +266,8 @@ automatic_function_tests:
 AUTOMATIC_FUNC_TEST_STRUCT_START:
 	dc.l	auto_bram_tests, STR_TESTING_BRAM
 	dc.l	auto_palette_ram_tests, STR_TESTING_PALETTE_RAM
-	dc.l	auto_vram_tests, STR_TESTING_VRAM
+	dc.l	auto_video_ram_2k_tests, STR_TESTING_VIDEO_RAM_2K
+	dc.l	auto_video_ram_32k_tests, STR_TESTING_VIDEO_RAM_32K
 	dc.l	auto_mmio_tests, STR_TESTING_MMIO
 AUTOMATIC_FUNC_TEST_STRUCT_END:
 
@@ -1015,8 +1017,8 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_CONTROLLER_TESTS, manual_controller_tests, 0
 	MAIN_MENU_ITEM STR_MM_WBRAM_TEST_LOOP, manual_wbram_test_loop, 0
 	MAIN_MENU_ITEM STR_PAL_RAM_TEST_LOOP, manual_palette_ram_tests, 0
-	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_32K, manual_vram_32k_test_loop, 0
-	MAIN_MENU_ITEM STR_MM_VRAM_TEST_LOOP_2K, manual_vram_2k_test_loop, 0
+	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_32K, manual_video_ram_32k_tests, 0
+	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_2K, manual_video_ram_2k_tests, 0
 	MAIN_MENU_ITEM STR_MM_MISC_INPUT_TEST, manual_misc_input_tests, 0
 	MAIN_MENU_ITEM STR_MEMCARD_TESTS, manual_memcard_tests, 0
 MAIN_MENU_ITEMS_END:
@@ -1085,40 +1087,6 @@ auto_ram_oe_tests_dsub:
 	moveq	#EC_BRAM_DEAD_OUTPUT_LOWER, d0
 	DSUB_RETURN
 
-; Attempts to read from ram.  If the chip never gets enabled
-; d1 will be filled with the last data on the data bus,
-; which would be part of the preceding move.b instruction.
-; The "move.b (a0), d1" instruction translates to $1210 in
-; machine code.  When doing an upper ram test if d1 contains
-; $12 its assumed the ram read didnt happen, likewise for
-; lower if d1 contains $10 for lower.
-; params:
-;  a0 = address
-;  d0 = 0 (upper chip) or 1 (lower chip)
-; return:
-;  d0 = $00 (pass) or $ff (fail)
-check_ram_oe_dsub:
-	adda.w	d0, a0
-	moveq	#$31, d2
-
-.loop_test_again:
-	move.b	(a0), d1
-	cmp.b	*(PC,d0.w), d1
-	bne	.test_passed
-
-	move.b	(a0), d1
-	nop
-	cmp.b	*-2(PC,d0.w), d1
-	bne	.test_passed
-
-	move.b	(a0), d1
-	add.w	#0, d0
-	cmp.b	*-4(PC,d0.w), d1
-
-.test_passed:
-	dbeq	d2, .loop_test_again
-	seq	d0
-	DSUB_RETURN
 
 auto_bram_tests:
 	tst.b	REG_STATUS_B			; do test if MVS
@@ -1192,32 +1160,6 @@ auto_ram_we_tests_dsub:
 	moveq	#0, d0
 	DSUB_RETURN
 
-; params:
-;  a0 = address
-;  d0 = bitmask
-check_ram_we_dsub:
-	move.w	(a0), d1
-	and.w	d0, d1
-	moveq	#0, d2
-	move.w	#$101, d5		; incr amount for each loop
-	move.w	#$ff, d3		; loop $ff times
-
-.loop_next_address
-	move.w	d2, (a0)
-	add.w	d5, d2
-	move.w	(a0), d4
-	and.w	d0, d4
-	cmp.w	d1, d4			; check if write and re-read values match
-	dbne	d3, .loop_next_address
-	beq	.test_failed
-
-	moveq	#0, d0
-	DSUB_RETURN
-
-.test_failed:
-	moveq	#-1, d0
-	DSUB_RETURN
-
 MEMORY_DATA_TEST_PATTERNS:
 	dc.w	$0000, $5555, $aaaa, $ffff
 MEMORY_DATA_TEST_PATTERNS_END:
@@ -1261,55 +1203,6 @@ bram_data_tests_dsub:
 	subq.b	#1, d0
 	add.b	#EC_BRAM_DATA_LOWER, d0
 	DSUB_RETURN
-
-; Does a full write/read test
-; params:
-;  a0 = start address
-;  d0 = value
-;  d1 = length
-; returns:
-;  d0 = 0 (pass), 1 (lower bad), 2 (upper bad), 3 (both bad)
-;  a0 = failed address
-;  d1 = wrote value
-;  d2 = read (bad) value
-check_ram_data_dsub:
-	subq.w	#1, d1
-
-.loop_next_address:
-	move.w	d0, (a0)
-	move.w	(a0)+, d2
-	cmp.w	d0, d2
-	dbne	d1, .loop_next_address
-	bne	.test_failed
-
-	WATCHDOG
-	moveq	#0, d0
-	DSUB_RETURN
-
-.test_failed:
-	subq.l	#2, a0
-	move.w	d0, d1
-	WATCHDOG
-
-	; set error code based on which byte(s) were bad
-	moveq	#0, d0
-
-	cmp.b	d1, d2
-	beq	.check_upper
-	or.b	#1, d0
-
-.check_upper:
-	ror.l	#8, d1
-	ror.l	#8, d2
-	cmp.b	d1, d2
-	beq	.check_done
-	or.b	#2, d0
-
-.check_done:
-	rol.l	#8, d1
-	rol.l	#8, d2
-	DSUB_RETURN
-
 
 auto_wram_address_tests_dsub:
 	lea	WORK_RAM_START.l, a0
@@ -1361,426 +1254,6 @@ bram_address_tests_dsub:
 	moveq	#0, d0
 	DSUB_RETURN
 
-; params:
-;  a0 = address start
-;  d0 = increment
-;  d1 = iterations
-; returns:
-; d0 = 0 (pass), $ff (fail)
-; d1 = expected value
-; d2 = actual value
-check_ram_address_dsub:
-	subq.w	#1, d1
-	move.w	d1, d2
-	moveq	#0, d3
-
-.loop_write_next_address:
-	move.w	d3, (a0)			; write memory locations based on increment and iterations
-	add.w	#$101, d3			; each location gets $0101 more then the previous
-	adda.w	d0, a0
-	dbra	d2, .loop_write_next_address
-
-	move.l	a0, d3
-	and.l	#$f00000, d3			; reset the $0101 counter
-	movea.l	d3, a0
-
-	moveq	#0, d3
-	bra	.loop_start_address_read
-
-.loop_read_next_address:
-	add.w	#$101, d3
-	adda.w	d0, a0
-.loop_start_address_read:
-	move.w	(a0), d2			; now re-read the same locations and make they match
-	cmp.w	d2, d3
-	dbne	d1, .loop_read_next_address
-	bne	.test_failed
-	WATCHDOG
-	moveq	#0, d0
-	DSUB_RETURN
-
-.test_failed:
-	move.w	d3, d1
-	WATCHDOG
-	moveq	#-1, d0
-	DSUB_RETURN
-
-auto_vram_tests:
-	bsr	fix_backup
-
-	bsr	vram_oe_tests
-	bne	.test_failed_abort
-
-	bsr	vram_we_tests
-	bne	.test_failed_abort
-
-	bsr	vram_data_tests
-	bne	.test_failed_abort
-
-	bsr	vram_address_tests
-
-.test_failed_abort:
-	move.w	d0, -(a7)
-	bsr	fix_restore
-	move.w	(a7)+, d0
-	rts
-
-vram_oe_tests:
-	moveq	#0, d0
-	move.w	#$ff, d1
-	bsr	check_vram_oe
-	beq	.test_passed_32k_lower
-	moveq	#EC_VRAM_32K_DEAD_OUTPUT_LOWER, d0
-	rts
-
-.test_passed_32k_lower:
-	moveq	#0, d0
-	move.w	#$ff00, d1
-	bsr	check_vram_oe
-	beq	.test_passed_32k_upper
-	moveq	#EC_VRAM_32K_DEAD_OUTPUT_UPPER, d0
-	rts
-
-.test_passed_32k_upper:
-	move.w	#$8000, d0
-	move.w	#$ff, d1
-	bsr	check_vram_oe
-	beq	.test_passed_2k_lower
-	moveq	#EC_VRAM_2K_DEAD_OUTPUT_LOWER, d0
-	rts
-
-.test_passed_2k_lower:
-	move.w	#$8000, d0
-	move.w	#$ff00, d1
-	bsr	check_vram_oe
-	beq	.test_passed_2k_upper
-	moveq	#EC_VRAM_2K_DEAD_OUTPUT_UPPER, d0
-	rts
-
-.test_passed_2k_upper:
-	moveq	#0, d0
-	rts
-
-; params:
-;  d0 = start vram address
-;  d1 = mask
-check_vram_oe:
-	clr.w	(2,a6)
-	move.w	d0, (-2,a6)
-	move.w	#$ff, d2
-	moveq	#0, d3
-	move.w	#$101, d4
-
-.loop_next_address:
-	move.w	d3, (a6)
-	nop
-	nop
-	nop
-	nop
-	move.w	(a6), d5
-	add.w	d4, d3
-	and.w	d1, d5
-	cmp.w	d1, d5
-	dbne	d2, .loop_next_address
-	beq	.test_failed
-
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	moveq	#-1, d0
-	rts
-
-
-vram_we_tests:
-	moveq	#0, d0
-	move.w	#$ff, d1
-	bsr	check_vram_we
-	beq	.test_passed_32k_lower
-	moveq	#EC_VRAM_32K_UNWRITABLE_LOWER, d0
-	rts
-
-.test_passed_32k_lower:
-	moveq	#$0, d0
-	move.w	#$ff00, d1
-	bsr	check_vram_we
-	beq	.test_passed_32k_upper
-	moveq	#EC_VRAM_32K_UNWRITABLE_UPPER, d0
-	rts
-
-.test_passed_32k_upper:
-	move.w	#$8000, d0
-	move.w	#$ff, d1
-	bsr	check_vram_we
-	beq	.test_passed_2k_lower
-	moveq	#EC_VRAM_2K_UNWRITABLE_LOWER, d0
-	rts
-
-.test_passed_2k_lower:
-	move.w	#$8000, d0
-	move.w	#$ff00, d1
-	bsr	check_vram_we
-	beq	.test_passed_2k_upper
-	moveq	#EC_VRAM_2K_UNWRITABLE_UPPER, d0
-	rts
-
-.test_passed_2k_upper:
-	moveq	#0, d0
-	rts
-
-
-; params:
-;  d0 = start vram address
-;  d1 = mask
-check_vram_we:
-	move.w	d0, (-2,a6)
-	clr.w	(2,a6)
-	move.w	(a6), d0
-	and.w	d1, d0
-	moveq	#0, d2
-	move.w	#$101, d5
-	move.w	#$ff, d3
-	lea	REG_WATCHDOG, a0
-
-.loop_next_address:
-	move.w	d2, (a6)
-	move.b	d0, (a0)			; WATCHDOG
-	add.w	d5, d2
-	move.w	(a6), d4
-	and.w	d1, d4
-	cmp.w	d0, d4
-	dbne	d3, .loop_next_address
-	beq	.test_failed
-
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	moveq	#-1, d0
-	rts
-
-
-vram_data_tests:
-	bsr	vram_32k_data_tests
-	bne	.test_failed_abort
-	bsr	vram_2k_data_tests
-
-.test_failed_abort:
-	rts
-
-vram_32k_data_tests:
-
-	lea	MEMORY_DATA_TEST_PATTERNS, a1
-	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d5
-
-.loop_next_pattern:
-	move.w	(a1)+, d0
-	moveq	#0, d1
-	move.w	#$8000, d2
-	bsr	check_vram_data
-	tst.b	d0
-	bne	.test_failed
-	dbra	d5, .loop_next_pattern
-	rts
-
-.test_failed:
-	subq.b	#1, d0
-	add.b	#EC_VRAM_32K_DATA_LOWER, d0
-	rts
-
-; 2k (words) vram tests (data and address) only look at the
-; first 1536 (0x600) words, since the remaining 512 words
-; are used by the LSPC for buffers per dev wiki
-vram_2k_data_tests:
-
-	lea	MEMORY_DATA_TEST_PATTERNS, a1
-	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d5
-
-.loop_next_pattern:
-	move.w	(a1)+, d0
-	move.w	#$8000, d1
-	move.w	#$600, d2
-	bsr	check_vram_data
-	tst.b	d0
-	bne	.test_failed
-	dbra	d5, .loop_next_pattern
-	rts
-
-.test_failed:
-	subq.b	#1, d0
-	add.b	#EC_VRAM_2K_DATA_LOWER, d0
-	rts
-
-; params:
-;  d0 = pattern
-;  d1 = vram start address
-;  d2 = length in words
-; returns:
-;  d0 = 0 (pass), 1 (lower bad), 2 (upper bad), 3 (both bad)
-;  a0 = fail address
-;  d1 = expected value
-;  d2 = actual value
-check_vram_data:
-	move.w	#1, (2,a6)
-	move.w	d1, (-2,a6)
-	subq.w	#1, d2
-	move.w	d2, d3
-
-.loop_write_next_address:
-	move.w	d0, (a6)			; write pattern
-	dbra	d2, .loop_write_next_address
-
-	move.w	d1, (-2,a6)
-	lea	REG_WATCHDOG, a0
-	move.w	d3, d2
-
-.loop_read_next_address:
-	move.b	d0, (a0)			; WATCHDOG
-	move.w	(a6), d4			; read value
-	move.w	d4, (a6)			; rewrite (to force address to increase)
-	cmp.w	d0, d4
-	dbne	d2, .loop_read_next_address
-	bne	.test_failed
-
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	add.w	d3, d1				; setup error data
-	sub.w	d2, d1
-	swap	d1
-	clr.w	d1
-	swap	d1
-	movea.l	d1, a0
-	move.w	d0, d1
-	move.w	d4, d2
-
-	; set error code based on which byte(s) were bad
-	moveq	#0, d0
-
-	cmp.b	d1, d2
-	beq	.check_upper
-	or.b	#1, d0
-
-.check_upper:
-	ror.l	#8, d1
-	ror.l	#8, d2
-	cmp.b	d1, d2
-	beq	.check_done
-	or.b	#2, d0
-
-.check_done:
-	rol.l	#8, d1
-	rol.l	#8, d2
-	rts
-
-
-vram_address_tests:
-	bsr	vram_32k_address_tests
-	bne	.test_failed_abort
-	bsr	vram_2k_address_tests
-
-.test_failed_abort:
-	rts
-
-vram_32k_address_tests:
-	clr.w	d1
-	move.w	#$100, d2
-	moveq	#1, d0
-	bsr	check_vram_address
-	beq	.test_passed_a0_a7
-	moveq	#EC_VRAM_32K_ADDRESS_A0_A7, d0
-	rts
-
-.test_passed_a0_a7:
-	clr.w	d1
-	move.w	#$80, d2
-	move.w	#$100, d0
-	bsr	check_vram_address
-	beq	.test_passed_a8_a14
-	moveq	#EC_VRAM_32K_ADDRESS_A8_A14, d0
-	rts
-
-.test_passed_a8_a14:
-	rts
-
-
-vram_2k_address_tests:
-	move.w	#$8000, d1
-	move.w	#$100, d2
-	moveq	#1, d0
-	bsr	check_vram_address
-	beq	.test_passed_a0_a7
-	moveq	#EC_VRAM_2K_ADDRESS_A0_A7, d0
-	rts
-
-.test_passed_a0_a7:
-	move.w	#$8000, d1
-	move.w	#$6, d2
-	move.w	#$100, d0
-	bsr	check_vram_address
-	beq	.test_passed_a8_a14
-	moveq	#EC_VRAM_2K_ADDRESS_A8_A10, d0
-	rts
-
-.test_passed_a8_a14:
-	rts
-
-; params:
-;  d0 = modulo/incr amount
-;  d1 = start vram address
-;  d2 = interation amount
-; returns:
-;  d0 = 0 (pass) / $ff (fail)
-;  a0 = address (vram)
-;  d1 = expected value
-;  d2 = actual value
-check_vram_address:
-	move.w	d0, (2,a6)
-	move.w	d1, (-2,a6)
-	subq.w	#1, d2
-	move.w	d2, d3
-	moveq	#0, d0
-	move.w	#$101, d5
-
-.loop_write_next_address:
-	move.w	d0, (a6)
-	add.w	d5, d0
-	dbra	d2, .loop_write_next_address
-
-	move.w	d1, (-2,a6)
-	moveq	#0, d0
-	move.w	d3, d2
-	lea	REG_WATCHDOG, a0
-	bra	.loop_start_read_next_address
-
-.loop_read_next_address:
-	move.b	d0, (a0)			; WATCHDOG
-	add.w	d5, d0
-
-.loop_start_read_next_address:
-	move.w	(a6), d4
-	move.w	d4, (a6)
-	cmp.w	d0, d4
-	dbne	d2, .loop_read_next_address
-	bne	.test_failed
-	moveq	#0, d0
-	rts
-
-.test_failed:
-	mulu.w	(2,a6), d3			; figure out the bad address based on
-	add.w	d3, d1				; modulo and start address
-	mulu.w	(2,a6), d2
-	sub.w	d2, d1
-	swap	d1
-	clr.w	d1
-	swap	d1
-	movea.l	d1, a0
-	move.w	d0, d1
-	move.w	d4, d2
-	moveq	#-1, d0
-	rts
-
 
 fix_backup:
 	movem.l	d0/a0, -(a7)
@@ -1811,7 +1284,6 @@ fix_restore:
 	movem.l	(a7)+, d0/a0
 	rts
 
-
 auto_mmio_tests:
 	bsr	check_mmio_oe
 	bne	.test_failed_abort
@@ -1819,7 +1291,6 @@ auto_mmio_tests:
 
 .test_failed_abort:
 	rts
-
 
 ; does OE test against all the registers in the
 ; MMIO_ADDRESSES_TABLE_START table
@@ -1989,121 +1460,6 @@ manual_wbram_test_loop:
 .test_failed_abort:
 	PSUB	print_error
 	bra	loop_reset_check_dsub
-
-manual_vram_32k_test_loop:
-	lea	XY_STR_VRAM_32K_A_TO_RESUME, a0
-	RSUB	print_xy_string_struct_clear
-
-	lea	XY_STR_PASSES.l, a0
-	RSUB	print_xy_string_struct
-
-	lea	STR_VRAM_HOLD_ABCD.l, a0
-	moveq	#$4, d0
-	moveq	#$19, d1
-	RSUB	print_xy_string
-
-	bsr	fix_backup
-
-	moveq	#$0, d6
-	bra	.loop_start_run_test
-
-.loop_run_test
-	WATCHDOG
-	bsr	vram_32k_data_tests
-	bne	.test_failed_abort
-	bsr	vram_32k_address_tests
-	bne	.test_failed_abort
-	addq.l	#1, d6
-
-.loop_start_run_test:
-	btst	#$4, REG_P1CNT
-	bne	.loop_run_test			; loop until 'a' is pressed
-
-	bsr	fix_restore
-
-	moveq	#$e, d0
-	moveq	#$e, d1
-	move.l	d6, d2
-	bclr	#$1f, d2			; make sure signed bit is 0
-	RSUB	print_hex_3_bytes		; print pass number
-
-.loop_wait_a_release:
-	WATCHDOG
-
-	moveq	#-$10, d0
-	and.b	REG_P1CNT, d0
-	beq	.test_exit			; if a+b+c+d stop the test, return to main menu
-	btst	#$4, REG_P1CNT
-	beq	.loop_wait_a_release		; loop until either 'a' not pressed or 'a+b+c+d' pressed
-
-	bsr	fix_backup
-	bra	.loop_run_test
-
-.test_failed_abort:
-	bsr	fix_restore
-
-	movem.l	d0-d2, -(a7)
-	moveq	#$e, d0
-	moveq	#$e, d1
-	move.l	d6, d2
-	bclr	#$1f, d2
-	RSUB	print_hex_3_bytes		; print pass number
-	movem.l	(a7)+, d0-d2
-
-	RSUB	print_error
-
-	moveq	#$19, d0
-	SSA3	fix_clear_line
-
-	bra	loop_reset_check
-
-.test_exit:
-	rts
-
-
-manual_vram_2k_test_loop:
-	lea	STR_VRAM_HOLD_ABCD, a0
-	moveq	#$4, d0
-	moveq	#$1b, d1
-	RSUB	print_xy_string_clear
-
-	lea	XY_STR_PASSES.l, a0
-	RSUB	print_xy_string_struct
-
-	moveq	#$0, d6
-	bra	.loop_start_run_test
-
-.loop_run_test
-	WATCHDOG
-	bsr	vram_2k_data_tests
-	bne	.test_failed_abort
-
-	bsr	vram_2k_address_tests
-	bne	.test_failed_abort
-
-	moveq	#$e, d0
-	moveq	#$e, d1
-	move.l	d6, d2
-	RSUB	print_hex_3_bytes
-
-	addq.l	#1, d6
-
-.loop_start_run_test:
-	moveq	#-$10, d0
-	and.b	REG_P1CNT, d0
-	beq	.test_exit			; if a+b+c+d pressed, exit test
-	bra	.loop_run_test
-
-.test_failed_abort:
-	RSUB	print_error
-
-	moveq	#$19, d0
-	SSA3	fix_clear_line
-
-	bra	loop_reset_check
-
-.test_exit:
-	rts
 
 manual_misc_input_tests:
 	lea	XY_STR_D_MAIN_MENU, a0
@@ -2301,6 +1657,7 @@ STR_ADDRESS:			STRING "ADDRESS:"
 STR_COLON_SPACE:		STRING ": "
 STR_HOLD_SS_TO_RESET:		STRING "HOLD START/SELECT TO SOFT RESET"
 STR_RELEASE_SS:			STRING "RELEASE START/SELECT"
+STR_HOLD_ABCD_TO_STOP:		STRING "HOLD ABCD TO STOP"
 STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a00 - BY SMKDAN"
 XY_STR_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
 
@@ -2324,7 +1681,8 @@ STR_TESTING_WRAM_DATA:		STRING "TESTING WRAM DATA..."
 STR_TESTING_WRAM_ADDRESS:	STRING "TESTING WRAM ADDRESS..."
 STR_TESTING_BRAM:		STRING "TESTING BRAM..."
 STR_TESTING_PALETTE_RAM:	STRING "TESTING PALETTE RAM..."
-STR_TESTING_VRAM:		STRING "TESTING VRAM..."
+STR_TESTING_VIDEO_RAM_2K:	STRING "TESTING VIDEO RAM (2K)..."
+STR_TESTING_VIDEO_RAM_32K:	STRING "TESTING VIDEO RAM (32K)..."
 STR_TESTING_MMIO:		STRING "TESTING MMIO..."
 
 XY_STR_Z80_SWITCHING_M1:	XY_STRING  4,  5, "SWITCHING TO CART M1..."
@@ -2345,18 +1703,12 @@ XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
 
 ; main menu items
 STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
-STR_MM_VRAM_TEST_LOOP_32K:	STRING "VRAM TEST LOOP (32K)"
-STR_MM_VRAM_TEST_LOOP_2K:	STRING "VRAM TEST LOOP (2K)"
 STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
 
 ; strings wram/bram test screens
 XY_STR_WBRAM_PASSES:		XY_STRING  4, 14, "PASSES:"
 XY_STR_WBRAM_HOLD_ABCD:		XY_STRING  4, 27, "HOLD ABCD TO STOP"
 XY_STR_WBRAM_WRAM_AES_ONLY:	XY_STRING  4, 16, "WRAM TEST ONLY (AES)"
-
-; strings for vram test screens
-XY_STR_VRAM_32K_A_TO_RESUME:	XY_STRING  4, 27, "RELEASE A TO RESUME"
-STR_VRAM_HOLD_ABCD:		STRING "HOLD ABCD TO STOP"
 
 ; strings for misc input screen
 XY_STR_MI_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
