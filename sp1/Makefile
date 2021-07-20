@@ -10,6 +10,7 @@ OBJS = obj/backup_ram.o \
        obj/footer.o \
        obj/memory_card.o \
        obj/memory_common.o \
+       obj/misc_input.o \
        obj/palette_ram.o \
        obj/print_error.o \
        obj/sp1.o \
