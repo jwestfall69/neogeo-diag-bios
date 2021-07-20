@@ -1,4 +1,5 @@
-OBJS = obj/bios_crc32.o \
+OBJS = obj/backup_ram.o \
+       obj/bios_crc32.o \
        obj/bios_mirror.o \
        obj/calendar.o \
        obj/color_bars_basic.o \
@@ -15,7 +16,8 @@ OBJS = obj/bios_crc32.o \
        obj/vector_table.o \
        obj/video_dac.o \
        obj/video_ram_2k.o \
-       obj/video_ram_32k.o
+       obj/video_ram_32k.o \
+       obj/work_ram.o \
 
 INCS = include/macros.inc \
        include/neogeo.inc \

@@ -22,6 +22,7 @@
 	global print_xy_string_clear_dsub
 	global print_xy_string_struct_dsub
 	global print_xy_string_struct_clear_dsub
+	global print_xyp_string
 
 	section text
 
@@ -111,6 +112,24 @@ print_xy_string_dsub:
 		move.b	(a0)+, d2
 		bne	.loop_next_char
 		DSUB_RETURN
+
+; prints string at starting at x,y using d2 as the upper byte of the fix map entry
+; params:
+;  d0 = x
+;  d1 = y
+;  d2 = upper byte of fix map entry
+;  a0 = address of string
+print_xyp_string:
+		SSA3	fix_seek_xy
+		move.w	#$20, (2,a6)
+		move.b	d2, -(a7)		; these 3 instructions cause the d2.b to be moved to
+		move.w	(a7)+, d2		; the upper byte of d2.w.  The lower d2.w will be garbage,
+		move.b	(a0)+, d2		; but we replace it with current char from string
+	.loop_next_char:
+		move.w	d2, (a6)
+		move.b	(a0)+, d2
+		bne	.loop_next_char
+		rts
 
 ; clears the line that an xy string will be on, then falls through to print_xy_string_struct_dsub
 ; params:

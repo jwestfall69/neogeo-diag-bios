@@ -9,6 +9,8 @@
 	global fix_restore
 	global p1_input_update
 	global loop_reset_check
+	global loop_reset_check_dsub
+	global manual_tests
 	global p1p2_input_update
 	global palette_ram_backup
 	global palette_ram_restore
@@ -213,10 +215,10 @@ automatic_psub_tests_dsub:
 AUTOMATIC_PSUB_TEST_STRUCT_START:
 	dc.l	auto_bios_mirror_test_dsub, STR_TESTING_BIOS_MIRROR
 	dc.l	auto_bios_crc32_test_dsub, STR_TESTING_BIOS_CRC32
-	dc.l	auto_ram_oe_tests_dsub, STR_TESTING_RAM_OE
-	dc.l	auto_ram_we_tests_dsub, STR_TESTING_RAM_WE
-	dc.l	auto_wram_data_tests_dsub, STR_TESTING_WRAM_DATA
-	dc.l	auto_wram_address_tests_dsub, STR_TESTING_WRAM_ADDRESS
+	dc.l	auto_work_ram_oe_tests_dsub, STR_TESTING_WORK_RAM_OE
+	dc.l	auto_work_ram_we_tests_dsub, STR_TESTING_WORK_RAM_WE
+	dc.l	auto_work_ram_data_tests_dsub, STR_TESTING_WORK_RAM_DATA
+	dc.l	auto_work_ram_address_tests_dsub, STR_TESTING_WORK_RAM_ADDRESS
 AUTOMATIC_PSUB_TEST_STRUCT_END:
 
 
@@ -264,7 +266,7 @@ automatic_function_tests:
 
 
 AUTOMATIC_FUNC_TEST_STRUCT_START:
-	dc.l	auto_bram_tests, STR_TESTING_BRAM
+	dc.l	auto_backup_ram_tests, STR_TESTING_BACKUP_RAM
 	dc.l	auto_palette_ram_tests, STR_TESTING_PALETTE_RAM
 	dc.l	auto_video_ram_2k_tests, STR_TESTING_VIDEO_RAM_2K
 	dc.l	auto_video_ram_32k_tests, STR_TESTING_VIDEO_RAM_32K
@@ -911,7 +913,7 @@ main_menu_draw:
 .print_entry:
 	moveq	#6, d0
 	move.b	d5, d1
-	RSUB	print_xy_string
+	jsr	print_xyp_string
 	addq.b	#1, d3
 	addq.b	#1, d5
 	dbra	d4, .loop_next_entry
@@ -1015,7 +1017,8 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_COLOR_BARS_SMPTE, manual_color_bars_smpte_test, 0
 	MAIN_MENU_ITEM STR_VIDEO_DAC_TESTS, manual_video_dac_tests, 0
 	MAIN_MENU_ITEM STR_CONTROLLER_TESTS, manual_controller_tests, 0
-	MAIN_MENU_ITEM STR_MM_WBRAM_TEST_LOOP, manual_wbram_test_loop, 0
+	MAIN_MENU_ITEM STR_WORK_RAM_TEST_LOOP, manual_work_ram_tests, 0
+	MAIN_MENU_ITEM STR_BACKUP_RAM_TEST_LOOP, manual_backup_ram_tests, 1
 	MAIN_MENU_ITEM STR_PAL_RAM_TEST_LOOP, manual_palette_ram_tests, 0
 	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_32K, manual_video_ram_32k_tests, 0
 	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_2K, manual_video_ram_2k_tests, 0
@@ -1040,220 +1043,6 @@ timer_interrupt:
 	addq.w	#$1, timer_count
 	move.w	#$2, ($a,a6)		; ack int
 	rte
-
-auto_ram_oe_tests_dsub:
-	lea	WORK_RAM_START.l, a0		; wram upper
-	moveq	#0, d0
-	DSUB	check_ram_oe
-	tst.b	d0
-	bne	.test_failed_wram_upper
-
-	moveq	#1, d0				; wram lower
-	DSUB	check_ram_oe
-	tst.b	d0
-	bne	.test_failed_wram_lower
-
-	tst.b	REG_STATUS_B			; skip bram test on AES unless C is pressed
-	bmi	.do_bram_test
-	btst	#6, REG_P1CNT
-	bne	.test_passed
-
-.do_bram_test:
-	lea	BACKUP_RAM_START.l, a0		; bram upper
-	moveq	#0, d0
-	DSUB	check_ram_oe
-	tst.b	d0
-	bne	.test_failed_bram_upper
-
-	moveq	#1, d0				; bram lower
-	DSUB	check_ram_oe
-	tst.b	d0
-	bne	.test_failed_bram_lower
-
-.test_passed:
-	moveq	#0, d0
-	DSUB_RETURN
-
-.test_failed_wram_upper:
-	moveq	#EC_WRAM_DEAD_OUTPUT_UPPER, d0
-	DSUB_RETURN
-.test_failed_wram_lower:
-	moveq	#EC_WRAM_DEAD_OUTPUT_LOWER, d0
-	DSUB_RETURN
-.test_failed_bram_upper:
-	moveq	#EC_BRAM_DEAD_OUTPUT_UPPER, d0
-	DSUB_RETURN
-.test_failed_bram_lower:
-	moveq	#EC_BRAM_DEAD_OUTPUT_LOWER, d0
-	DSUB_RETURN
-
-
-auto_bram_tests:
-	tst.b	REG_STATUS_B			; do test if MVS
-	bmi	.do_bram_tests
-	btst	#$6, REG_P1CNT			; do test if AES and C pressed
-	beq	.do_bram_tests
-	moveq	#0, d0
-	rts
-
-.do_bram_tests:
-	move.b	d0, REG_SRAMUNLOCK		; unlock bram
-	RSUB	bram_data_tests
-	tst.b	d0
-	bne	.test_failed
-	RSUB	bram_address_tests
-
-.test_failed:
-	move.b	d0, REG_SRAMLOCK		; lock bram
-	rts
-
-auto_ram_we_tests_dsub:
-	lea	WORK_RAM_START.l, a0
-	move.w	#$ff, d0
-	DSUB	check_ram_we
-	tst.b	d0
-	beq	.test_passed_wram_lower
-	moveq	#EC_WRAM_UNWRITABLE_LOWER, d0
-	DSUB_RETURN
-
-.test_passed_wram_lower:
-	lea	WORK_RAM_START.l, a0
-	move.w	#$ff00, d0
-	DSUB	check_ram_we
-	tst.b	d0
-	beq	.test_passed_wram_upper
-	moveq	#EC_WRAM_UNWRITABLE_UPPER, d0
-	DSUB_RETURN
-
-.test_passed_wram_upper:
-	tst.b	REG_STATUS_B
-	bmi	.do_bram_test				; if MVS jump to bram test
-	btst	#6, REG_P1CNT				; dead code? checking if C is pressed, then nop
-	nop						; maybe nop should be 'bne .do_bram_test' to allow forced bram test on aes?
-	moveq	#0, d0
-	DSUB_RETURN
-
-.do_bram_test:
-	move.b	d0, REG_SRAMUNLOCK			; unlock bram
-
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$ff, d0
-	DSUB	check_ram_we
-	tst.b	d0
-	beq	.test_passed_bram_lower
-
-	moveq	#EC_BRAM_UNWRITABLE_LOWER, d0
-	DSUB_RETURN
-
-.test_passed_bram_lower:
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$ff00, d0
-	DSUB	check_ram_we
-	tst.b	d0
-	beq	.test_passed_bram_upper
-
-	moveq	#EC_BRAM_UNWRITABLE_UPPER, d0
-	DSUB_RETURN
-
-.test_passed_bram_upper:
-	move.b	d0, REG_SRAMLOCK			; lock bram
-	moveq	#0, d0
-	DSUB_RETURN
-
-MEMORY_DATA_TEST_PATTERNS:
-	dc.w	$0000, $5555, $aaaa, $ffff
-MEMORY_DATA_TEST_PATTERNS_END:
-
-
-auto_wram_data_tests_dsub:
-	lea	MEMORY_DATA_TEST_PATTERNS, a1
-	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
-
-.loop_next_pattern:
-	lea	WORK_RAM_START, a0
-	move.w	#$8000, d1
-	move.w	(a1)+, d0
-	DSUB	check_ram_data
-	tst.b	d0
-	bne	.test_failed
-	dbra	d3, .loop_next_pattern
-	DSUB_RETURN
-
-.test_failed:
-	subq.b	#1, d0
-	add.b	#EC_WRAM_DATA_LOWER, d0
-	DSUB_RETURN
-
-
-bram_data_tests_dsub:
-	lea	MEMORY_DATA_TEST_PATTERNS, a1
-	moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
-
-.loop_next_pattern:
-	lea	BACKUP_RAM_START, a0
-	move.w	#$8000, d1
-	move.w	(a1)+, d0
-	DSUB	check_ram_data
-	tst.b	d0
-	bne	.test_failed
-	dbra	d3, .loop_next_pattern
-	DSUB_RETURN
-
-.test_failed:
-	subq.b	#1, d0
-	add.b	#EC_BRAM_DATA_LOWER, d0
-	DSUB_RETURN
-
-auto_wram_address_tests_dsub:
-	lea	WORK_RAM_START.l, a0
-	moveq	#2, d0
-	move.w	#$100, d1
-	DSUB	check_ram_address
-	tst.b	d0
-	beq	.test_passed_a0_a7
-	moveq	#EC_WRAM_ADDRESS_A0_A7, d0
-	DSUB_RETURN
-
-.test_passed_a0_a7:
-	lea	WORK_RAM_START.l, a0
-	move.w	#$200, d0
-	move.w	#$80, d1
-	DSUB	check_ram_address
-	tst.b	d0
-	beq	.test_passed_a8_a14
-	moveq	#EC_WRAM_ADDRESS_A8_A14, d0
-	DSUB_RETURN
-
-.test_passed_a8_a14:
-	moveq	#0, d0
-	DSUB_RETURN
-
-bram_address_tests_dsub:
-	lea	BACKUP_RAM_START.l, a0
-	moveq	#$2, d0
-	move.w	#$100, d1
-	DSUB	check_ram_address
-
-	tst.b	d0
-	beq	.test_passed_a0_a7
-	moveq	#EC_BRAM_ADDRESS_A0_A7, d0
-	DSUB_RETURN
-
-.test_passed_a0_a7:
-	lea	BACKUP_RAM_START.l, a0
-	move.w	#$200, d0
-	move.w	#$80, d1
-	DSUB	check_ram_address
-
-	tst.b	d0
-	beq	.test_passed_a8_a14
-	moveq	#EC_BRAM_ADDRESS_A8_A14, d0
-	DSUB_RETURN
-
-.test_passed_a8_a14:
-	moveq	#0, d0
-	DSUB_RETURN
-
 
 fix_backup:
 	movem.l	d0/a0, -(a7)
@@ -1393,73 +1182,6 @@ check_mmio_oe_word:
 	dbeq	d2, .loop_test_again
 	rts
 
-manual_wbram_test_loop:
-	lea	XY_STR_WBRAM_PASSES,a0
-	RSUB	print_xy_string_struct_clear
-	lea	XY_STR_WBRAM_HOLD_ABCD, a0
-	RSUB	print_xy_string_struct_clear
-
-	moveq	#$0, d6
-	tst.b	REG_STATUS_B
-	bmi	.system_mvs
-	bset	#$1f, d6
-	lea	XY_STR_WBRAM_WRAM_AES_ONLY, a0
-	RSUB	print_xy_string_struct_clear
-
-.system_mvs:
-	moveq	#DSUB_INIT_PSEUDO, d7		; init dsub for pseudo subroutines
-	bra	.loop_start_run_test
-
-.loop_run_test:
-	WATCHDOG
-	PSUB	auto_wram_data_tests
-	tst.b	d0
-	bne	.test_failed_abort
-
-	PSUB	auto_wram_address_tests
-	tst.b	d0
-	bne	.test_failed_abort
-
-	tst.l	d6
-	bmi	.system_aes			; skip bram on aes
-	move.b	d0, REG_SRAMUNLOCK
-
-	PSUB	bram_data_tests
-	tst.b	d0
-	bne	.test_failed_abort
-
-	PSUB	bram_address_tests
-	move.b	d0, REG_SRAMLOCK
-	tst.b	d0
-	bne	.test_failed_abort
-
-.system_aes:
-
-	addq.l	#1, d6
-
-.loop_start_run_test:
-
-	moveq	#$e, d0
-	moveq	#$e, d1
-	move.l	d6, d2
-	bclr	#$1f, d2
-	PSUB	print_hex_3_bytes
-
-	moveq	#-$10, d0
-	and.b	REG_P1CNT, d0
-	bne	.loop_run_test			; if a+b+c+d not pressed keep running test
-
-	SSA3	fix_clear
-
-	; re-init stuff and return to menu
-	move.b	#4, main_menu_cursor
-	movea.l	$0, a7				; re-init SP
-	moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
-	bra	manual_tests
-
-.test_failed_abort:
-	PSUB	print_error
-	bra	loop_reset_check_dsub
 
 manual_misc_input_tests:
 	lea	XY_STR_D_MAIN_MENU, a0
@@ -1675,11 +1397,11 @@ XY_STR_WATCHDOG_STUCK:		XY_STRING  4, 10, "THEN SYSTEM IS STUCK IN WATCHDOG"
 
 STR_TESTING_BIOS_MIRROR:	STRING "TESTING BIOS MIRRORING..."
 STR_TESTING_BIOS_CRC32:		STRING "TESTING BIOS CRC32..."
-STR_TESTING_RAM_OE:		STRING "TESTING RAM /OE..."
-STR_TESTING_RAM_WE:		STRING "TESTING RAM /WE..."
-STR_TESTING_WRAM_DATA:		STRING "TESTING WRAM DATA..."
-STR_TESTING_WRAM_ADDRESS:	STRING "TESTING WRAM ADDRESS..."
-STR_TESTING_BRAM:		STRING "TESTING BRAM..."
+STR_TESTING_WORK_RAM_OE:	STRING "TESTING WORK RAM /OE..."
+STR_TESTING_WORK_RAM_WE:	STRING "TESTING WORK RAM /WE..."
+STR_TESTING_WORK_RAM_DATA:	STRING "TESTING WORK RAM DATA..."
+STR_TESTING_WORK_RAM_ADDRESS:	STRING "TESTING WORK RAM ADDRESS..."
+STR_TESTING_BACKUP_RAM:		STRING "TESTING BACKUP RAM..."
 STR_TESTING_PALETTE_RAM:	STRING "TESTING PALETTE RAM..."
 STR_TESTING_VIDEO_RAM_2K:	STRING "TESTING VIDEO RAM (2K)..."
 STR_TESTING_VIDEO_RAM_32K:	STRING "TESTING VIDEO RAM (32K)..."
@@ -1702,13 +1424,8 @@ XY_STR_Z80_SLOT_SWITCH_NUM:	XY_STRING 29,  4, "[SS ]"
 XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
 
 ; main menu items
-STR_MM_WBRAM_TEST_LOOP:		STRING "WRAM/BRAM TEST LOOP"
-STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
 
-; strings wram/bram test screens
-XY_STR_WBRAM_PASSES:		XY_STRING  4, 14, "PASSES:"
-XY_STR_WBRAM_HOLD_ABCD:		XY_STRING  4, 27, "HOLD ABCD TO STOP"
-XY_STR_WBRAM_WRAM_AES_ONLY:	XY_STRING  4, 16, "WRAM TEST ONLY (AES)"
+STR_MM_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
 
 ; strings for misc input screen
 XY_STR_MI_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
