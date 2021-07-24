@@ -148,23 +148,6 @@ skip_z80_test:
 	SSA3	fix_clear
 	bra	manual_tests
 
-watchdog_stuck_test_dsub:
-	lea	XY_STR_WATCHDOG_DELAY, a0
-	DSUB	print_xy_string_struct_clear
-	lea	XY_STR_WATCHDOG_TEXT_REMAINS, a0
-	DSUB	print_xy_string_struct_clear
-	lea	XY_STR_WATCHDOG_STUCK, a0
-	DSUB	print_xy_string_struct_clear
-
-	move.l	#$c930, d0		; 128760us / 128.76ms
-	DSUB	delay
-
-	moveq	#8, d0
-	SSA3	fix_clear_line
-	moveq	#10, d0
-	SSA3	fix_clear_line
-	DSUB_RETURN
-
 ; runs automatic tests that are psub based
 automatic_psub_tests_dsub:
 	moveq	#0, d6
@@ -827,10 +810,6 @@ XY_STR_ABCD_MAIN_MENU:		XY_STRING  4, 21, "PRESS ABCD FOR MAIN MENU"
 XY_STR_Z80_TESTS_SKIPPED:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
 XY_STR_Z80_HOLD_D_AND_SOFT:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
 XY_STR_Z80_RESET_WITH_CART:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
-
-XY_STR_WATCHDOG_DELAY:		XY_STRING  4,  5, "WATCHDOG DELAY..."
-XY_STR_WATCHDOG_TEXT_REMAINS:	XY_STRING  4,  8, "IF THIS TEXT REMAINS HERE..."
-XY_STR_WATCHDOG_STUCK:		XY_STRING  4, 10, "THEN SYSTEM IS STUCK IN WATCHDOG"
 
 STR_TESTING_BIOS_MIRROR:	STRING "TESTING BIOS MIRRORING..."
 STR_TESTING_BIOS_CRC32:		STRING "TESTING BIOS CRC32..."
