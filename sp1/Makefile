@@ -22,6 +22,7 @@ OBJS = obj/backup_ram.o \
        obj/video_ram_32k.o \
        obj/watchdog.o \
        obj/work_ram.o \
+       obj/z80.o
 
 INCS = include/macros.inc \
        include/neogeo.inc \
