@@ -2,9 +2,11 @@
 	include "macros.inc"
 	include "sp1.inc"
 
+	global fix_backup
 	global fix_clear_ssa3
 	global fix_clear_line_ssa3
 	global fix_fill_ssa3
+	global fix_restore
 	global fix_seek_xy_ssa3
 	global print_bit_dsub
 	global print_char_repeat_dsub
@@ -319,3 +321,32 @@ print_digits_dsub:
 	.loop_pad_space_start:
 		dbra	d1, .loop_pad_space
 		DSUB_RETURN
+
+fix_backup:
+		movem.l	d0/a0, -(a7)
+		lea	FIXMAP_BACKUP_LOCATION.l, a0
+		move.w	#FIXMAP, (-2,a6)
+		move.w	#1, (2,a6)
+		move.w	#$7ff, d0
+
+	.loop_next_address:
+		nop
+		nop
+		move.w	(a6), (a0)+
+		move.w	d0, (a6)
+		dbra	d0, .loop_next_address
+		movem.l	(a7)+, d0/a0
+		rts
+
+fix_restore:
+		movem.l	d0/a0, -(a7)
+		lea	FIXMAP_BACKUP_LOCATION.l, a0
+		move.w	#FIXMAP, (-2,a6)
+		move.w	#1, (2,a6)
+		move.w	#$7ff, d0
+
+	.loop_next_address:
+		move.w	(a0)+, (a6)
+		dbra	d0, .loop_next_address
+		movem.l	(a7)+, d0/a0
+		rts

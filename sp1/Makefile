@@ -15,6 +15,7 @@ OBJS = obj/backup_ram.o \
        obj/palette_ram.o \
        obj/print_error.o \
        obj/sp1.o \
+       obj/util.o \
        obj/vector_table.o \
        obj/video_dac.o \
        obj/video_ram_2k.o \
