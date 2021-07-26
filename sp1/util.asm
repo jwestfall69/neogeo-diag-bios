@@ -4,6 +4,7 @@
 
 	global check_reset_request
 	global delay_dsub
+	global error_to_credit_leds_dsub
 	global loop_reset_check
 	global loop_reset_check_dsub
 	global p1_input_update
@@ -228,6 +229,69 @@ send_p1p2_controller:
 		RSUB	delay
 		move.w	(a7)+, d1
 		rts
+
+; Display the error code on player1/2 credit leds.  Player 1 led contains
+; the upper 2 digits, and player 2 the lower 2 digits.  The neogeo
+; doesn't seem to allow having the left digit as 0 and instead it
+; will be empty
+;
+; Examples:
+; EC_VRAM_2K_DEAD_OUTPUT_LOWER = 0x6a = 106
+; Led: p1:  1, p2:  6
+;
+; EC_WRAM_UNWRITABLE_LOWER = 0x70 = 112
+; Led: p1:  1, p2: 12
+;
+; EC_Z80_RAM_DATA_00 = 0x04 = 4
+; Led: p1:  0, p2:  4
+;
+; params:
+;  d0 = error code
+error_to_credit_leds_dsub:
+		moveq	#3, d2
+		moveq	#0, d3
+		moveq	#0, d4
+
+	; convert error code to bcd
+	.loop_next_digit:
+		divu.w	#10, d0
+		swap	d0
+		move.b	d0, d3
+		and.l	d3, d3
+		or.w	d3, d4
+		clr.w	d0
+		swap	d0
+		ror.w	#4, d4
+		dbra	d2, .loop_next_digit
+
+		not.w	d4				; inverted per dev wiki
+
+		; player 2 led
+		move.b	#LED_NO_LATCH, REG_LEDLATCHES
+		move.w	#$10, d0
+		DSUB	delay				; 40us
+
+		move.b	d4, REG_LEDDATA
+
+		move.b	#LED_P2_LATCH, REG_LEDLATCHES
+		move.w	#$10, d0
+		DSUB	delay
+
+		move.b	#LED_NO_LATCH, REG_LEDLATCHES
+		move.w	#$10, d0
+		DSUB	delay
+
+		; player 1 led
+		lsr.w	#8, d4
+		move.b	d4, REG_LEDDATA
+
+		move.b	#LED_P1_LATCH, REG_LEDLATCHES
+		move.w	#$10, d0
+		DSUB	delay
+
+		move.b	#LED_P1_LATCH, REG_LEDLATCHES
+
+		DSUB_RETURN
 
 print_hold_ss_to_reset:
 		moveq	#4, d0
