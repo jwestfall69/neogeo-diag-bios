@@ -105,17 +105,11 @@ auto_work_ram_we_tests_dsub:
 		DSUB_RETURN
 
 auto_work_ram_data_tests_dsub:
-		lea	MEMORY_DATA_TEST_PATTERNS, a1
-		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
-
-	.loop_next_pattern:
 		lea	WORK_RAM_START, a0
-		move.w	#$8000, d1
-		move.w	(a1)+, d0
+		move.w	#$8000, d0
 		DSUB	check_ram_data
 		tst.b	d0
 		bne	.test_failed
-		dbra	d3, .loop_next_pattern
 		DSUB_RETURN
 
 	.test_failed:
@@ -146,10 +140,6 @@ auto_work_ram_address_tests_dsub:
 	.test_passed_a8_a14:
 		moveq	#0, d0
 		DSUB_RETURN
-
-MEMORY_DATA_TEST_PATTERNS:
-	dc.w	$0000, $5555, $aaaa, $ffff
-MEMORY_DATA_TEST_PATTERNS_END:
 
 STR_WORK_RAM_TEST_LOOP:		STRING "WORK RAM TEST LOOP"
 

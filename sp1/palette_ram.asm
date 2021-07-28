@@ -114,32 +114,21 @@ palette_ram_we_tests:
 		moveq	#0, d0
 		rts
 
-	palette_ram_data_tests:
-		lea	MEMORY_DATA_TEST_PATTERNS, a1
-		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+palette_ram_data_tests:
 
-	.loop_next_pattern_bank0:
 		lea	PALETTE_RAM_START, a0
-		move.w	#$1000, d1
-		move.w	(a1)+, d0
+		move.w	#$1000, d0
 		DSUB	check_ram_data
 		tst.b	d0
 		bne	.test_failed_bank0
-		dbra	d3, .loop_next_pattern_bank0
-		bra	.test_passed_bank0
 
-	.test_passed_bank0:
-		lea	MEMORY_DATA_TEST_PATTERNS, a1
-		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+		move.b	d0, REG_PALBANK1
 
-	.loop_next_pattern_bank1:
 		lea	PALETTE_RAM_START, a0
-		move.w	#$1000, d1
-		move.w	(a1)+, d0
+		move.w	#$1000, d0
 		DSUB	check_ram_data
 		tst.b	d0
 		bne	.test_failed_bank1
-		dbra	d3, .loop_next_pattern_bank1
 
 		move.b	d0, REG_PALBANK0
 		moveq	#0, d0
@@ -151,6 +140,7 @@ palette_ram_we_tests:
 		rts
 
 	.test_failed_bank1:
+		move.b	d0, REG_PALBANK0
 		subq.b	#1, d0
 		add.b	#EC_PAL_BANK1_DATA_LOWER, d0
 		rts
@@ -310,10 +300,6 @@ check_palette_ram_to_245_output:
 	.test_failed:
 		moveq	#-1, d0
 		rts
-
-MEMORY_DATA_TEST_PATTERNS:
-	dc.w	$0000, $5555, $aaaa, $ffff
-MEMORY_DATA_TEST_PATTERNS_END:
 
 STR_PAL_RAM_TEST_LOOP:		STRING "PALETTE RAM TEST LOOP"
 

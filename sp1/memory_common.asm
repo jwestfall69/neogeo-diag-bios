@@ -138,30 +138,41 @@ check_vram_we:
 ; Does a full write/read test
 ; params:
 ;  a0 = start address
-;  d0 = value
-;  d1 = length
+;  d0 = length
 ; returns:
 ;  d0 = 0 (pass), 1 (lower bad), 2 (upper bad), 3 (both bad)
 ;  a0 = failed address
 ;  d1 = wrote value
 ;  d2 = read (bad) value
 check_ram_data_dsub:
-		subq.w	#1, d1
+		subq.w	#1, d0
+
+		lea	MEMORY_DATA_TEST_PATTERNS, a1
+		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+		move.l	d0, d4
+		movea.l	a0, a2
+
+	.loop_next_pattern:
+		movea.l	a2, a0
+		move.l	d4, d0
+
+		move.w	(a1)+, d1
 
 	.loop_next_address:
-		move.w	d0, (a0)
+		move.w	d1, (a0)
 		move.w	(a0)+, d2
-		cmp.w	d0, d2
-		dbne	d1, .loop_next_address
+		cmp.w	d1, d2
+		dbne	d0, .loop_next_address
 		bne	.test_failed
 
 		WATCHDOG
+		dbra	d3, .loop_next_pattern
+
 		moveq	#0, d0
 		DSUB_RETURN
 
 	.test_failed:
 		subq.l	#2, a0
-		move.w	d0, d1
 		WATCHDOG
 
 		; set error code based on which byte(s) were bad
@@ -344,3 +355,7 @@ check_vram_address:
 		move.w	d4, d2
 		moveq	#-1, d0
 		rts
+
+MEMORY_DATA_TEST_PATTERNS:
+	dc.w	$0000, $5555, $aaaa, $ffff
+MEMORY_DATA_TEST_PATTERNS_END:
