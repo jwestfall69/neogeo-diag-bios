@@ -117,17 +117,11 @@ vram_we_tests:
 ; first 1536 (0x600) words, since the remaining 512 words
 ; are used by the LSPC for buffers per dev wiki
 vram_data_tests:
-		lea	MEMORY_DATA_TEST_PATTERNS, a1
-		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d5
-
-	.loop_next_pattern:
-		move.w	(a1)+, d0
-		move.w	#$8000, d1
-		move.w	#$600, d2
+		move.w	#$8000, d0
+		move.w	#$600, d1
 		bsr	check_vram_data
 		tst.b	d0
 		bne	.test_failed
-		dbra	d5, .loop_next_pattern
 		rts
 
 	.test_failed:
@@ -155,9 +149,5 @@ vram_address_tests:
 
 	.test_passed_a8_a14:
 		rts
-
-MEMORY_DATA_TEST_PATTERNS:
-	dc.w	$0000, $5555, $aaaa, $ffff
-MEMORY_DATA_TEST_PATTERNS_END:
 
 STR_VRAM_TEST_LOOP_2K:		STRING "VRAM TEST LOOP (2K)"

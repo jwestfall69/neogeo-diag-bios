@@ -195,9 +195,8 @@ check_ram_data_dsub:
 		DSUB_RETURN
 
 ; params:
-;  d0 = pattern
-;  d1 = vram start address
-;  d2 = length in words
+;  d0 = vram start address
+;  d1 = length in words
 ; returns:
 ;  d0 = 0 (pass), 1 (lower bad), 2 (upper bad), 3 (both bad)
 ;  a0 = fail address
@@ -205,37 +204,48 @@ check_ram_data_dsub:
 ;  d2 = actual value
 check_vram_data:
 		move.w	#1, (2,a6)
-		move.w	d1, (-2,a6)
-		subq.w	#1, d2
-		move.w	d2, d3
+
+		subq.w	#1, d1
+		move.w	d1, d5				; backup length
+
+		lea	MEMORY_DATA_TEST_PATTERNS, a1
+		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+
+	.loop_next_pattern:
+		move.w	d5, d1
+		move.w	d0, (-2,a6)
+
+		move.w	(a1)+, d2
 
 	.loop_write_next_address:
-		move.w	d0, (a6)			; write pattern
-		dbra	d2, .loop_write_next_address
+		move.w	d2, (a6)			; write pattern
+		dbra	d1, .loop_write_next_address
 
-		move.w	d1, (-2,a6)
+		move.w	d0, (-2,a6)
 		lea	REG_WATCHDOG, a0
-		move.w	d3, d2
+		move.w	d5, d1
 
 	.loop_read_next_address:
 		move.b	d0, (a0)			; WATCHDOG
 		move.w	(a6), d4			; read value
 		move.w	d4, (a6)			; rewrite (to force address to increase)
-		cmp.w	d0, d4
-		dbne	d2, .loop_read_next_address
+		cmp.w	d2, d4
+		dbne	d1, .loop_read_next_address
 		bne	.test_failed
+
+		dbra	d3, .loop_next_pattern
 
 		moveq	#0, d0
 		rts
 
 	.test_failed:
-		add.w	d3, d1				; setup error data
-		sub.w	d2, d1
-		swap	d1
-		clr.w	d1
-		swap	d1
-		movea.l	d1, a0
-		move.w	d0, d1
+		add.w	d5, d0				; setup error data
+		sub.w	d1, d0
+		swap	d0
+		clr.w	d0
+		swap	d0
+		movea.l	d0, a0
+		move.w	d2, d1
 		move.w	d4, d2
 
 		; set error code based on which byte(s) were bad
