@@ -1,4 +1,4 @@
-### Work + Backup RAM Output Enable Tests
+### Backup RAM Output Enable Tests
 ---
 
 When trying to load data from a ram chip into a register and ram chip doesn't
@@ -15,20 +15,10 @@ Separate tests are performed to isolate testing the upper and lower RAM chips.
 No beep code will be played since these tests happen before the 68k <=> Z80
 communication test.
 
-#### Work RAM
-Work RAM upper is tested first, then work RAM lower.  These will result in the
-corresponding error below if one fails.
-
-|  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :--------- |
-|  0x44 |     68 |  *1000100 |       x0 / 68 | WRAM DEAD OUTPUT (LOWER) |
-|  0x45 |     69 |  *1000101 |       x0 / 69 | WRAM DEAD OUTPUT (UPPER) |
-
 #### Backup RAM
-The backup RAM test is run after the work RAM test.  The backup RAM test will
-run on all MVS hardware and only on AES hardware if 'C' is pressed.  This would
-only be needed if the AES had a hardware modification that added backup RAM,
-which is unlikely.
+The backup RAM test will run on all MVS hardware and only on AES hardware
+if 'C' is pressed.  This would only be needed if the AES had a hardware
+modification that added backup RAM, which is unlikely.
 
 Backup RAM upper is tested first, then backup RAM lower.  These will result in
 the corresponding error below if one fails.

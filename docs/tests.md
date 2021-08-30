@@ -9,16 +9,12 @@ This first chunk of tests are written such that they don't touch work ram.
 * [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
 * [BIOS Upper Address](tests/68k/bios_upper_address.md)
 * [BIOS CRC32 Test](tests/68k/bios_crc.md)
-* [Work + Backup RAM Output Enable Tests](tests/68k/wbram_oe.md)
+* [Work Output Enable Tests](tests/68k/work_ram_oe.md)
   * Work RAM Upper
   * Work RAM Lower
-  * Backup RAM Upper (if MVS or force enabled on AES)
-  * Backup RAM Lower (if MVS or force enabled on AES)
-* Work + Backup RAM Write Enable Tests
+* [Work RAM Write Enable Tests](tests/68k/work_ram_we.md)
   * Work RAM Lower
   * Work RAM Upper
-  * Backup RAM Lower (if MVS)
-  * Backup RAM Upper (if MVS)
 * Work RAM Data Tests
   * Pattern 0x0000
   * Pattern 0x5555
@@ -32,6 +28,12 @@ At this point work ram starts getting used.
 
 * [68k <=> Z80 Communication Test](tests/comm_test.md) (if enabled)
 * Backup RAM Tests (if MVS or force enabled on AES)
+  * [Backup RAM Output Enable Tests](tests/68k/backup_ram_oe.md)
+    * Backup RAM Upper
+    * Backup RAM Lower
+  * [Backup RAM Write Enable Tests](tests/68k/backup_ram_we.md)
+    * Backup RAM Upper
+    * Backup RAM Lower
   * Backup RAM Data Tests
     * Pattern 0x0000
     * Pattern 0x5555
@@ -63,36 +65,37 @@ At this point work ram starts getting used.
   * Palette RAM Address Tests
     * Address Lines a0 to a7
     * Address Lines a8 to a12
-* Video RAM Tests
-  * Video RAM Output Enable Tests
-    * 32K Video RAM Lower
-    * 32K Video RAM Upper
-    * 2K Video RAM Lower
-    * 2K Video RAM Upper
-  * Video RAM Write Enable Tests
-    * 32K Video RAM Lower
-    * 32K Video RAM Upper
-    * 2K Video RAM Lower
-    * 2K Video RAM Upper
-  * Video RAM Data Tests
-    * 32K Video RAM
-      * Pattern 0x0000
-      * Pattern 0x5555
-      * Pattern 0xaaaa
-      * Pattern 0xffff
-    * 2K Video RAM
-      * Pattern 0x0000
-      * Pattern 0x5555
-      * Pattern 0xaaaa
-      * Pattern 0xffff
-  * Video RAM Address Tests
-    * 32K Video RAM
-      * Address Lines a0 to a7
-      * Address Lines a8 to a14
-    * 2K Video RAM
-      * Address Lines a0 to a7
-      * Address Lines a8 to a10
-* MMIO Tests
+* Video RAM 2k Tests
+  * Video RAM 2K Output Enable Tests
+    * Video RAM 2K Lower
+    * Video RAM 2K Upper
+  * Video RAM 2K Write Enable Test
+    * Video RAM 2K Lower
+    * Video RAM 2K Upper
+  * Video RAM 2K Data Tests
+    * Pattern 0x0000
+    * Pattern 0x5555
+    * Pattern 0xaaaa
+    * Pattern 0xffff
+  * Video RAM 2K Address Tests
+    * Address Lines a0 to a7
+    * Address Lines a8 to a10
+* Video RAM 32k Tests
+  * Video RAM 32K Output Enable Tests
+    * Video RAM 32K Lower
+    * Video RAM 32K Upper
+  * Video RAM 32K Write Enable Test
+    * Video RAM 32K Lower
+    * Video RAM 32K Upper
+  * Video RAM 32K Data Tests
+    * Pattern 0x0000
+    * Pattern 0x5555
+    * Pattern 0xaaaa
+    * Pattern 0xffff
+  * Video RAM 32K Address Tests
+    * Address Lines a0 to a7
+    * Address Lines a8 to a14
+ * MMIO Tests
   * MMIO Output Enable (Byte)
     * REG_DIPSW (if MVS)
     * REG_SYSTYPE (if MVS)
@@ -108,10 +111,11 @@ At this point work ram starts getting used.
  These are the tests started by via the menu.
 
  * Calendar I/O (MVS Only)
- * Color Bars
- * SMPTE Color Bars
+ * Color Bars Basic
+ * Color Bars SMPTE
+ * Video Dac Tests
  * Controller Test
- * Work/Backup RAM Test Loop
+ * Work RAM Test Loop
    * Work RAM Data Tests
      * Pattern 0x0000
      * Pattern 0x5555
@@ -120,6 +124,7 @@ At this point work ram starts getting used.
    * Work RAM Address Tests
      * Address Lines a0 to a7
      * Address Lines a8 to a14
+ * Backup RAM Test Loop (MVS only)
    * Backup RAM Data Tests
      * Pattern 0x0000
      * Pattern 0x5555

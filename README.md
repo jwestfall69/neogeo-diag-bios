@@ -16,18 +16,15 @@ original smkdan roms.
 ## Pre-Built
 You can grab the lastest build from the master branch at
 
-https://www.mvs-scans.com/neogeo-diag-bios/19a00-master.zip
+https://www.mvs-scans.com/neogeo-diag-bios/19a01-master.zip
 
 ## Building
-I tried to make it as simple as possible to build the rom files.  All you really
-need are vasm and a host compiler.  (Additional steps maybe required if trying
-to build on a windows box)
+Building requires vasm and vlink, which are available here
 
-You can get vasm from
+http://sun.hasenbraten.de/vasm/<br>
+http://sun.hasenbraten.de/vlink/
 
-http://sun.hasenbraten.de/vasm/
-
-Specifically you will need vasmm68k_mot and vasmz80_mot binaries.  If you are
+For vasm you will need vasmm68k_mot and vasmz80_mot binaries.  If you are
 building vasm from source, like I did, you can build them with the following
 commands
 

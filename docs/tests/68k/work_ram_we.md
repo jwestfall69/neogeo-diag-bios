@@ -1,4 +1,4 @@
-### Work + Backup RAM Write Enable Tests
+### Work RAM Write Enable Tests
 ---
 
 This test consists of the reading a byte from ram, writing data to the same
@@ -17,15 +17,3 @@ corresponding error below if one fails.
 | ----: | -----: | --------: | :-----------: | :--------- |
 |  0x70 |    112 |  *1110000 |       x1 / 12 | WRAM UNWRITABLE (LOWER) |
 |  0x71 |    113 |  *1110001 |       x1 / 13 | WRAM UNWRITABLE (UPPER) |
-
-#### Backup RAM
-The backup RAM test is run after the work RAM test.  The backup RAM test will
-only run on MVS hardware.
-
-Backup RAM lower is tested first, then backup RAM upper.  These will result in
-the corresponding error below if one fails.
-
-|  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
-| ----: | -----: | --------: | :-----------: | :--------- |
-|  0x72 |    114 |  *1110010 |       x1 / 14 | BRAM UNWRITABLE (LOWER) |
-|  0x73 |    115 |  *1110011 |       x1 / 15 | BRAM UNWRITABLE (UPPER) |
