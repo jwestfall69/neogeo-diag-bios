@@ -43,6 +43,9 @@ misc_input_print_static:
 		moveq	#$2, d1
 		bsr	misc_input_print_static_items
 
+		lea	XY_STR_HARD_DIPS, a0
+		RSUB	print_xy_string_struct_clear
+
 	.system_aes:
 		rts
 
@@ -89,6 +92,20 @@ misc_input_update_dynamic:
 		moveq	#$19, d0
 		moveq	#$12, d1
 		RSUB	print_xy_string
+
+		move.b	REG_DIPSW, d2
+		not.b	d2
+		moveq	#14, d0
+		moveq	#21, d1
+		moveq	#7, d3
+	.loop_next_dip_bit:
+		movem.l	d0-d2, -(a7)
+		RSUB	print_bit
+		movem.l	(a7)+, d0-d2
+		add.b	#1, d0
+		ror.b	d2
+		dbra	d3, .loop_next_dip_bit
+
 	.system_aes:
 		rts
 
@@ -199,6 +216,7 @@ STR_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
 
 XY_STR_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
 XY_STR_SYSTEM_TYPE:		XY_STRING  4, 13, "SYSTEM TYPE:"
+XY_STR_HARD_DIPS:		XY_STRING  4, 20, "HARD DIPS 12345678"
 STR_CD1:			STRING "/CD1"
 STR_CD2:			STRING "/CD2"
 STR_CARD_DETECTED:		STRING "(CARD DETECTED)"
