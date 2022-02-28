@@ -154,11 +154,11 @@ automatic_psub_tests_dsub:
 
 		move.b	d0, d6
 		DSUB	print_error
+		moveq	#0, d0
 		move.b	d6, d0
 
 		tst.b	REG_STATUS_B
 		bpl	.skip_error_to_credit_leds	; skip if aes
-		move.b	d6, d0
 		DSUB	error_to_credit_leds
 
 	.skip_error_to_credit_leds:
