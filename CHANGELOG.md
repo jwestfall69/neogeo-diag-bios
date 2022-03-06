@@ -1,7 +1,7 @@
 # Change Log
 ---
 
-#### v0.19a00 (master/unreleased)
+#### v0.19a01 (master)
 * SP1: Re-implement color bars so they work on AES
 * SP1: Add SMPTE color bars
 * SP1: Go back to main menu after manual work/backup ram test
@@ -9,10 +9,17 @@
 * SP1: Attempt to auto-detect if M1 is active (ie: on AES & MV1-B/C)
 * SP1: Display when M1 is active
 * SP1: Display slot number if a slot switch was done
-* SP1: Display when SM1 tests were run
+* SP1: Display SM1 when SM1 tests were run
 * SP1: Pressing ABCD after automatic tests will goto the main menu
 * SP1: Memory Card testing
 * SP1: Video DAC test
+* SP1: Identify the bad chip(s) on ram data errors
+* SP1: Display details on ram address errors
+* SP1: Rework error printing to support more error_codes
+* SP1: Split up code into multiple files
+* SP1: Allow pseudo subs to also be called as normal subs (rts)
+  * Allowed removing a bunch of dupe pseudo/normal subs
+* SP1: Add Hard DIPs to Misc Input screen
 * SP1+M1: Make 68k <=> Z80 communication test less finicky about timings
 * SP1+M1: Split 68k <=> Z80 communication into 2 error codes (HELLO vs ACK)
 * SP1+M1: SM1 output enable test
