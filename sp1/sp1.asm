@@ -66,16 +66,16 @@ automatic_tests:
 
 		clr.b	z80_test_flags
 
-		btst	#7, REG_P1CNT			; if P1 "D" was pressed at boot
-		beq	.z80_test_enabled
-
 		; auto-detect m1 by checking for the HELLO message (ie diag m1 + AES or MV-1B/C)
 		move.b	#COMM_TEST_HELLO, d1
 		cmp.b	REG_SOUND, d1
 		beq	.z80_test_enabled
 
+		btst	#7, REG_P1CNT			; if P1 "D" was pressed at boot
+		beq	.z80_test_enabled
+
 	ifnd force_z80_tests
-		bne	.skip_z80_test		; skip Z80 tests if "D" not pressed
+		bne	.skip_z80_test			; skip Z80 tests if "D" not pressed
  	endif
 
 	.z80_test_enabled:
