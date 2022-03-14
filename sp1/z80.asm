@@ -40,13 +40,15 @@ z80_slot_switch:
 		move.l	#$1388, d0				; 12500us / 12.5ms
 		RSUB	delay
 
+		move.b	REG_P1CNT, d3				; save users input
+
 		cmpi.b	#$01, REG_SOUND
 		beq	.slot_switch_ready
 		bsr	slot_switch_ignored
 
 	.slot_switch_ready:
 
-		move.b	REG_P1CNT, d0
+		move.b	d3, d0
 		moveq	#$f, d1
 		and.b	d1, d0
 		eor.b	d1, d0
