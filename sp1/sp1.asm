@@ -17,13 +17,7 @@
 
 	section	text
 
-	; These are options to force the bios to do
-	; z80 or goto manual tests since its not
-	; practical to be holding down buttons on boot
-	; with mame.
-
 ;force_z80_tests 	equ 1
-;force_manual_tests 	equ 1
 
 ; start
 _start:
@@ -47,9 +41,7 @@ _start:
 		moveq	#-$10, d0
 		and.b	REG_P1CNT, d0			; check for A+B+C+D being pressed, if not automatic_tests
 
-	ifnd force_manual_tests
 		bne	automatic_tests
-	endif
 
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
