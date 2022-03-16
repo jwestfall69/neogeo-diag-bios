@@ -42,10 +42,22 @@ For example slot 2 (D+UP)
 -----------------------------[SS2]-[M1]--
 ```
 
-**Slot Switch Ignored:**<br>
+**Prepare Slot Switch Ignored:**<br>
 One of the error messages you may encounter from the diag bios when enabling
 the comm test is
 
+```
+SM1/Z80 PREPARE SLOT SWITCH IGNORED
+SM1 RESPONSE
+
+ACTUAL:   XX
+EXPECTED: 01
+
+PRESS START TO FORCE SLOT SWITCH
+IF MV-1B/1C: SOFT RESET & HOLD B+D
+```
+
+This is the old version of the error message:
 ```
 Z80 SLOT SWITCH IGNORED (SM1)
 SM1 OTHERWISE LOOKS UNRESPONSIVE

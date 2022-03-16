@@ -42,7 +42,8 @@ z80_slot_switch:
 
 		move.b	REG_P1CNT, d3				; save users input
 
-		cmpi.b	#$01, REG_SOUND
+		move.b	REG_SOUND, d2
+		cmpi.b	#$01, d2
 		beq	.slot_switch_ready
 		bsr	slot_switch_ignored
 
@@ -84,9 +85,29 @@ z80_slot_switch:
 
 
 slot_switch_ignored:
-		lea	XY_STR_Z80_IGNORED_SM1, a0
+
+		moveq	#13, d0
+		moveq	#10, d1
+		DSUB	print_hex_byte
+
+		move.b	#1, d2
+		moveq	#13, d0
+		moveq	#12, d1
+		DSUB	print_hex_byte
+
+		lea	STR_ACTUAL.l, a0
+		moveq	#3, d0
+		moveq	#10, d1
+		DSUB	print_xy_string
+
+		lea	STR_EXPECTED.l, a0
+		moveq	#3, d0
+		moveq	#12, d1
+		DSUB	print_xy_string
+
+		lea	XY_STR_Z80_SM1_IGNORED, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_Z80_SM1_UNRESPONSIVE, a0
+		lea	XY_STR_Z80_SM1_RESPONSIVE, a0
 		RSUB	print_xy_string_struct_clear
 		lea	XY_STR_Z80_MV1BC_HOLD_B, a0
 		RSUB	print_xy_string_struct_clear
@@ -114,6 +135,10 @@ slot_switch_ignored:
 		moveq	#10, d0
 		SSA3	fix_clear_line
 		moveq	#12, d0
+		SSA3	fix_clear_line
+		moveq	#16, d0
+		SSA3	fix_clear_line
+		moveq	#18, d0
 		SSA3	fix_clear_line
 		rts
 
@@ -327,10 +352,10 @@ SLOT_SELECT_END:
 	dc.b	$00, $01			; no match = slot 1
 
 XY_STR_Z80_SWITCHING_M1:	XY_STRING  4,  5, "SWITCHING TO CART M1..."
-XY_STR_Z80_IGNORED_SM1:		XY_STRING  4,  5, "Z80 SLOT SWITCH IGNORED (SM1)"
-XY_STR_Z80_SM1_UNRESPONSIVE:	XY_STRING  4,  7, "SM1 OTHERWISE LOOKS UNRESPONSIVE"
-XY_STR_Z80_MV1BC_HOLD_B:	XY_STRING  4, 10, "IF MV-1B/1C: SOFT RESET & HOLD B"
-XY_STR_Z80_PRESS_START:		XY_STRING  4, 12, "PRESS START TO CONTINUE"
+XY_STR_Z80_SM1_IGNORED:		XY_STRING  3,  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
+XY_STR_Z80_SM1_RESPONSIVE:	XY_STRING  3,  7, "SM1 RESPONSE"
+XY_STR_Z80_PRESS_START:		XY_STRING  3, 16, "PRESS START TO FORCE SLOT SWITCH"
+XY_STR_Z80_MV1BC_HOLD_B:	XY_STRING  3, 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
 XY_STR_Z80_TESTING_COMM_PORT:	XY_STRING  4,  5, "TESTING Z80 COMM. PORT..."
 XY_STR_Z80_COMM_NO_HELLO:	XY_STRING  4,  5, "Z80->68k COMM ISSUE (HELLO)"
 XY_STR_Z80_COMM_NO_ACK:		XY_STRING  4,  5, "Z80->68k COMM ISSUE (ACK)"
