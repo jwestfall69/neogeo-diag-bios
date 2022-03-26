@@ -13,5 +13,7 @@ Words of warning before trying to repair boards:
 | [MV4 (SN: 067063)](repairs/mv4_067063.md) | jwestfall | Cross hatch (all slots) |
 | [MV4F (SN: 115676)](repairs/mv4f_115676.md) | jwestfall | Cross hatch (all slots)<br>ADPCM sound issues (some slots) |
 | [MV4F (SN: 263635)](repairs/mv4f_263635.md) | jwestfall | Lines in fix graphics (all slots)<br>Lines in sprites (all slots)<br>Lines in sprites (slot 2 only)<br>Slot switch weirdness<br>Z80 ram address  |
+| [MV4F (SN: 270480)](repairs/mv4f_270480.md) | jwestfall | Interference in video signal<br>Lines in sprites (all slots) |
 | [MV4FS (SN: 512561)](repairs/mv4fs_512561.md) | jwestfall | Backup ram data |
-| [MV4FT (SN: 351485)](repairs/mv4ft_351485.md) | jwestfall | Click of death (fast)<br>Button stuck in pressed state
+| [MV4FT (SN: 292340)](repairs/mv4ft_292340.md) | jwestfall | No Video |
+| [MV4FT (SN: 351485)](repairs/mv4ft_351485.md) | jwestfall | Click of death (fast)<br>Button stuck in pressed state |
