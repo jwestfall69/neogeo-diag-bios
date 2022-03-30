@@ -131,10 +131,21 @@ manual_memcard_tests:
 		moveq	#13, d0
 		moveq	#25, d1
 		move.l	memcard_size, d2
+
+		cmp.l	#1024,d2
+		blt	.print_size_bytes
+
 		moveq	#10, d3			; print the size in KB
 		lsr.l	d3, d2
 		RSUB	print_5_digits
+		bra	.print_size_done
 
+	.print_size_bytes:
+		RSUB	print_5_digits
+		lea	XY_STR_SIZE_BYTES, a0
+		RSUB	print_xy_string_struct
+
+	.print_size_done:
 		bsr	memcard_we_tests
 		bne	.test_failed_abort
 
@@ -631,5 +642,6 @@ XY_STR_DBUS_8BIT:		XY_STRING  4, 24, "DATA BUS: 8-BIT"
 XY_STR_DBUS_16BIT:		XY_STRING  4, 24, "DATA BUS: 16-BIT"
 XY_STR_DBUS_WIDE:		XY_STRING 21, 24, "(WIDE)"
 XY_STR_SIZE:			XY_STRING  8, 25, "SIZE:      KB"
+XY_STR_SIZE_BYTES:		XY_STRING 19, 25, "BYTES"
 XY_STR_TESTS_PASSED:		XY_STRING  4,  9, "ALL TESTS PASSED"
 XY_STR_RUNNING_TESTS:		XY_STRING  4,  9, "RUNNING TESTS..."
