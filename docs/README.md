@@ -8,6 +8,7 @@ This is a work in progress
 [Error Codes / Messages](error_codes.md)<br>
 [RAM Info / Locations](ram.md)<br>
 [Repairs](repairs.md)<br>
+[Slot Pins Inserts](slot_pins_inserts.md)<br>
 
 The end goal of this documentation is
 * Get every test documented
