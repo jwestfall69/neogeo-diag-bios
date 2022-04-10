@@ -19,3 +19,4 @@ Words of warning before trying to repair boards:
 | [MV4FS (SN: 512561)](repairs/mv4fs_512561.md) | jwestfall | BRAM DATA (UPPER) |
 | [MV4FT (SN: 292340)](repairs/mv4ft_292340.md) | jwestfall | No Video |
 | [MV4FT (SN: 351485)](repairs/mv4ft_351485.md) | jwestfall | Click of death (fast)<br>Button stuck in pressed state |
+| [MV4FT2 (SN: 336163)](repairs/mv4ft2_336163.md) | jwestfall | BRAM UNWRITABLE (UPPER)<br>Solid color screen on z80 tests (all slots) |
