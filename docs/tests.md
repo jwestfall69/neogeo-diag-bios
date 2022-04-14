@@ -113,7 +113,7 @@ At this point work ram starts getting used.
  * Calendar I/O (MVS Only)
  * Color Bars Basic
  * Color Bars SMPTE
- * Video Dac Tests
+ * [Video Dac Tests](tests/68k/video_dac.md)
  * Controller Test
  * Work RAM Test Loop
    * Work RAM Data Tests
