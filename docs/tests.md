@@ -167,6 +167,7 @@ At this point work ram starts getting used.
      * Address Lines a0 to a7
      * Address Lines a8 to a10
  * Misc Input Test
+ * [CPU/PAL Address Test](tests/68k/cpu_pal_addr.md)
  * [Memory Card Tests](tests/68k/memcard.md)
    * [Memory Card Inserted](tests/68k/memcard_detect.md)
    * [Memory Card Write Protect Check](tests/68k/memcard_detect.md)

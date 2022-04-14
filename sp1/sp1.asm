@@ -382,6 +382,7 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_32K, manual_video_ram_32k_tests, 0
 	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_2K, manual_video_ram_2k_tests, 0
 	MAIN_MENU_ITEM STR_MISC_INPUT_TEST, manual_misc_input_tests, 0
+	MAIN_MENU_ITEM STR_CPU_PAL_ADDR_TEST, manual_cpu_pal_addr_test, 0
 	MAIN_MENU_ITEM STR_MEMCARD_TESTS, manual_memcard_tests, 0
 MAIN_MENU_ITEMS_END:
 

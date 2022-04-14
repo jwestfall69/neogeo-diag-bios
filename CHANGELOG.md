@@ -20,6 +20,7 @@
 * SP1: Allow pseudo subs to also be called as normal subs (rts)
   * Allowed removing a bunch of dupe pseudo/normal subs
 * SP1: Add Hard DIPs to Misc Input screen
+* SP1: Add CPU/PAL Address test
 * SP1+M1: Make 68k <=> Z80 communication test less finicky about timings
 * SP1+M1: Split 68k <=> Z80 communication into 2 error codes (HELLO vs ACK)
 * SP1+M1: SM1 output enable test

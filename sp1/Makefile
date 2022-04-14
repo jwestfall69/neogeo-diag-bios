@@ -5,6 +5,7 @@ OBJS = obj/backup_ram.o \
        obj/color_bars_basic.o \
        obj/color_bars_smpte.o \
        obj/controller.o \
+       obj/cpu_pal_addr.o \
        obj/dsub.o \
        obj/fix_util.o \
        obj/footer.o \
