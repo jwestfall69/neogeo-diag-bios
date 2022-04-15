@@ -5,6 +5,7 @@
 	global check_reset_request
 	global delay_dsub
 	global error_to_credit_leds_dsub
+	global loop_d_pressed
 	global loop_reset_check
 	global loop_reset_check_dsub
 	global p1_input_update
@@ -26,6 +27,14 @@ delay_dsub:
 		subq.l	#1, d0			; 4 cycles
 		bne	delay_dsub		; 10 cycles
 		DSUB_RETURN
+
+
+; loop waiting for D to be pressed
+loop_d_pressed:
+		WATCHDOG
+		btst	#D_BUTTON, REG_P1CNT
+		bne	loop_d_pressed
+		rts
 
 ; loop forever checking for reset request;
 loop_reset_check:
