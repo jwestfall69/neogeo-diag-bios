@@ -17,15 +17,11 @@ manual_calendar_tests:
 		lea	XY_STR_D_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
 
-		moveq	#$4, d0
-		moveq	#$11, d1
-		lea	STR_ACTUAL, a0
-		RSUB	print_xy_string_clear
+		lea	XY_STR_ACTUAL, a0
+		RSUB	print_xy_string_struct_clear
 
-		moveq	#$4, d0
-		moveq	#$13, d1
-		lea	STR_EXPECTED, a0
-		RSUB	print_xy_string_clear
+		lea	XY_STR_EXPECTED, a0
+		RSUB	print_xy_string_struct_clear
 
 		lea	XY_STR_4990_TP, a0
 		RSUB	print_xy_string_struct_clear
@@ -91,7 +87,7 @@ rtc_update_hz:
 
 		bsr	rtc_wait_pulse
 
-		moveq	#$1b, d0
+		moveq	#20, d0
 		SSA3	fix_clear_line		; removes waiting for calendar pulse... line
 
 		move.l	(a7)+, ($6,a6)		; timer high
@@ -102,18 +98,18 @@ rtc_update_hz:
 
 ; d2 = number of pulses
 rtc_print_data:
-		moveq	#$e, d0
-		moveq	#$11, d1
+		moveq	#14, d0
+		moveq	#10, d1
 		move.w	d2, -(a7)
 		RSUB	print_hex_word
 
-		moveq	#$e, d0
-		moveq	#$13, d1
+		moveq	#14, d0
+		moveq	#12, d1
 		move.w	timer_count, d2
 		RSUB	print_hex_word
 
-		moveq	#$e, d0
-		moveq	#$15, d1
+		moveq	#14, d0
+		moveq	#14, d1
 		SSA3	fix_seek_xy
 
 		moveq	#$18, d0
@@ -180,9 +176,10 @@ rtc_check_pulse:
 STR_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
 
 ; strings for calender io screen
-XY_STR_A_1HZ_PULSE:		XY_STRING  4,  8, "A: 1Hz pulse"
-XY_STR_B_64HZ_PULSE:		XY_STRING  4, 10, "B: 64Hz pulse"
-XY_STR_C_4096HZ_PULSE:		XY_STRING  4, 12, "C: 4096Hz pulse"
-XY_STR_D_MAIN_MENU:		XY_STRING  4, 14, "D: Return to menu"
-XY_STR_4990_TP:			XY_STRING  4, 21, "4990 TP:"
-XY_STR_WAITING_PULSE:		XY_STRING  4, 27, "WAITING FOR CALENDAR PULSE..."
+XY_STR_WAITING_PULSE:		XY_STRING  4, 20, "WAITING FOR CALENDAR PULSE..."
+XY_STR_4990_TP:			XY_STRING  4, 14, "4990 TP:"
+
+XY_STR_A_1HZ_PULSE:		XY_STRING  4, 24, "A: 1Hz pulse"
+XY_STR_B_64HZ_PULSE:		XY_STRING  4, 25, "B: 64Hz pulse"
+XY_STR_C_4096HZ_PULSE:		XY_STRING  4, 26, "C: 4096Hz pulse"
+

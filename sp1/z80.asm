@@ -86,24 +86,20 @@ z80_slot_switch:
 
 slot_switch_ignored:
 
-		moveq	#13, d0
+		moveq	#14, d0
 		moveq	#10, d1
 		DSUB	print_hex_byte
 
 		move.b	#1, d2
-		moveq	#13, d0
+		moveq	#14, d0
 		moveq	#12, d1
 		DSUB	print_hex_byte
 
-		lea	STR_ACTUAL.l, a0
-		moveq	#3, d0
-		moveq	#10, d1
-		DSUB	print_xy_string
+		lea	XY_STR_ACTUAL, a0
+		DSUB	print_xy_string_struct
 
-		lea	STR_EXPECTED.l, a0
-		moveq	#3, d0
-		moveq	#12, d1
-		DSUB	print_xy_string
+		lea	XY_STR_EXPECTED, a0
+		DSUB	print_xy_string_struct
 
 		lea	XY_STR_Z80_SM1_IGNORED, a0
 		RSUB	print_xy_string_struct_clear
@@ -285,15 +281,11 @@ print_comm_error:
 
 		RSUB	print_xy_string_struct_clear
 
-		moveq	#4, d0
-		moveq	#8, d1
-		lea	STR_EXPECTED, a0
-		RSUB	print_xy_string_clear
+		lea	XY_STR_EXPECTED, a0
+		RSUB	print_xy_string_struct_clear
 
-		moveq	#4, d0
-		moveq	#10, d1
-		lea	STR_ACTUAL, a0
-		RSUB	print_xy_string_clear
+		lea	XY_STR_ACTUAL, a0
+		RSUB	print_xy_string_struct_clear
 
 		lea	XY_STR_Z80_SKIP_TEST, a0
 		RSUB	print_xy_string_struct_clear

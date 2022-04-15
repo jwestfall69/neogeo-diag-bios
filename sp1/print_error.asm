@@ -85,15 +85,11 @@ print_error_bios_crc32_dsub:
 		move.l	BIOS_CRC32_ADDR, d2
 		DSUB	print_hex_long
 
-		lea	STR_EXPECTED.l, a0
-		moveq	#4, d0
-		moveq	#12, d1
-		DSUB	print_xy_string
+		lea	XY_STR_EXPECTED, a0
+		DSUB	print_xy_string_struct
 
-		lea	STR_ACTUAL.l, a0
-		moveq	#4, d0
-		moveq	#10, d1
-		DSUB	print_xy_string
+		lea	XY_STR_ACTUAL, a0
+		DSUB	print_xy_string_struct
 
 		movea.l	a1, a0
 		moveq	#4, d0
@@ -119,15 +115,11 @@ print_error_hex_byte_dsub:
 		moveq	#12, d1
 		DSUB	print_hex_byte
 
-		lea	STR_EXPECTED.l, a0
-		moveq	#4, d0
-		moveq	#12, d1
-		DSUB	print_xy_string
+		lea	XY_STR_EXPECTED, a0
+		DSUB	print_xy_string_struct
 
-		lea	STR_ACTUAL.l, a0
-		moveq	#4, d0
-		moveq	#10, d1
-		DSUB	print_xy_string
+		lea	XY_STR_ACTUAL, a0
+		DSUB	print_xy_string_struct
 
 		movea.l	a1, a0
 		moveq	#4, d0
@@ -160,20 +152,14 @@ print_error_memory_dsub:
 		move.w	d4, d2
 		DSUB	print_hex_word			; actual
 
-		lea	STR_ADDRESS, a0
-		moveq	#4, d0
-		moveq	#8, d1
-		DSUB	print_xy_string
+		lea	XY_STR_ADDRESS, a0
+		DSUB	print_xy_string_struct
 
-		lea	STR_EXPECTED, a0
-		moveq	#4, d0
-		moveq	#12, d1
-		DSUB	print_xy_string
+		lea	XY_STR_EXPECTED, a0
+		DSUB	print_xy_string_struct
 
-		lea	STR_ACTUAL, a0
-		moveq	#4, d0
-		moveq	#10, d1
-		DSUB	print_xy_string
+		lea	XY_STR_ACTUAL, a0
+		DSUB	print_xy_string_struct
 
 		movea.l	a1, a0
 		moveq	#4, d0
@@ -191,10 +177,8 @@ print_error_mmio_dsub:
 		move.l	a0, d2
 		DSUB	print_hex_3_bytes
 
-		lea	STR_ADDRESS, a0
-		moveq	#4, d0
-		moveq	#8, d1
-		DSUB	print_xy_string
+		lea	XY_STR_ADDRESS, a0
+		DSUB	print_xy_string_struct
 
 		lea	(MMIO_ERROR_LOOKUP_TABLE_START - 4), a0
 
