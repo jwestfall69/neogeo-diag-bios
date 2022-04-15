@@ -15,15 +15,21 @@
 manual_work_ram_tests:
 		lea	XY_STR_PASSES,a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_HOLD_ABCD, a0
+		lea	XY_STR_D_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#DSUB_INIT_PSEUDO, d7		; init dsub for pseudo subroutines
 		moveq	#0, d6				; passes
-		bra	.loop_start_run_test
 
 	.loop_run_test:
 		WATCHDOG
+
+		moveq	#$e, d0
+		moveq	#$e, d1
+		move.l	d6, d2
+		bclr	#$1f, d2
+		PSUB	print_hex_3_bytes
+
 		PSUB	auto_work_ram_data_tests
 		tst.b	d0
 		bne	.test_failed_abort
@@ -34,18 +40,19 @@ manual_work_ram_tests:
 
 		addq.l	#1, d6
 
-	.loop_start_run_test:
+		btst	#D_BUTTON, REG_P1CNT
+		bne	.loop_run_test
+		bra	.test_exit
 
-		moveq	#$e, d0
-		moveq	#$e, d1
-		move.l	d6, d2
-		bclr	#$1f, d2
-		PSUB	print_hex_3_bytes
+	.test_failed_abort:
+		PSUB	print_error
 
-		moveq	#-$10, d0
-		and.b	REG_P1CNT, d0
-		bne	.loop_run_test			; if a+b+c+d not pressed keep running test
+	.loop_d_pressed:
+		WATCHDOG
+		btst	#D_BUTTON, REG_P1CNT
+		bne	.loop_d_pressed
 
+	.test_exit:
 		SSA3	fix_clear
 
 		; re-init stuff and return to menu
@@ -53,11 +60,6 @@ manual_work_ram_tests:
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 		bra	manual_tests
-
-	.test_failed_abort:
-		PSUB	print_error
-		bra	loop_reset_check_dsub
-
 
 auto_work_ram_oe_tests_dsub:
 		lea	WORK_RAM_START, a0
@@ -142,6 +144,3 @@ auto_work_ram_address_tests_dsub:
 		DSUB_RETURN
 
 STR_WORK_RAM_TEST_LOOP:		STRING "WORK RAM TEST LOOP"
-
-XY_STR_PASSES:			XY_STRING  4, 14, "PASSES:"
-XY_STR_HOLD_ABCD:		XY_STRING  4, 27, "HOLD ABCD TO STOP"

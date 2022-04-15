@@ -310,7 +310,6 @@ STR_VIDEO_DAC_TESTS:		STRING "VIDEO DAC TESTS"
 XY_STR_A_FULL_SCREEN:		XY_STRING  4, 24, "A: Toggle Full Screen"
 XY_STR_B_TOGGLE_DB:		XY_STRING  4, 25, "B: Toggle Darker Bit"
 XY_STR_C_TOGGLE_SHADOW:		XY_STRING  4, 26, "C: Toggle Shadow Register"
-XY_STR_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
 XY_STR_ALL:			XY_STRING 29,  6, "ALL"
 
 ; full screen stuff

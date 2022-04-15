@@ -40,7 +40,7 @@ auto_backup_ram_tests:
 manual_backup_ram_tests:
 		lea	XY_STR_PASSES,a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_HOLD_ABCD, a0
+		lea	XY_STR_D_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#0, d6				; passes
@@ -68,17 +68,17 @@ manual_backup_ram_tests:
 		bclr	#$1f, d2
 		PSUB	print_hex_3_bytes
 
-		moveq	#-$10, d0
-		and.b	REG_P1CNT, d0
-		bne	.loop_run_test			; if a+b+c+d not pressed keep running test
+		btst	#D_BUTTON, REG_P1CNT
+		bne	.loop_run_test
 
 		move.b	d0, REG_SRAMLOCK
-		SSA3	fix_clear
 		rts
 
 	.test_failed_abort:
+		move.b	d0, REG_SRAMLOCK
+
 		PSUB	print_error
-		bra	loop_reset_check_dsub
+		bra	loop_d_pressed
 
 
 backup_ram_oe_tests_dsub:
@@ -184,6 +184,3 @@ backup_ram_address_tests_dsub:
 		DSUB_RETURN
 
 STR_BACKUP_RAM_TEST_LOOP:	STRING "BACKUP RAM TEST LOOP (MVS ONLY)"
-
-XY_STR_PASSES:			XY_STRING  4, 14, "PASSES:"
-XY_STR_HOLD_ABCD:		XY_STRING  4, 27, "HOLD ABCD TO STOP"

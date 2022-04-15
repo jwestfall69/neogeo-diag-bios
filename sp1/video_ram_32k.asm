@@ -30,35 +30,41 @@ auto_video_ram_32k_tests:
 		rts
 
 manual_video_ram_32k_tests:
-		lea	XY_STR_A_TO_RESUME, a0
-		RSUB	print_xy_string_struct_clear
-
 		lea	XY_STR_PASSES, a0
 		RSUB	print_xy_string_struct
 
-		lea	STR_HOLD_ABCD_TO_STOP, a0
-		moveq	#$4, d0
-		moveq	#$19, d1
-		RSUB	print_xy_string
+		lea	XY_STR_A_TO_RESUME, a0
+		RSUB	print_xy_string_struct_clear
+
+		lea	XY_STR_D_MAIN_MENU, a0
+		RSUB	print_xy_string_struct
 
 		bsr	fix_backup
 
 		moveq	#$0, d6
-		bra	.loop_start_run_test
 
 	.loop_run_test:
 		WATCHDOG
+
 		bsr	vram_data_tests
 		bne	.test_failed_abort
+
 		bsr	vram_address_tests
 		bne	.test_failed_abort
+
 		addq.l	#1, d6
 
-	.loop_start_run_test:
-		btst	#$4, REG_P1CNT
-		bne	.loop_run_test			; loop until 'a' is pressed
+		btst	#D_BUTTON, REG_P1CNT
+		beq	.test_exit_restore
+
+		btst	#A_BUTTON, REG_P1CNT
+		bne	.loop_run_test			; 'a' not pressed, loop and do another test
 
 		bsr	fix_restore
+
+
+	.loop_wait_a_release:
+		WATCHDOG
 
 		moveq	#$e, d0
 		moveq	#$e, d1
@@ -66,13 +72,10 @@ manual_video_ram_32k_tests:
 		bclr	#$1f, d2			; make sure signed bit is 0
 		RSUB	print_hex_3_bytes		; print pass number
 
-	.loop_wait_a_release:
-		WATCHDOG
+		btst	#D_BUTTON, REG_P1CNT
+		beq	.test_exit
 
-		moveq	#-$10, d0
-		and.b	REG_P1CNT, d0
-		beq	.test_exit			; if a+b+c+d stop the test, return to main menu
-		btst	#$4, REG_P1CNT
+		btst	#A_BUTTON, REG_P1CNT
 		beq	.loop_wait_a_release		; loop until either 'a' not pressed or 'a+b+c+d' pressed
 
 		bsr	fix_backup
@@ -91,10 +94,13 @@ manual_video_ram_32k_tests:
 
 		RSUB	print_error
 
-		moveq	#$19, d0
-		SSA3	fix_clear_line
+		moveq	#25, d0
+		SSA3	fix_clear_line			; remove A TO RESUME line
 
-		bra	loop_reset_check
+		bra	loop_d_pressed
+
+	.test_exit_restore:
+		bsr	fix_restore
 
 	.test_exit:
 		rts
@@ -174,5 +180,3 @@ vram_address_tests:
 		rts
 
 STR_VRAM_TEST_LOOP_32K:		STRING "VRAM TEST LOOP (32K)"
-
-XY_STR_A_TO_RESUME:		XY_STRING  4, 27, "RELEASE A TO RESUME"

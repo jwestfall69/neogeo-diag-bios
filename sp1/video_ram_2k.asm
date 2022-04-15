@@ -30,48 +30,37 @@ auto_video_ram_2k_tests:
 		rts
 
 manual_video_ram_2k_tests:
-		lea	STR_HOLD_ABCD_TO_STOP, a0
-		moveq	#$4, d0
-		moveq	#$1b, d1
-		RSUB	print_xy_string_clear
+		lea	XY_STR_D_MAIN_MENU, a0
+		RSUB	print_xy_string_struct
 
-		lea	XY_STR_PASSES.l, a0
+		lea	XY_STR_PASSES, a0
 		RSUB	print_xy_string_struct
 
 		moveq	#$0, d6
-		bra	.loop_start_run_test
 
 	.loop_run_test:
 		WATCHDOG
+		moveq	#$e, d0
+		moveq	#$e, d1
+		move.l	d6, d2
+		bclr	#$1f, d2
+		RSUB	print_hex_3_bytes
+
 		bsr	vram_data_tests
 		bne	.test_failed_abort
 
 		bsr	vram_address_tests
 		bne	.test_failed_abort
 
-		moveq	#$e, d0
-		moveq	#$e, d1
-		move.l	d6, d2
-		RSUB	print_hex_3_bytes
-
 		addq.l	#1, d6
 
-	.loop_start_run_test:
-		moveq	#-$10, d0
-		and.b	REG_P1CNT, d0
-		beq	.test_exit			; if a+b+c+d pressed, exit test
-		bra	.loop_run_test
+		btst	#D_BUTTON, REG_P1CNT
+		bne	.loop_run_test
+		rts
 
 	.test_failed_abort:
 		RSUB	print_error
-
-		moveq	#$19, d0
-		SSA3	fix_clear_line
-
-		bra	loop_reset_check
-
-	.test_exit:
-		rts
+		bra	loop_d_pressed
 
 vram_oe_tests:
 		move.w	#$8000, d0

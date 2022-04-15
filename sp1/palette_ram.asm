@@ -33,20 +33,24 @@ auto_palette_ram_tests:
 		rts
 
 manual_palette_ram_tests:
-		lea	XY_STR_PAL_PASSES, a0
+		lea	XY_STR_PASSES, a0
 		RSUB	print_xy_string_struct_clear
 		lea	XY_STR_PAL_A_TO_RESUME, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_PAL_HOLD_ABCD, a0
+		lea	XY_STR_D_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	palette_ram_backup
 
 		moveq	#0, d6					; init pass count to 0
-		bra	.loop_start_run_test
 
 	.loop_run_test:
 		WATCHDOG
+		moveq	#$e, d0
+		moveq	#$e, d1
+		move.w	d6, d2
+		bclr	#$1f, d2
+		RSUB	print_hex_3_bytes			; print the number of passes in hex
 
 		bsr	palette_ram_data_tests
 		bne	.test_failed_abort
@@ -56,24 +60,21 @@ manual_palette_ram_tests:
 
 		addq.l	#1, d6
 
-	.loop_start_run_test:
-		moveq	#$e, d0
-		moveq	#$e, d1
-		move.w	d6, d2
-		RSUB	print_hex_3_bytes			; print the number of passes in hex
+		btst	#D_BUTTON, REG_P1CNT
+		beq	.test_exit_restore
 
-		btst	#$4, REG_P1CNT				; check for 'a' being presses
+		btst	#A_BUTTON, REG_P1CNT
 		bne	.loop_run_test				; 'a' not pressed, loop and do another test
 
 		bsr	palette_ram_restore
 
 	.loop_wait_a_release:
 		WATCHDOG
-		moveq	#-$10, d0
-		and.b	REG_P1CNT, d0				; a+b+c+d pressed? exit
+		btst	#D_BUTTON, REG_P1CNT
 		beq	.test_exit
-		btst	#$4, REG_P1CNT				; only 'a' pressed
-		beq	.loop_wait_a_release			; loop until either 'a' not pressed or 'a+b+c+d' pressed
+
+		btst	#A_BUTTON, REG_P1CNT
+		beq	.loop_wait_a_release
 
 		bsr	palette_ram_backup
 		bra	.loop_run_test
@@ -84,9 +85,13 @@ manual_palette_ram_tests:
 
 		RSUB	print_error
 
-		moveq	#$19, d0
+		moveq	#25, d0					; remove A TO RESUME line
 		SSA3	fix_clear_line
-		bra	loop_reset_check
+
+		bra	loop_d_pressed
+
+	.test_exit_restore:
+		bsr	palette_ram_restore
 
 	.test_exit:
 		rts
@@ -302,7 +307,4 @@ check_palette_ram_to_245_output:
 		rts
 
 STR_PAL_RAM_TEST_LOOP:		STRING "PALETTE RAM TEST LOOP"
-
-XY_STR_PAL_PASSES:		XY_STRING  4, 14, "PASSES:"
-XY_STR_PAL_A_TO_RESUME:		XY_STRING  4, 27, "RELEASE A TO RESUME"
-XY_STR_PAL_HOLD_ABCD:		XY_STRING  4, 25, "HOLD ABCD TO STOP"
+XY_STR_PAL_A_TO_RESUME:		XY_STRING  4, 25, "RELEASE A TO RESUME"
