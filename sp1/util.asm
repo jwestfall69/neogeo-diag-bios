@@ -104,8 +104,8 @@ check_reset_request:
 ; backup palette ram to PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_backup:
 		movem.l	d0/a0-a1, -(a7)
-		lea	PALETTE_RAM_START.l, a0
-		lea	PALETTE_RAM_BACKUP_LOCATION.l, a1
+		lea	PALETTE_RAM_START, a0
+		lea	PALETTE_RAM_BACKUP_LOCATION, a1
 		move.w	#$2000, d0
 		bsr	copy_memory
 		movem.l	(a7)+, d0/a0-a1
@@ -114,8 +114,8 @@ palette_ram_backup:
 ; restore palette ram from PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_restore:
 		movem.l	d0/a0-a1, -(a7)
-		lea	PALETTE_RAM_BACKUP_LOCATION.l, a0
-		lea	PALETTE_RAM_START.l, a1
+		lea	PALETTE_RAM_BACKUP_LOCATION, a0
+		lea	PALETTE_RAM_START, a1
 		move.w	#$2000, d0
 		bsr	copy_memory
 		movem.l	(a7)+, d0/a0-a1

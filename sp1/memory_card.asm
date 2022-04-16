@@ -562,7 +562,7 @@ check_memcard_address:
 		move.w	#$101, d2		; current read/write value
 		moveq	#2, d3			; current read/write offset
 
-		lea	MEMCARD_START.l, a0
+		lea	MEMCARD_START, a0
 		move.w	d2, (a0)
 
 		; wide bus, skip 800002

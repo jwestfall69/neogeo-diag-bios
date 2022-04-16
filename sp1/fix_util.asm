@@ -324,7 +324,7 @@ print_digits_dsub:
 
 fix_backup:
 		movem.l	d0/a0, -(a7)
-		lea	FIXMAP_BACKUP_LOCATION.l, a0
+		lea	FIXMAP_BACKUP_LOCATION, a0
 		move.w	#FIXMAP, (-2,a6)
 		move.w	#1, (2,a6)
 		move.w	#$7ff, d0
@@ -340,7 +340,7 @@ fix_backup:
 
 fix_restore:
 		movem.l	d0/a0, -(a7)
-		lea	FIXMAP_BACKUP_LOCATION.l, a0
+		lea	FIXMAP_BACKUP_LOCATION, a0
 		move.w	#FIXMAP, (-2,a6)
 		move.w	#1, (2,a6)
 		move.w	#$7ff, d0
