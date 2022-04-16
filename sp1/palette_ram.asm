@@ -35,7 +35,7 @@ auto_palette_ram_tests:
 manual_palette_ram_tests:
 		lea	XY_STR_PASSES, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_PAL_A_TO_RESUME, a0
+		lea	XY_STR_A_TO_RESUME, a0
 		RSUB	print_xy_string_struct_clear
 		lea	XY_STR_D_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
@@ -307,4 +307,3 @@ check_palette_ram_to_245_output:
 		rts
 
 STR_PAL_RAM_TEST_LOOP:		STRING "PALETTE RAM TEST LOOP"
-XY_STR_PAL_A_TO_RESUME:		XY_STRING  4, 25, "RELEASE A TO RESUME"
