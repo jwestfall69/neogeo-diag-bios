@@ -12,15 +12,14 @@ If this specific situation is happening you will also have PAL RAM DATA issues w
 
 This is what the screen should look like if everything is working ok
 
-![cpu pal addr working](images/cpu_pal_addr_good1.jpg)
+![cpu pal addr good](images/cpu_pal_addr_good.gif)
 
 This test is just writing an incrementing value to PAL address 0x4000AA.  This address is not part of any color on the screen so the text remains white and the background is black.  The colored dots are an expected effect from writing to PAL ram while the screen is being drawn.  NOTE: you will not see the dots if you run this in MAME.
 
 This is what the screen looks like if the issue is happening
 
-![cpu pal addr bad1](images/cpu_pal_addr_bad1.jpg)
-![cpu pal addr bad2](images/cpu_pal_addr_bad2.jpg)
+![cpu pal addr bad](images/cpu_pal_addr_bad.gif)
 
-It will be a scrolling rainbow of colors.  This happens because the incrementing value is actually being written to the PAL addresses that the NEO-B1 is accessing to draw the screen.
+It will be a continually changing rainbow of colors.  This happens because the incrementing value is actually being written to the PAL addresses that the NEO-B1 is accessing to draw the screen.
 
-On the board I actually saw this issue on, the fault ended up being the NEO-B1.  However I think its possible that an issue with the upper CPU address lines going into the NEO-B1 could cause this. 
+On the board I actually saw this issue on, the fault ended up being the NEO-B1.  However when doing some failure testing I found the issue can happen if A22I going into the NEO-B1 is floating.

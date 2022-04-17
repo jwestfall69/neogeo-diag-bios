@@ -20,17 +20,19 @@ manual_cpu_pal_addr_test:
 
 
 		lea	PALETTE_RAM_START + $aa, a0
-		moveq	#0, d3
+		moveq	#0, d1
 
 	.loop_run_test:
 		WATCHDOG
-		addq	#1, d3
-		and	#$ffff,d3
-		move.w  d3, (a0)
 
-		bsr	p1_input_update
-		btst	#D_BUTTON, p1_input_edge
-		beq	.loop_run_test
+		move.l	#$ff4, d0
+		RSUB	delay
+
+		addq.w	#1, d1
+		move.w  d1, (a0)
+
+		btst	#D_BUTTON, REG_P1CNT
+		bne	.loop_run_test
 
 		rts
 
