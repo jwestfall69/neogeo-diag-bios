@@ -1,18 +1,18 @@
 ### YM2610 Timer Flag Test
 ----
 
-The YM2610 attached to the Z80 and has supports for 2 timers.  When a timer is
+The YM2610 is attached to the Z80 and has support for 2 timers.  When a timer is
 up it will trigger an interrupt (if enabled) and also set a timer bit/flag
-indicating the timer fired.
+indicating the timer is fired.
 
 This test consists of the following
 
 1. Setup the timer
-2. Poll the timer status port for the flag to be set, indicating the timer
+2. Poll the timer status port for the flag to be set, indicating the timer is
 fired.
 
 When setting up the timer the diag m1 will verify the ym2610 has taken the
-request by polling the busy bit of the register.  If this busy bit takes to
+request by polling the busy bit of the register.  If this busy bit takes too
 long to become unset it will result in the following error.
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
