@@ -11,7 +11,7 @@ incrementing byte at each memory location.
 2. RAM locations 0xf800 to 0xffff (address lines a8 to a10), writing an
 incrementing byte for every 256 bytes of ram.
 
-If one of these fail it will result in one of the following errors:
+If one of these fails it will result in one of the following errors:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |
