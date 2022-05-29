@@ -121,13 +121,13 @@ following error code:
 | ----: | -----: | --------: | :-----------: | :--------- |
 |  0x0c |     12 |    001100 |       x0 / 12 | 68k->Z80 COMM ISSUE (HANDSHAKE) |
 
-I believe its unlikely for the diag bios to ever get this error code, if it
-could you would think the comm test would have passed. So you will like only
+I believe it's unlikely for the diag bios to ever get this error code, if it
+could you would think the comm test would have passed. So you will only
 hear a beep code for it. If you have the diag m1 rom cart installed in an
 AES or MV-1B/C board and don't enable the comm test, you will get this
 beep code.
 
-Additionally the diag m1 will attempt to clear the receive data port, if this
+Additionally the diag m1 will attempt to clear the received data port, if this
 fails it will result in the following error code:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
