@@ -52,7 +52,7 @@ the B2 column of the 4th row has color bit 2 enabled for red, green, and blue.
 |   Button   | Description |
 |:----------:| :-----------|
 |     A      | Enter full screen mode |
-|     B      | Toggles dark(er) bit.  This will cause no visual change to the screen, but you should be able to detect it if you use a logic probe the DAC's 3x 8.2K ohm resistors. |
+|     B      | Toggles the dark(er) bit.  This will cause no visual change to the screen, but you should be able to detect it if you use a logic probe the DAC's 3x 8.2K ohm resistors. |
 |     C      | Toggle shadow register effect.  When the screen is in its normal state you should see pulsing on the DAC's 3x 150 ohm resistors.  When it goes darker the DAC's 3x 150 ohm resistors should be 100% low. |
 |     D      | Return to main menu |
 
@@ -72,8 +72,8 @@ should only see pulsing on the input of red's 1k ohm resistor.
 |:----------:| :-----------|
 | Left/Right | Cycle through color bits / all columns as seen on the grid on the main screen |
 |  Up/Down   | Cycle through red, green, blue and all rows as seen on the grid on the main screen |
-|     B      | Toggles dark(er) bit.  This will cause no visual change to the screen. <br><br> **IMPORTANT**: If you are using a logic probe instead of and oscilloscope, you will want to validate this bit using the color bit 4 (B4) color set.  The lower color bits will likely always show the input to the 8.2k resistor(s) as being low. <br><br>If viewing red, green or blue you should expect to only see an effect on that color's 8.2K resistor.  While viewing the combined colors on all 3x 8.2k resistors. |
-|     C      | Toggle the shadow register effect.  You should see the screen get darker then lighter as you toggle it repeatedly.<br><br> **IMPORTANT**: If you are using a logic probe instead of and oscilloscope, you will want to validate this bit using the color bit 4 (B4) color set.  The lower color bits will likely always show the input to the 150 resistor(s) as being low.<br><br>If viewing red, green or blue you should expect to only see an effect on that color's 150 resistor.  While viewing the combined colors on all 3x 150 resistors.|
+|     B      | Toggles the dark(er) bit.  This will cause no visual change to the screen. <br><br> **IMPORTANT**: If you are using a logic probe instead of an oscilloscope, you will want to validate this bit using the color bit 4 (B4) color set.  The lower color bits will likely always show the input to the 8.2k resistor(s) as being low. <br><br>If viewing red, green or blue you should expect to only see an effect on that color's 8.2K resistor.  While viewing the combined colors on all 3x 8.2k resistors. |
+|     C      | Toggle the shadow register effect.  You should see the screen get darker then lighter as you toggle it repeatedly.<br><br> **IMPORTANT**: If you are using a logic probe instead of an oscilloscope, you will want to validate this bit using the color bit 4 (B4) color set.  The lower color bits will likely always show the input to the 150 resistor(s) as being low.<br><br>If viewing red, green or blue you should expect to only see an effect on that color's 150 resistor.  While viewing the combined colors on all 3x 150 resistors.|
 |     D      | Return to Video DAC main screen |
 
 
@@ -82,8 +82,8 @@ should only see pulsing on the input of red's 1k ohm resistor.
 ### MV6 with a light yellowish tint to it
 
 MV6 has a light yellowish tint to it that you could mainly see on white. On the
-Video DAC main screen nothing really looked to out of the ordinary with
-red/green/blue rows, but the text and 4th row had the yellowish tint.
+Video DAC main screen nothing really looked out of the ordinary with
+red/green/blue rows, but the text and 4th row had a yellowish tint.
 
 When toggling the shadow register on the main screen it got darker as expected,
 but also the yellowish tint went away causing the text/4th row to be a gray
@@ -105,7 +105,7 @@ red B4 color block is missing (black).  It looked like this (simulated in MAME)
 
 ![video dac main mv4 example](images/video_dac_main_mv4_example.png)
 
-Measuring red's 220 ohm resister with a multi-meter show its OL.  Replacing the
+Measuring red's 220 ohm resistor with a multi-meter show its OL.  Replacing the
 200 ohm resistor fixes the issue.
 
 The same type of missing color block can be caused by the input from the
