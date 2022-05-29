@@ -1,10 +1,10 @@
 ### RAM Address Tests
 ---
 
-The RAM address tests consists of writing a incrementing byte to RAM
+The RAM address tests consist of writing an incrementing byte to RAM
 addresses then going back and re-reading to verify the bytes match up with
 what was written.  Because there are only 256 possible values of a byte, the
-test is broken up to into 2.
+test is broken up into 2.
 
 1. RAM locations 0xf800 to 0xf8ff (address lines a0 to a7), writing an
 incrementing byte at each memory location.
