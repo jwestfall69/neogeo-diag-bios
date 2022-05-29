@@ -24,7 +24,7 @@ while zone3's counter will increase every 8x2KB chunks.
 
 When doing the bankswitch testing these counters are checked to make sure
 they match up with the expected values based on the zone size and bank offset
-within the 96KB.  If any of them end up not matching it will results in one of
+within the 96KB.  If any of them end up not matching it will result in one of
 the following errors:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
@@ -34,5 +34,5 @@ the following errors:
 |  0x16 |     22 |    010110 |       x0 / 22 | M1 BANK ERROR (4K) |
 |  0x17 |     23 |    010111 |       x0 / 23 | M1 BANK ERROR (2K) |
 
-Note: The ordering in which the different zones are tested goes zone3,
+Note: The ordering in which the different zones are tested goes to zone3,
 zone2, zone1, and then zone0.
