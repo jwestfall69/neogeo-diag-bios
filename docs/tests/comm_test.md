@@ -6,8 +6,8 @@ at a time between them in each direction.  If the proper [boot option](../boot_o
 
 **Slot Switch:**<br>
 On MVS hardware (except for MV-1B/C boards) when the board powers on, the Z80
-will boot running the program code on the sm1 rom.  Its up to the bios to switch
-to a cartridges m1 rom (and s1 rom).  Under nominal conditions the slot switch
+will boot running the program code on the sm1 rom.  It's up to the bios to switch
+to a cartridge m1 rom (and s1 rom).  Under nominal conditions the slot switch
 should happen as follows:
 
 1. bios -> z80/sm1: prepare for slot switch (0x01)
@@ -20,16 +20,16 @@ should happen as follows:
 More in depth details can be found on the [Z80 Communication](https://wiki.neogeodev.org/index.php?title=68k/Z80_communication) page of the [Neo-Geo Dev Wiki](https://wiki.neogeodev.org/index.php?title=Main_Page).
 
 The AES and MV-1B/C board do not have a built in sm1 rom and will directly
-boot the carts m1 rom.  Thus a slot switch is not needed for the diag bios
-to do the comm test for these boards.  The diag bios is able to detect AES
-hardware and won't do a slot switch if you enable the comm test.  Its
-impossible to tell if a board is an MV-1B/C vs other 1 slot board, so its
+boot the carts m1 rom. Thus, a slot switch is not needed for the diag bios
+to do the comm test for these boards. The diag bios is able to detect AES
+hardware and won't do a slot switch if you enable the comm test. It's
+impossible to tell if a board is an MV-1B/C vs other 1 slot board, so it's
 necessary to let the diag bios know it shouldn't do a slot switch by pressing
 B+D during power on.
 
 The diag bios will also attempt to auto-detect the diag m1 on AES and MV-1B/C
 boards by doing a quick check for the HELLO (0xc3) message from the diag m1.  If
-the message is seen it will auto enable the comm test.
+the message is seen, it will auto-enable the comm test.
 
 If the comm test is enabled it will print `[M1]` on the top right of the
 screen.  If a slot switch is performed it will also print `[SS#]` on the
@@ -65,14 +65,14 @@ IF MV-1B/1C: SOFT RESET & HOLD B
 PRESS START TO CONTINUE
 ```
 
-This message is indicating the diag bios requested the z80/sm1 prepare for the
+This message is indicating the diag bios requested the z80/sm1 to prepare for the
 slot switch, but the z80/sm1 never replied back or replied with the wrong
 response.
 
 Pressing start to continue will force the switch even though the Z80/sm1 might
-not be in the proper state to handle it.  Specifically the program counter (PC)
-of the Z80 maybe be within the rom space, which will get swapped out beneath
-it by the slot switch.  This can lead to a crash of the Z80 or execution of
+not be in the proper state to handle it. Specifically the program counter (PC)
+of the Z80 may be within the rom space, which will get swapped out beneath
+it by the slot switch. This can lead to a crash of the Z80 or execution of
 the diag m1 code starting at the current PC instead of 0x0000 or NMI.  The
 diag m1 has code in it that attempts to recover from this situation if/when an
 IRQ/NMI is received by jumping to its expected entry point function.  Also the
@@ -81,12 +81,12 @@ to jump to the IRQ handler.
 
 **Comm Test:**<br>
 The comm test requires both the diag bios and diag m1 to be running their
-respected comm test code.  Both run tests before running their comm test
+respective comm test code. Both run tests before running their comm test
 code, which can cause variance for when they start their comm test.  To cope
-with this variance in timing both will wait up to 5 seconds for the initial
+with this variance in timing, both will wait up to 5 seconds for the initial
 request from the other.
 
-Under nominal conditions the comm tests will go something like this
+Under normal conditions the comm tests will go something like this
 
 1. bios: wait for HELLO (0xc3) message<sup>1</sub>
 2. m1 -> bios: send HELLO (0xc3) message
@@ -99,8 +99,8 @@ Under nominal conditions the comm tests will go something like this
 
 <sup>1</sup>As mentioned above the diag m1 runs some tests before the comm test,
 if one of those tests fails the diag m1 will send the [error code] & 0x40
-instead of the HELLO message.  The diag bios is also looking for those error
-messages while waiting for the HELLO message. If one is encountered the error
+instead of the HELLO message. The diag bios is also looking for those error
+messages while waiting for the HELLO message. If one is encountered; the error
 message will be displayed and the comm test will stop.
 
 If the diag bios doesn't receive the HELLO or ACK message it will result in the
@@ -121,13 +121,13 @@ following error code:
 | ----: | -----: | --------: | :-----------: | :--------- |
 |  0x0c |     12 |    001100 |       x0 / 12 | 68k->Z80 COMM ISSUE (HANDSHAKE) |
 
-I believe its unlikely for the diag bios to ever get this error code, if it
-could you would think the comm test would have passed.  So you will like only
-hear a beep code for it.  If you have the diag m1 rom cart installed in an
+I believe it's unlikely for the diag bios to ever get this error code, if it
+could you would think the comm test would have passed. So you will only
+hear a beep code for it. If you have the diag m1 rom cart installed in an
 AES or MV-1B/C board and don't enable the comm test, you will get this
 beep code.
 
-Additionally the diag m1 will attempt to clear the receive data port, if this
+Additionally the diag m1 will attempt to clear the received data port, if this
 fails it will result in the following error code:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
@@ -135,8 +135,8 @@ fails it will result in the following error code:
 |  0x0d |     13 |    001101 |       x0 / 13 | 68k->Z80 COMM ISSUE (CLEAR) |
 
 **Post Comm Test:**<br>
-Once the comm test is successful the diag m1 will continue on with its remaining
-tests.  If the it encounters an error, it will send the [error code] & 0x40 to
+Once the comm test is successful, the diag m1 will continue on with its remaining
+tests. If it encounters an error, it will send the [error code] & 0x40 to
 the diag bios or 0xe7 to indicate all tests were successful.  While this is
 going the diag bios will display
 
@@ -145,6 +145,6 @@ WAITING FOR Z80 TO FINISH TESTS...
 ```
 
 and be in a holding pattern until the diag m1 provides an [error code] & 0x40 or
-the 0x7e message.  Once this happens the diag m1 will go into a holding pattern
+the 0x7e message. Once this happens the diag m1 will go into a holding pattern
 waiting for the diag bios to send it an error code for beep code generation and
-the diag bios continues with it's remaining tests.
+the diag bios continues with its remaining tests.
