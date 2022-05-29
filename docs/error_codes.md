@@ -8,10 +8,10 @@ This document contains a list of possible errors that may occur.
 The diag m1 (when active) supports generating a beep code to help identify
 an error that may not be visible from a corrupt/bad video output.
 
-The diag m1 may generate a beep code by itself, if it detects an issue with in
+The diag m1 may generate a beep code by itself, if it detects an issue within
 the audio/Z80 subsystem, or it may play one on behalf of the diag bios.  An
 error code sent from the diag bios to the diag m1 will only happen after the
-(successful) 68k <=> Z80 comm test.  As such any diag bios test that happens
+(successful) 68k <=> Z80 comm test.  As such, any diag bios test that happens
 before the comm test will not generate a beep code.  These tests are identified
 by the beep code having an * in front of it in the 68k Error codes table below.
 Error codes >= 0x80 will not generate a beep code.
