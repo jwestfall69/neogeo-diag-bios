@@ -2,10 +2,10 @@
 ---
 
 #### BIOS/68k Automatic Tests:
-Below is a breakdown of the tests and the order they are preformed during
+Below is a breakdown of the tests and the order they are performed during
 automatic testing.
 
-This first chunk of tests are written such that they don't touch work ram.
+This first chunk of tests are written such that they don't touch the work ram.
 * [Watchdog Stuck Test](tests/68k/watchdog_stuck.md)
 * [BIOS Upper Address](tests/68k/bios_upper_address.md)
 * [BIOS CRC32 Test](tests/68k/bios_crc.md)
