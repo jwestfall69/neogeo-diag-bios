@@ -15,12 +15,11 @@
 	section text
 
 ; Attempts to read from ram.  If the chip never gets enabled
-; d1 will be filled with the last data on the data bus,
-; which would be part of the preceding move.b instruction.
-; The "move.b (a0), d1" instruction translates to $1210 in
-; machine code.  When doing an upper ram test if d1 contains
-; $12 its assumed the ram read didnt happen, likewise for
-; lower if d1 contains $10 for lower.
+; d1 will be filled with the next data on the data bus, which
+; would be the next instruction because of prefetching.  We do
+; the move.b 3 times with 3 different instructions after it. If
+; the data loaded into d1 is the next instruction for all of
+; them it will trigger an error
 ; params:
 ;  a0 = address
 ;  d0 = 0 (upper chip) or 1 (lower chip)

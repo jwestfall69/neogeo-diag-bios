@@ -2,9 +2,8 @@
 ---
 
 When trying to load data from a ram chip into a register and ram chip doesn't
-output anything, it often results in the last data read on the data bus ending
-up in the register.  Because of instruction prefetching, this ends up being
-(part) of the instruction after our `move.b (a0), d1` instruction.
+output anything, it often results in the next instruction (because of prefetching)
+ending up in the register.
 
 A loop is used with each loop containing 3 tests where the instruction after
 the `move.b (a0), d1` instruction is different.  If all 3 of these test fail
