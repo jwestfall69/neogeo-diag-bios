@@ -5,6 +5,7 @@
 	global check_reset_request
 	global delay_dsub
 	global error_to_credit_leds_dsub
+	global get_slot_count
 	global loop_d_pressed
 	global loop_reset_check
 	global loop_reset_check_dsub
@@ -144,6 +145,41 @@ copy_memory:
 		WATCHDOG
 		rts
 
+; params:
+;  none
+; returns:
+;  d0 = number of slots the board has
+; bit6 of REG_SYSTYPE | bit5 of REG_STATUS_A | slot count
+;---------------------+----------------------+-----------
+;         0           |         0            | 2 slot
+;         0           |         1            | 1 slot
+;         1           |         0            | 4 slot
+;         1           |         1            | 6 slot
+get_slot_count:
+		tst.b	REG_STATUS_B
+		bpl	.one_slot		; aes
+
+		btst	#6, REG_SYSTYPE
+		bne	.four_or_six_slot
+
+		btst	#5, REG_STATUS_A
+		bne	.one_slot
+		moveq	#2, d0
+		rts
+
+	.four_or_six_slot:
+		btst	#5, REG_STATUS_A
+		bne	.six_slot
+		moveq	#4, d0
+		rts
+
+	.six_slot:
+		moveq	#6, d0
+		rts
+
+	.one_slot:
+		moveq	#1, d0
+		rts
 
 ; params:
 ;  d0 = inverse byte mask for player1 inputs we care about

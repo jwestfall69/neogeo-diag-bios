@@ -74,24 +74,11 @@ misc_input_update_dynamic:
 		moveq	#$12, d1
 		RSUB	print_xy_string
 
-		btst	#$6, REG_SYSTYPE
-		bne	.system_4_or_6_slots
-		lea	STR_12SLOT, a0
-		bra	.system_type_print
-
-	.system_4_or_6_slots:
-		btst	#$5, REG_STATUS_A
-		bne	.system_6_slot
-		lea	STR_4SLOT, a0
-		bra	.system_type_print
-
-	.system_6_slot:
-		lea	STR_6SLOT, a0
-
-	.system_type_print:
-		moveq	#$19, d0
+		bsr	get_slot_count
+		move.b	d0, d2
+		moveq	#$1b, d0
 		moveq	#$12, d1
-		RSUB	print_xy_string
+		RSUB	print_digit
 
 		move.b	REG_DIPSW, d2
 		not.b	d2
@@ -207,12 +194,9 @@ MI_ITEM_TYPE:	MISC_INPUT_ITEM $07, $38, $00, $00, STR_TYPE, STR_TYPE_AES, STR_TY
 MI_ITEM_CFG_A:	MISC_INPUT_ITEM $05, $32, $00, $01, STR_CFG_A, STR_CFG_A_LOW, STR_CFG_A_HIGH
 MI_ITEM_CFG_B:	MISC_INPUT_ITEM $06, $30, $00, $81, STR_CFG_B, STR_CFG_B_LOW, STR_CFG_B_HIGH
 
-STR_SYSTEM_CONFIG_AS:		STRING "SYSTEM CONFIGURED AS "
-STR_12SLOT:			STRING "1SLOT/2SLOT"
-STR_4SLOT:			STRING "4SLOT      ";
-STR_6SLOT:			STRING "6SLOT      ";
-
 STR_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
+
+STR_SYSTEM_CONFIG_AS:		STRING "SYSTEM CONFIGURED AS A   SLOT"
 
 XY_STR_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
 XY_STR_SYSTEM_TYPE:		XY_STRING  4, 13, "SYSTEM TYPE:"
