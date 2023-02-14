@@ -6,6 +6,7 @@
 	global check_ram_address_dsub
 	global check_ram_data_dsub
 	global check_ram_oe_dsub
+	global check_ram_to_245_oe_dsub
 	global check_ram_we_dsub
 	global check_vram_address
 	global check_vram_data
@@ -46,6 +47,44 @@ check_ram_oe_dsub:
 	.test_passed:
 		dbeq	d2, .loop_test_again
 		seq	d0
+		DSUB_RETURN
+
+
+; memcard and (on some boards) p rom there is a bus transceiver (74LS245,
+; NEO-G0, NEO-BUF) between it and the CPU.  This test attempts to detect
+; when the memcard or p rom has dead output.  When this happens the most
+; common result is we will get the last writtn imm value to it.  Note for
+; palette ram the result always seems to be $ff. I'm unclear why this is
+; but palette ram has its own 245 check for this.
+; params:
+;  d0 = mask
+;  a0 = start address
+; return:
+;  d0 = $00 (pass) or $ff (fail)
+check_ram_to_245_oe_dsub:
+		move.w	#$5555, (4, a0)
+		move.w	(a0), d1
+		move.w	#$5555, d2
+
+		and.w	d0, d1
+		and.w	d0, d2
+		cmp.w	d1, d2
+		bne	.test_passed
+
+		move.w	#$aaaa, (8, a0)
+		move.w	(a0), d1
+		move.w	#$aaaa, d2
+
+		and.w	d0, d1
+		and.w	d0, d2
+		cmp.w	d1, d2
+		bne	.test_passed
+
+		moveq	#-1, d0
+		DSUB_RETURN
+
+	.test_passed:
+		moveq	#0, d0
 		DSUB_RETURN
 
 ; params:

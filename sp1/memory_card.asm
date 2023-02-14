@@ -218,46 +218,14 @@ memcard_oe_tests:
 	.test_passed_memory_output_upper:
 		move.w	#$ff, d0
 		lea	MEMCARD_START, a0
-		bsr	check_memcard_to_245_output
+		RSUB	check_ram_to_245_oe
+		tst.b	d0
 		beq	.test_passed_memcard_to_245_output_lower
 		move.b	#EC_MC_DEAD_OUTPUT_LOWER, d0
 		rts
 
 	.test_passed_memcard_to_245_output_lower:
 		moveq	#$0, d0
-		rts
-
-; Both palette ram and memcard memory exist behind 2x245s or a NEO-G0.  Howver
-; we seem to get different results when the underly memory is not outputting
-; anything.  For palette ram we always get $ff, while for the memcard we get
-; the last written (imm) value to it.  Its unclear why this is (wait cycles?).
-; Additionally the check_palette_ram_to_245_output function is writing a
-; single memory address up to 255 times, which isn't a good idea as repro
-; memcards usually are fram based and have ~10k write cycles.
-check_memcard_to_245_output:
-		move.w  #$5555, (4, a0)
-		move.w  (a0), d1
-		move.w  #$5555, d2
-
-		and.w	d0, d1
-		and.w	d0, d2
-		cmp.w	d1, d2
-		bne	.test_passed
-
-		move.w	#$aaaa, (8, a0)
-		move.w	(a0), d1
-		move.w	#$aaaa, d2
-
-		and.w	d0, d1
-		and.w	d0, d2
-		cmp.w	d1, d2
-		bne	.test_passed
-
-		moveq	#-1, d0
-		rts
-
-	.test_passed:
-		moveq	#0, d0
 		rts
 
 ; figure out if the card has a 8 bit, 16 bit or 16 bit double wide data bus
