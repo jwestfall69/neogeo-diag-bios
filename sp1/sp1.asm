@@ -384,6 +384,7 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_MISC_INPUT_TEST, manual_misc_input_tests, 0
 	MAIN_MENU_ITEM STR_CPU_PAL_ADDR_TEST, manual_cpu_pal_addr_test, 0
 	MAIN_MENU_ITEM STR_MEMCARD_TESTS, manual_memcard_tests, 0
+	MAIN_MENU_ITEM STR_P_ROM_BUS_TESTS, manual_p_rom_bus_tests, 0
 MAIN_MENU_ITEMS_END:
 
 

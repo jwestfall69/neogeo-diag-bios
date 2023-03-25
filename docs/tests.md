@@ -185,6 +185,27 @@ At this point work ram starts getting used.
      * Pattern 0xaaaa
      * Pattern 0xffff
    * [Memory Card Address Test](tests/68k/memcard_address.md)
+ * [P ROM Bus Tests (Custom Cart)](tests/68k/p_rom_bus.md)
+   * [P ROM Bus Output Tests](tests/68k/p_rom_output.md)
+     * P1 ROM Bus 245/NEO-G0/NEO-BUF Lower
+     * P1 ROM Bus 245/NEO-G0/NEO-BUF Upper
+     * P2 ROM Bus 245/NEO-G0/NEO-BUF Lower
+     * P2 ROM Bus 245/NEO-G0/NEO-BUF Upper
+     * P1 ROM Bus Lower
+     * P1 ROM Bus Upper
+     * P2 ROM Bus Lower
+     * P2 ROM Bus Upper
+   * [P2 ROM Bus Writable](tests/68k/p_rom_writable.md)
+     * P2 ROM Bus Lower
+     * P2 ROM Bus Upper
+   * [P ROM Bus Data Tests](tests/68k/p_rom_data_bus.md)
+     * Pattern 0x0000
+     * Pattern 0x5555
+     * Pattern 0xaaaa
+     * Pattern 0xffff
+   * [P ROM Bus Address Tests](tests/68k/p_rom_address_bus.md)
+
+
 
 
  #### M1/Z80 Tests:
