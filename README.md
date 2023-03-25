@@ -16,7 +16,7 @@ original smkdan roms.
 ## Pre-Built
 You can grab the lastest build from the master branch at
 
-https://www.mvs-scans.com/neogeo-diag-bios/19a01-master.zip
+https://www.mvs-scans.com/neogeo-diag-bios/19a02-master.zip
 
 ## Building
 Building requires vasm and vlink, which are available here

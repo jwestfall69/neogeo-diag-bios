@@ -1,7 +1,11 @@
 # Change Log
 ---
 
-#### v0.19a01 (master)
+#### v0.19a02 (master)
+* SP1: P ROM Bus Tests (requires custom cart)
+* SP1: Properly detect 1 slot vs 2 slot boards
+
+#### v0.19a01
 * SP1: Re-implement color bars so they work on AES
 * SP1: Add SMPTE color bars
 * SP1: Go back to main menu after manual work/backup ram test
