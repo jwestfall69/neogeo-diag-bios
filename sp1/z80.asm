@@ -294,7 +294,7 @@ print_comm_error:
 
 		move.w	(a7)+, d2
 		moveq	#14, d0
-		moveq	#8, d1
+		moveq	#12, d1
 		RSUB	print_hex_byte				; expected value
 
 		move.b	REG_SOUND, d2
