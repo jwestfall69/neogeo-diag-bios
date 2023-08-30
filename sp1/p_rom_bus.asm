@@ -65,12 +65,22 @@ manual_p_rom_bus_tests:
 		rts
 
 	.run_tests:
-		; blindy tell SM1 to prepare for slot switch
-		; so the cart M1 doesn't run.  This won't work
-		; if the user ran the diag m1 rom on boot.
+
+		tst.b	REG_STATUS_B		; aes system
+		bpl	.skip_slot_switch
+
+		tst.b	z80_test_flags		; z80 tests were run
+		bne	.skip_sm1_stall
+
+		; if z80 tests weren't run, make the sm1 stall
+		; by telling it to prepare for slot switch.  This
+		; should prevent the diag m1 from becoming active
+		; when we switch slots to do the p rom tests
 		move.b	#$01, REG_SOUND
 		move.l	#$1388, d0
 		RSUB	delay
+
+	.skip_sm1_stall:
 
 		subq	#1, d5
 		move.b	d5, REG_SLOT
@@ -128,18 +138,33 @@ manual_p_rom_bus_tests:
 		bra 	.test_exit
 
 	.test_exit:
+		bsr	p_rom_fixup_z80_flags
 		move.b	d0, REG_BRDFIX
 		SSA3	fix_clear
 		rts
 
 	.test_failed_abort:
 		RSUB	print_error
+		bsr	p_rom_fixup_z80_flags
 		move.b	d0, REG_BRDFIX
 
 	.loop_wait_input_return_menu:
 		WATCHDOG
 		btst	#D_BUTTON, REG_P1CNT
 		bne	.loop_wait_input_return_menu
+		rts
+
+; On p rom bus test completing we switch to the sm1 rom (where
+; valid).  If the user did the z80 tests on boot and a slot
+; switch happened, we need to clear out the z80 flags.  This will
+; cause us to send the sm1 stall code if the user were to run the
+; p rom bus test again, otherwise the diag m1 code we run.
+p_rom_fixup_z80_flags:
+		btst	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
+		beq	.no_change
+		clr.b	z80_test_flags
+
+	.no_change:
 		rts
 
 ; Some 1 slot boards have their p roms directly connected
