@@ -6,6 +6,7 @@
 
 	global auto_z80_tests
 	global z80_slot_switch
+	global z80_slot_switch_bypass_sm1
 
 	section text
 
@@ -31,6 +32,8 @@ auto_z80_tests:
 z80_slot_switch:
 
 		bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
+
+z80_slot_switch_bypass_sm1:
 
 		lea	XY_STR_Z80_SWITCHING_M1, a0
 		RSUB	print_xy_string_struct_clear
@@ -107,6 +110,8 @@ slot_switch_ignored:
 		RSUB	print_xy_string_struct_clear
 		lea	XY_STR_Z80_MV1BC_HOLD_B, a0
 		RSUB	print_xy_string_struct_clear
+		lea XY_STR_Z80_SM1_BYPASS_HOLD_C, a0
+		RSUB	print_xy_string_struct_clear
 		lea	XY_STR_Z80_PRESS_START, a0
 		RSUB	print_xy_string_struct_clear
 
@@ -135,6 +140,8 @@ slot_switch_ignored:
 		moveq	#16, d0
 		SSA3	fix_clear_line
 		moveq	#18, d0
+		SSA3	fix_clear_line
+		moveq	#19, d0
 		SSA3	fix_clear_line
 		rts
 
@@ -348,6 +355,7 @@ XY_STR_Z80_SM1_IGNORED:		XY_STRING  3,  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
 XY_STR_Z80_SM1_RESPONSIVE:	XY_STRING  3,  7, "SM1 RESPONSE"
 XY_STR_Z80_PRESS_START:		XY_STRING  3, 16, "PRESS START TO FORCE SLOT SWITCH"
 XY_STR_Z80_MV1BC_HOLD_B:	XY_STRING  3, 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
+XY_STR_Z80_SM1_BYPASS_HOLD_C:	XY_STRING  3, 19, "IF SM1 BYPASS: SOFT RST & HOLD C+D"
 XY_STR_Z80_TESTING_COMM_PORT:	XY_STRING  4,  5, "TESTING Z80 COMM. PORT..."
 XY_STR_Z80_COMM_NO_HELLO:	XY_STRING  4,  5, "Z80->68k COMM ISSUE (HELLO)"
 XY_STR_Z80_COMM_NO_ACK:		XY_STRING  4,  5, "Z80->68k COMM ISSUE (ACK)"

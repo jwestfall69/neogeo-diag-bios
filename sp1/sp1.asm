@@ -83,6 +83,12 @@ automatic_tests:
 		btst	#5, REG_P1CNT
 		beq	.skip_slot_switch		; skip slot switch if P1 "B" is pressed
 
+		btst	#6, REG_P1CNT
+		bne .no_bypass
+		bsr	z80_slot_switch_bypass_sm1		; slot switch but no come back to sm1 if P1 "C" is pressed
+		bra .skip_slot_switch
+
+    .no_bypass:
 		bsr	z80_slot_switch
 
 	.skip_slot_switch:
