@@ -8,9 +8,9 @@ of the diag bios.  These are outlined below
 | :---------- | :------- |
 | none         | Automatic testing without diag m1 tests |
 | A+B+C+D      | Go directly to the menu system |
-| C            | Do a backup RAM test on AES.  This would only be valid if you did a hardware mod that added backup ram to your AES |
 | D            | Automatic testing with diag m1 tests using slot 1.  Slot switch will be performed on MVS hardware |
 | B+D          | Automatic testing with diag m1 tests, no slot switch.  (Use if MV-1B/C MVS Boards) |
+| C            | Skip SM1 OE/CRC tests if diag m1 tests are enabled |
 | D+UP         | Automatic testing with diag m1 tests using slot 2 |
 | D+UP+RIGHT   | Automatic testing with diag m1 tests using slot 3 |
 | D+RIGHT      | Automatic testing with diag m1 tests using slot 4 |

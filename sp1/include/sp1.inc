@@ -30,6 +30,7 @@ memcard_flags			equ $100022
 ; bits we can set/check in z80_test_flags
 Z80_TEST_FLAG_ENABLED		equ $0
 Z80_TEST_FLAG_SLOT_SWITCH	equ $1
+Z80_TEST_FLAG_SKIP_SM1_TESTS	equ $2
 
 ; bits for p1/2_input_edge
 UP				equ $0

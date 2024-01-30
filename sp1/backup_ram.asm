@@ -12,8 +12,6 @@
 auto_backup_ram_tests:
 		tst.b	REG_STATUS_B			; do test if MVS
 		bmi	.do_tests
-		btst	#$6, REG_P1CNT			; do test if AES and C pressed
-		beq	.do_tests
 		moveq	#0, d0
 		rts
 

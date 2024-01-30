@@ -83,6 +83,13 @@ automatic_tests:
 		btst	#5, REG_P1CNT
 		beq	.skip_slot_switch		; skip slot switch if P1 "B" is pressed
 
+		btst	#6, REG_P1CNT			; if P1 "C", add flag to bypass SM1 OE/CRC tests
+		bne	.do_slot_switch
+
+		bset.b	#Z80_TEST_FLAG_SKIP_SM1_TESTS, z80_test_flags
+
+	.do_slot_switch:
+
 		bsr	z80_slot_switch
 
 	.skip_slot_switch:

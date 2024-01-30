@@ -181,14 +181,12 @@ check_sm1_test:
 		cmp.b	#COMM_SM1_TEST_SWITCH_SM1, d0
 		bne	.check_swap_to_m1
 
-		btst	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags		; only allow if we did a slot switch
-		bne	.switch_sm1_allow
+		btst	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags		; deny, no sm1 because there was no slot switch
+		beq	.deny_sm1_tests
 
-		move.b  #COMM_SM1_TEST_SWITCH_SM1_DENY, REG_SOUND
-		bsr	z80_wait_clear
-		rts
+		btst	#Z80_TEST_FLAG_SKIP_SM1_TESTS, z80_test_flags		; deny, user requests no sm1 tests
+		bne	.deny_sm1_tests
 
-	.switch_sm1_allow:
 		move.b	d0, REG_BRDFIX
 		move.b	#COMM_SM1_TEST_SWITCH_SM1_DONE, REG_SOUND
 
@@ -198,17 +196,22 @@ check_sm1_test:
 		bsr	z80_wait_clear
 		rts
 
+	.deny_sm1_tests:
+		move.b  #COMM_SM1_TEST_SWITCH_SM1_DENY, REG_SOUND
+		bsr	z80_wait_clear
+		rts
+
 	.check_swap_to_m1:
 		; diag m1 asking us to swap sm1 -> m1
 		cmp.b	#COMM_SM1_TEST_SWITCH_M1, d0
-		bne	.no_swaps
+		bne	.no_swap_back_requested
 
 		move.b	d0, REG_CRTFIX
 		move.b	#COMM_SM1_TEST_SWITCH_M1_DONE, REG_SOUND
 
 		bsr	z80_wait_clear
 
-	.no_swaps:
+	.no_swap_back_requested:
 		rts
 
 ; d0 = loop until we stop getting this byte from z80
