@@ -16,6 +16,9 @@ auto_z80_tests:
 		lea	XY_STR_Z80_TESTING_COMM_PORT, a0
 		RSUB	print_xy_string_struct_clear
 
+		lea	XY_STR_Z80_SND_REG, a0
+		RSUB	print_xy_string_struct_clear
+
 		bsr	start_comm_test
 
 	.loop_try_again:
@@ -25,6 +28,9 @@ auto_z80_tests:
 		bsr	check_done
 		bne	.loop_try_again
 
+		; clears out the SND REG: line
+		moveq	#10, d0
+		SSA3	fix_clear_line
 		rts
 
 ; swiches to cart M1/S1 roms;
@@ -238,6 +244,8 @@ start_comm_test:
 		move.w	#4000, d0
 		RSUB	delay
 
+		bsr	print_reg_sound
+
 	.loop_start_wait_hello:
 		cmp.b	REG_SOUND, d1
 		dbeq	d2, .loop_wait_hello
@@ -258,6 +266,8 @@ start_comm_test:
 		move.w	#4000, d0
 		RSUB	delay
 
+		bsr	print_reg_sound
+
 	.loop_start_wait_ack:
 		cmp.b	REG_SOUND, d1
 		dbeq	d2, .loop_wait_ack
@@ -274,6 +284,15 @@ start_comm_test:
 	.print_comm_error:
 		move.b	d1, d0
 		bra	print_comm_error
+
+print_reg_sound:
+		movem.l	d0-d2, -(a7)
+		move.b	REG_SOUND, d2
+		moveq	#14, d0
+		moveq	#10, d1
+		RSUB	print_hex_byte
+		movem.l	(a7)+, d0-d2
+		rts
 
 ; prints the z80 related communication error
 ; params:
@@ -361,3 +380,4 @@ XY_STR_Z80_CART_CLEAN:		XY_STRING  4, 22, "CART IS CLEAN AND FUNCTIONAL."
 XY_STR_Z80_M1_ENABLED:		XY_STRING 34,  4, "[M1]"
 XY_STR_Z80_SLOT_SWITCH_NUM:	XY_STRING 29,  4, "[SS ]"
 XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
+XY_STR_Z80_SND_REG:		XY_STRING  4, 10, "SND REG: "
