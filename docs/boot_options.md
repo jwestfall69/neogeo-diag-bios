@@ -7,6 +7,7 @@ of the diag bios.  These are outlined below
 | Button Combo | Behavior |
 | :---------- | :------- |
 | none         | Automatic testing without diag m1 tests |
+| A            | Press and Hold A during boot will enabled [error addresses](error_codes.md) |
 | A+B+C+D      | Go directly to the menu system |
 | D            | Automatic testing with diag m1 tests using slot 1.  Slot switch will be performed on MVS hardware |
 | B+D          | Automatic testing with diag m1 tests, no slot switch.  (Use if MV-1B/C MVS Boards) |

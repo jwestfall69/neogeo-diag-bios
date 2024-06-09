@@ -1,10 +1,10 @@
 
 # Error Codes
----
 
-This document contains a list of possible errors that may occur.
+This document contains a list of possible errors that may occur and how
+those error are communicated to the user.
 
-#### Beep Codes:
+### Beep Codes:
 The diag m1 (when active) supports generating a beep code to help identify
 an error that may not be visible from a corrupt/bad video output.
 
@@ -23,7 +23,7 @@ left to right.
 Z80 / diag m1 generated errors have 6 beeps.<br>
 68k / diag bios generated errors have 7 beeps.
 
-#### Credit Leds:
+### Credit Leds:
 On MVS hardware the diag bios will also display the error number on the
 player1/2 credit leds.  Player 1 credit leds will have the 2 upper digits of the
 error and Player 2 the lower 2 digits.  The neo geo hardware doesn't seem to
@@ -32,7 +32,52 @@ it off/empty.  Error codes >= 0x80 will not display to the credit leds.
 
 In the tables below a value of 'x' in meant to represent the digit is off/empty.
 
-#### Z80 Error Codes:
+### Error Addresses:
+Error addresses are an additional way to get the error code, specifically in the case
+where your screen/fix layer is messed up and don't have a diag cart or sound isn't working.
+
+To enable error addresses you need to press and hold down 'A' while automatic tests
+are running.  If an error is encountered during automatic testing, after printing
+the error, if the 'A' button is pressed it will cause the CPU to jump to specific
+addresses in the diag rom that are a tight loop. The address it jumps to (and stays
+near) will have the error code encoded into the address.
+
+68k CPU error address = `0xc06000 | (error_code << 5)`
+
+Using a logic probe you probe the 68k's address lines to figure out the error code.
+
+| ADDRESS LINE | MEANING | DIP CPU PIN | PLCC CPU PIN |
+|---|---|---|---|
+| A1 | None (pulsing) | 29 | 32 |
+| A2 | None (pulsing) | 30 | 33 |
+| A3 | None (low) | 31 | 34 |
+| A4 | None (low) | 32 | 35 |
+| A5 | Error Code Bit 0 | 33 | 36 |
+| A6 | Error Code Bit 1 | 34 | 37 |
+| A7 | Error Code Bit 2 | 35 | 38 |
+| A8 | Error Code Bit 3 | 36 | 39 |
+| A9 | Error Code Bit 4 | 37 | 40 |
+| A10 | Error Code Bit 5 | 38| 41 |
+| A11 | Error Code Bit 6 | 39 | 42 |
+| A12 | Error Code Bit 7 (always low) | 40 | 43 |
+| A13 | None (pulsing)| 41 | 44 |
+| A14 | None (pulsing)| 42 | 45 |
+| A15 | None (low)| 43 | 46 |
+| A16 | None (low)| 44 | 47 |
+| A17 | None (low)| 45 | 48 |
+| A18 | None (low)| 46 | 49 |
+| A19 | None (low)| 47 | 50 |
+| A20 | None (low)| 48 | 51 |
+
+When probing the error code address lines, if its pulsing consider it a 1, if its 100%
+low its a 0. You should first verify that A12-A15 are low, pulsing, pulsing, low as shown
+in the table to confirm the diag bios successfully jumped to an error address.  Once you
+have the error code byte look it up in the 68k Error Codes table below.
+
+Additionally, if an error address is jumped to it should print "ERROR ADDRESS TRIGGERED"
+near the bottom of the screen.
+
+### Z80 Error Codes:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |
@@ -61,7 +106,7 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x18 |     24 |    011000 |       x0 / 24 | [YM2610 TIMER INIT (FLAG)](tests/z80/ym2610_timer_flag.md) |
 |  0x19 |     25 |    011001 |       x0 / 25 | [YM2610 TIMER INIT (IRQ)](tests/z80/ym2610_timer_irq.md) |
 
-#### 68k Error Codes:
+### 68k Error Codes:
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |
@@ -126,7 +171,7 @@ In the tables below a value of 'x' in meant to represent the digit is off/empty.
 |  0x85 |    133 |       N/A |           N/A | [MEMCARD DATA](tests/68k/memcard_data.md) |
 |  0x88 |    136 |       N/A |           N/A | [MEMCARD ADDRESS](tests/68k/memcard_address.md) |
 
-#### 68k Errors, No Error Code:
+### 68k Errors, No Error Code:
 The following are error messages that do not generate an error code.
 
 These are all associated with the [68k <=> Z80 Comm Test](tests/comm_test.md).

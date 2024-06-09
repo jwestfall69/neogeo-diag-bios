@@ -1,7 +1,8 @@
 # Change Log
 ---
-
 #### v0.19a02 (master)
+* SP1: Add error addresses
+* SP1: Continually print sound latch value during 68k/z80 comm test
 * SP1: P ROM Bus Tests (requires custom cart)
 * SP1: Properly detect 1 slot vs 2 slot boards
 

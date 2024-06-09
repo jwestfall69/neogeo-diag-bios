@@ -7,6 +7,7 @@ OBJS = obj/backup_ram.o \
        obj/controller.o \
        obj/cpu_pal_addr.o \
        obj/dsub.o \
+       obj/error_address.o \
        obj/fix_util.o \
        obj/footer.o \
        obj/memory_card.o \
