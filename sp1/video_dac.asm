@@ -24,23 +24,23 @@ manual_video_dac_tests:
 		bsr	p1p2_input_update
 		bsr	wait_frame
 
-		btst	#A_BUTTON, p1_input_edge
+		btst	#A_BUTTON, r_p1_input_edge
 		beq	.a_not_pressed
 		bsr	draw_fullscreen
 		bra	manual_video_dac_tests		; jump to the top so we clear shadow/darker bit
 	.a_not_pressed:
 
-		btst	#B_BUTTON, p1_input_edge
+		btst	#B_BUTTON, r_p1_input_edge
 		beq	.b_not_pressed
 		bsr	toggle_darker_bit
 	.b_not_pressed:
 
-		btst	#C_BUTTON, p1_input_edge
+		btst	#C_BUTTON, r_p1_input_edge
 		beq	.c_not_pressed
 		bsr	toggle_reg_shadow
 	.c_not_pressed:
 
-		btst	#D_BUTTON, p1_input_edge	; D pressed?
+		btst	#D_BUTTON, r_p1_input_edge	; D pressed?
 		beq	.loop_run_test
 
 		; we dont need to worry about cleaning up palettes, but
@@ -73,7 +73,7 @@ draw_fullscreen:
 		bsr	p1p2_input_update
 		bsr	wait_frame
 
-		btst	#UP, p1_input_edge
+		btst	#UP, r_p1_input_edge
 		beq	.up_not_pressed
 		subq.b	#2, d4
 		bpl	.redraw_fullscreen
@@ -81,7 +81,7 @@ draw_fullscreen:
 		bra	.redraw_fullscreen
 	.up_not_pressed:
 
-		btst	#DOWN, p1_input_edge
+		btst	#DOWN, r_p1_input_edge
 		beq	.down_not_pressed
 		addq.b	#2, d4
 		cmp.b	#8, d4
@@ -90,7 +90,7 @@ draw_fullscreen:
 		bra	.redraw_fullscreen
 	.down_not_pressed:
 
-		btst	#RIGHT, p1_input_edge
+		btst	#RIGHT, r_p1_input_edge
 		beq	.right_not_pressed
 		add.w	#$1000, d3
 		cmp.w	#FS_TILE_BASE_PAL_MAX + $1000, d3
@@ -99,7 +99,7 @@ draw_fullscreen:
 		bra	.redraw_fullscreen
 	.right_not_pressed:
 
-		btst	#LEFT, p1_input_edge
+		btst	#LEFT, r_p1_input_edge
 		beq	.left_not_pressed
 		sub.w	#$1000, d3
 		cmp.w	#FS_TILE_BASE_PAL_MIN, d3
@@ -113,19 +113,19 @@ draw_fullscreen:
 		SSA3	fix_fill
 
 	.left_not_pressed:
-		btst	#B_BUTTON, p1_input_edge
+		btst	#B_BUTTON, r_p1_input_edge
 		beq	.b_not_pressed
 		movem.l d0-d1/a0, -(a7)
 		bsr	toggle_darker_bit
 		movem.l (a7)+, d0-d1/a0
 	.b_not_pressed:
 
-		btst	#C_BUTTON, p1_input_edge
+		btst	#C_BUTTON, r_p1_input_edge
 		beq	.c_not_pressed
 		bsr	toggle_reg_shadow
 	.c_not_pressed:
 
-		btst	#D_BUTTON, p1_input_edge
+		btst	#D_BUTTON, r_p1_input_edge
 		beq	.loop_input
 		rts
 

@@ -19,6 +19,16 @@
 	global wait_p1_input
 	global wait_scanline
 
+	global r_p1_input
+	global r_p1_input_edge
+	global r_p1_input_aux
+	global r_p1_input_aux_edge
+
+	global r_p2_input
+	global r_p2_input_edge
+	global r_p2_input_aux
+	global r_p2_input_aux_edge
+
 	section code
 
 ; params:
@@ -102,12 +112,13 @@ check_reset_request:
 		move.w	(a7)+, d0
 		rts
 
+PALETTE_BACKUP_SIZE	equ $2000		; in bytes
 ; backup palette ram to PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_backup:
 		movem.l	d0/a0-a1, -(a7)
 		lea	PALETTE_RAM_START, a0
-		lea	PALETTE_RAM_BACKUP_LOCATION, a1
-		move.w	#$2000, d0
+		lea	r_palette_backup, a1
+		move.w	#PALETTE_BACKUP_SIZE, d0
 		bsr	copy_memory
 		movem.l	(a7)+, d0/a0-a1
 		rts
@@ -115,9 +126,9 @@ palette_ram_backup:
 ; restore palette ram from PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
 palette_ram_restore:
 		movem.l	d0/a0-a1, -(a7)
-		lea	PALETTE_RAM_BACKUP_LOCATION, a0
+		lea	r_palette_backup, a0
 		lea	PALETTE_RAM_START, a1
-		move.w	#$2000, d0
+		move.w	#PALETTE_BACKUP_SIZE, d0
 		bsr	copy_memory
 		movem.l	(a7)+, d0/a0-a1
 		rts
@@ -230,36 +241,36 @@ p1p2_input_update:
 p1_input_update:
 		move.b	REG_P1CNT, d0
 		not.b	d0
-		move.b	p1_input, d1
+		move.b	r_p1_input, d1
 		eor.b	d0, d1
 		and.b	d0, d1
-		move.b	d1, p1_input_edge
-		move.b	d0, p1_input
+		move.b	d1, r_p1_input_edge
+		move.b	d0, r_p1_input
 		move.b	REG_STATUS_B, d0
 		not.b	d0
-		move.b	p1_input_aux, d1
+		move.b	r_p1_input_aux, d1
 		eor.b	d0, d1
 		and.b	d0, d1
-		move.b	d1, p1_input_aux_edge
-		move.b	d0, p1_input_aux
+		move.b	d1, r_p1_input_aux_edge
+		move.b	d0, r_p1_input_aux
 		rts
 
 p2_input_update:
 		move.b	REG_P2CNT, d0
 		not.b	d0
-		move.b	p2_input, d1
+		move.b	r_p2_input, d1
 		eor.b	d0, d1
 		and.b	d0, d1
-		move.b	d1, p2_input_edge
-		move.b	d0, p2_input
+		move.b	d1, r_p2_input_edge
+		move.b	d0, r_p2_input
 		move.b	REG_STATUS_B, d0
 		lsr.b	#2, d0
 		not.b	d0
-		move.b	p2_input_aux, d1
+		move.b	r_p2_input_aux, d1
 		eor.b	d0, d1
 		and.b	d0, d1
-		move.b	d1, p2_input_aux_edge
-		move.b	d0, p2_input_aux
+		move.b	d1, r_p2_input_aux_edge
+		move.b	d0, r_p2_input_aux
 		rts
 
 ; params:
@@ -347,5 +358,18 @@ print_hold_ss_to_reset:
 
 	section data
 
-STR_HOLD_SS_TO_RESET:			STRING "HOLD START/SELECT TO SOFT RESET"
-STR_RELEASE_SS:				STRING "RELEASE START/SELECT"
+STR_HOLD_SS_TO_RESET:		STRING "HOLD START/SELECT TO SOFT RESET"
+STR_RELEASE_SS:			STRING "RELEASE START/SELECT"
+
+	section bss
+
+r_p1_input:			dc.b $0
+r_p1_input_edge:		dc.b $0
+r_p1_input_aux:			dc.b $0
+r_p1_input_aux_edge:		dc.b $0
+r_p2_input:			dc.b $0
+r_p2_input_edge:		dc.b $0
+r_p2_input_aux:			dc.b $0
+r_p2_input_aux_edge:		dc.b $0
+
+r_palette_backup:		dcb.b PALETTE_BACKUP_SIZE

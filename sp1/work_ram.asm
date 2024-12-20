@@ -56,7 +56,7 @@ manual_work_ram_tests:
 		SSA3	fix_clear
 
 		; re-init stuff and return to menu
-		move.b	#5, main_menu_cursor
+		move.b	#5, r_main_menu_cursor
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 		bra	manual_tests

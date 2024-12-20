@@ -15,7 +15,7 @@ manual_misc_input_tests:
 		bsr	p1p2_input_update
 		bsr	misc_input_update_dynamic
 		bsr	wait_frame
-		btst	#D_BUTTON, p1_input_edge
+		btst	#D_BUTTON, r_p1_input_edge
 		beq	.loop_run_test			; if d pressed, exit test
 		rts
 

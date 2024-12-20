@@ -35,7 +35,7 @@ manual_calendar_tests:
 		bsr	p1_input_update
 
 		bsr	rtc_print_data
-		move.b	p1_input_edge, d0
+		move.b	r_p1_input_edge, d0
 		add.b	d0, d0
 		bcs	.test_exit			; d pressed, exit test
 
@@ -78,7 +78,7 @@ rtc_set_4096_hz:
 
 rtc_update_hz:
 		move.w	#$20, ($4,a6)		; Reload counter as soon as REG_TIMERLOW is written to
-		clr.w	timer_count
+		clr.w	r_timer_count
 		bsr	rtc_send_command
 
 		move.l	d1, -(a7)
@@ -105,7 +105,7 @@ rtc_print_data:
 
 		moveq	#14, d0
 		moveq	#12, d1
-		move.w	timer_count, d2
+		move.w	r_timer_count, d2
 		RSUB	print_hex_word
 
 		moveq	#14, d0
@@ -160,15 +160,15 @@ rtc_wait_pulse:
 		WATCHDOG
 		btst	#$6, REG_STATUS_A
 		beq	.loop_rtc_pulse_low
-		move.b	#$40, rtc_pulse_state
+		move.b	#$40, r_rtc_pulse_state
 		rts
 
 ; if there is a new pulse, Z will be set
 rtc_check_pulse:
 		moveq	#$40, d0
 		and.b	REG_STATUS_A, d0
-		move.b	rtc_pulse_state, d1
-		move.b	d0, rtc_pulse_state
+		move.b	r_rtc_pulse_state, d1
+		move.b	d0, r_rtc_pulse_state
 		eor.b	d0, d1
 		and.b	d0, d1
 		rts
@@ -185,3 +185,6 @@ XY_STR_A_1HZ_PULSE:		XY_STRING  4, 24, "A: 1Hz pulse"
 XY_STR_B_64HZ_PULSE:		XY_STRING  4, 25, "B: 64Hz pulse"
 XY_STR_C_4096HZ_PULSE:		XY_STRING  4, 26, "C: 4096Hz pulse"
 
+	section bss
+
+r_rtc_pulse_state:		dc.b $0

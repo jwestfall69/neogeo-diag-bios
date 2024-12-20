@@ -6,14 +6,14 @@
 
 	global _start
 	global manual_tests
-	global timer_interrupt
-	global vblank_interrupt
 	global XY_STR_A_TO_RESUME
 	global XY_STR_D_MAIN_MENU
 	global XY_STR_ADDRESS
 	global XY_STR_ACTUAL
 	global XY_STR_EXPECTED
 	global XY_STR_PASSES
+
+	global r_main_menu_cursor
 
 	section code
 
@@ -23,10 +23,10 @@
 _start:
 		WATCHDOG
 		clr.b	REG_POUTPUT
-		clr.b	p1_input
-		clr.b	p1_input_edge
-		clr.b	p1_input_aux
-		clr.b	p1_input_aux_edge
+		clr.b	r_p1_input
+		clr.b	r_p1_input_edge
+		clr.b	r_p1_input_aux
+		clr.b	r_p1_input_aux_edge
 		move.w	#7, REG_IRQACK
 		move.w	#$4000, REG_LSPCMODE
 		lea	REG_VRAMRW, a6					; a6 will always be REG_VRAMRW
@@ -45,7 +45,7 @@ _start:
 
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
-		clr.b	main_menu_cursor
+		clr.b	r_main_menu_cursor
 		bra	manual_tests
 
 automatic_tests:
@@ -56,7 +56,7 @@ automatic_tests:
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 
-		clr.b	z80_test_flags
+		clr.b	r_z80_test_flags
 
 		; auto-detect m1 by checking for the HELLO message (ie diag m1 + AES or MV-1B/C)
 		move.b	#COMM_TEST_HELLO, d1
@@ -72,7 +72,7 @@ automatic_tests:
 
 	.z80_test_enabled:
 
-		bset.b	#Z80_TEST_FLAG_ENABLED, z80_test_flags
+		bset.b	#Z80_TEST_FLAG_ENABLED, r_z80_test_flags
 
 		cmp.b	REG_SOUND, d1
 		beq	.skip_slot_switch		; skip slot switch if auto-detected m1
@@ -86,7 +86,7 @@ automatic_tests:
 		btst	#6, REG_P1CNT			; if P1 "C", add flag to bypass SM1 OE/CRC tests
 		bne	.do_slot_switch
 
-		bset.b	#Z80_TEST_FLAG_SKIP_SM1_TESTS, z80_test_flags
+		bset.b	#Z80_TEST_FLAG_SKIP_SM1_TESTS, r_z80_test_flags
 
 	.do_slot_switch:
 
@@ -107,7 +107,7 @@ automatic_tests:
 		lea	XY_STR_ABCD_MAIN_MENU, a0
 		RSUB	print_xy_string_struct_clear
 
-		tst.b	z80_test_flags
+		tst.b	r_z80_test_flags
 
 		bne	.loop_user_input
 
@@ -130,7 +130,7 @@ automatic_tests:
 
 		movea.l	$0, a7			; re-init SP
 		moveq	#DSUB_INIT_REAL, d7	; init dsub for real subroutines
-		clr.b	main_menu_cursor
+		clr.b	r_main_menu_cursor
 		SSA3	fix_clear
 		bra	manual_tests
 
@@ -212,7 +212,7 @@ automatic_function_tests:
 		move.w	(a7)+, d0
 		move.b	d0, d6
 
-		tst.b	z80_test_flags			; if z80 test enabled, send error code to z80
+		tst.b	r_z80_test_flags		; if z80 test enabled, send error code to z80
 		beq	.skip_error_to_z80
 		move.b	d0, REG_SOUND
 
@@ -313,12 +313,12 @@ main_menu_loop:
 
 		moveq	#4, d0
 		moveq	#5, d1
-		add.b	main_menu_cursor, d1
+		add.b	r_main_menu_cursor, d1
 		moveq	#$11, d2
 		RSUB	print_xy_char				; draw arrow
 
-		move.b	main_menu_cursor, d1
-		move.b	p1_input_edge, d0
+		move.b	r_main_menu_cursor, d1
+		move.b	r_p1_input_edge, d0
 		btst	#UP, d0					; see if p1 up pressed
 		beq	.up_not_pressed
 
@@ -340,8 +340,8 @@ main_menu_loop:
 		move.w	d1, -(a7)
 		moveq	#4, d0
 		moveq	#5, d1
-		add.b	main_menu_cursor, d1
-		move.b	(1,a7), main_menu_cursor
+		add.b	r_main_menu_cursor, d1
+		move.b	(1,a7), r_main_menu_cursor
 		moveq	#$20, d2
 		RSUB	print_xy_char				; replace existing arrow with space
 
@@ -352,14 +352,14 @@ main_menu_loop:
 		RSUB	print_xy_char				; draw arrow at new location
 
 	.check_a_pressed:
-		btst	#A_BUTTON, p1_input_edge		; 'a' pressed?
+		btst	#A_BUTTON, r_p1_input_edge		; 'a' pressed?
 		bne	.a_pressed
 		bsr	wait_frame
 		bra	.loop_run_menu
 
 	.a_pressed:						; 'a' was pressed, do stuff
 		clr.w	d0
-		move.b	main_menu_cursor, d0
+		move.b	r_main_menu_cursor, d0
 		mulu.w	#$a, d0					; find the offset within the main_menu_items array
 		lea	(MAIN_MENU_ITEMS_START,PC,d0.w), a1
 
@@ -407,24 +407,6 @@ MAIN_MENU_ITEMS_START:
 	MAIN_MENU_ITEM STR_P_ROM_BUS_TESTS, manual_p_rom_bus_tests, 0
 MAIN_MENU_ITEMS_END:
 
-
-vblank_interrupt:
-		WATCHDOG
-		move.w	#$4, REG_IRQACK
-		tst.b	$100000.l		; this seems like dead code since nothing
-		beq	.exit_interrupt		; else touches $10000(0|2) as a variable..
-		movem.l	d0-d7/a0-a6, -(a7)
-		addq.w	#1, $100002.l
-		movem.l	(a7)+, d0-d7/a0-a6
-		clr.b	$100000.l
-	.exit_interrupt:
-		rte
-
-timer_interrupt:
-		addq.w	#$1, timer_count
-		move.w	#$2, ($a,a6)		; ack int
-		rte
-
 	section data
 
 STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
@@ -456,3 +438,7 @@ STR_TESTING_PALETTE_RAM:	STRING "TESTING PALETTE RAM..."
 STR_TESTING_VIDEO_RAM_2K:	STRING "TESTING VIDEO RAM (2K)..."
 STR_TESTING_VIDEO_RAM_32K:	STRING "TESTING VIDEO RAM (32K)..."
 STR_TESTING_MMIO:		STRING "TESTING MMIO..."
+
+	section bss
+
+r_main_menu_cursor:		dc.b $0

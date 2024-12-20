@@ -35,7 +35,7 @@ manual_p_rom_bus_tests:
 		bsr	wait_frame
 		bsr	p1p2_input_update
 
-		move.b	p1_input_edge, d0
+		move.b	r_p1_input_edge, d0
 		btst	#D_BUTTON, d0
 		bne	.dont_run_tests
 
@@ -55,7 +55,7 @@ manual_p_rom_bus_tests:
 		moveq	#1, d5
 
 	.right_not_pressed:
-		move.b	p1_input, d0
+		move.b	r_p1_input, d0
 		and.b	#$50, d0
 		cmp.b	#$50, d0		; if A+C pressed, run tests
 		beq	.run_tests
@@ -69,7 +69,7 @@ manual_p_rom_bus_tests:
 		tst.b	REG_STATUS_B		; aes system
 		bpl	.skip_slot_switch
 
-		tst.b	z80_test_flags		; z80 tests were run
+		tst.b	r_z80_test_flags	; z80 tests were run
 		bne	.skip_sm1_stall
 
 		; if z80 tests weren't run, make the sm1 stall
@@ -160,9 +160,9 @@ manual_p_rom_bus_tests:
 ; cause us to send the sm1 stall code if the user were to run the
 ; p rom bus test again, otherwise the diag m1 code we run.
 p_rom_fixup_z80_flags:
-		btst	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
+		btst	#Z80_TEST_FLAG_SLOT_SWITCH, r_z80_test_flags
 		beq	.no_change
-		clr.b	z80_test_flags
+		clr.b	r_z80_test_flags
 
 	.no_change:
 		rts

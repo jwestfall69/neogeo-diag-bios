@@ -74,8 +74,8 @@ update_player_data:
 		bsr	p1p2_input_update
 
 		clr.w	d0
-		move.b	p1_input, d0
-		move.b	p1_input_aux, d1
+		move.b	r_p1_input, d0
+		move.b	r_p1_input_aux, d1
 		lsl.w	#8, d1
 		or.w	d1, d0			; merge input/input_aux into d0
 		move.b	d3, d1
@@ -85,8 +85,8 @@ update_player_data:
 		movem.w	(a7)+, d3/d6
 
 		clr.w	d0
-		move.b	p2_input, d0
-		move.b	p2_input_aux, d1
+		move.b	r_p2_input, d0
+		move.b	r_p2_input_aux, d1
 		lsl.w	#8, d1
 		or.w	d1, d0
 		move.b	d3, d1

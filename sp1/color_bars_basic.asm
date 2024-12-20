@@ -35,7 +35,7 @@ manual_color_bars_basic_test:
 		move.b	d0, REG_PALBANK0
 
 		bsr	p1p2_input_update
-		btst	#D_BUTTON, p1_input_edge	; D pressed?
+		btst	#D_BUTTON, r_p1_input_edge	; D pressed?
 		beq	.loop_run_test
 
 		; palette1 was clobbered, restore our gray on black
@@ -49,7 +49,7 @@ setup_palettes:
 		move.b	d0, REG_PALBANK1
 		clr.w	PALETTE_REFERENCE
 		clr.w	PALETTE_BACKDROP
-		move.l  #$7fff0000, PALETTE_RAM_START+$2	; white on black for text
+		move.l	#$7fff0000, PALETTE_RAM_START+$2	; white on black for text
 
 		move.l	#$00010111, d0				; bluewhite
 		bsr	setup_palette_bank
@@ -83,7 +83,7 @@ draw_tiles:
 
 		moveq	#$e, d1				; 15 total shades in the gradients
 		move.w	#$1000, d4			; palette1, tile 0x00
-		move.w  #$1020, d5			; palette1, tile 0x20
+		move.w	#$1020, d5			; palette1, tile 0x20
 
 	.loop_next_shade:
 		moveq	#$1, d2				; each gradient shade is 2 tiles wide

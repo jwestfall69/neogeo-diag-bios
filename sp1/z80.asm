@@ -7,6 +7,8 @@
 	global auto_z80_tests
 	global z80_slot_switch
 
+	global r_z80_test_flags
+
 	section code
 
 auto_z80_tests:
@@ -36,7 +38,7 @@ auto_z80_tests:
 ; swiches to cart M1/S1 roms;
 z80_slot_switch:
 
-		bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags
+		bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, r_z80_test_flags
 
 		lea	XY_STR_Z80_SWITCHING_M1, a0
 		RSUB	print_xy_string_struct_clear
@@ -187,10 +189,10 @@ check_sm1_test:
 		cmp.b	#COMM_SM1_TEST_SWITCH_SM1, d0
 		bne	.check_swap_to_m1
 
-		btst	#Z80_TEST_FLAG_SLOT_SWITCH, z80_test_flags		; deny, no sm1 because there was no slot switch
+		btst	#Z80_TEST_FLAG_SLOT_SWITCH, r_z80_test_flags		; deny, no sm1 because there was no slot switch
 		beq	.deny_sm1_tests
 
-		btst	#Z80_TEST_FLAG_SKIP_SM1_TESTS, z80_test_flags		; deny, user requests no sm1 tests
+		btst	#Z80_TEST_FLAG_SKIP_SM1_TESTS, r_z80_test_flags		; deny, user requests no sm1 tests
 		bne	.deny_sm1_tests
 
 		move.b	d0, REG_BRDFIX
@@ -383,3 +385,7 @@ XY_STR_Z80_M1_ENABLED:		XY_STRING 34,  4, "[M1]"
 XY_STR_Z80_SLOT_SWITCH_NUM:	XY_STRING 29,  4, "[SS ]"
 XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
 XY_STR_Z80_SND_REG:		XY_STRING  4, 10, "SND REG: "
+
+	section bss
+
+r_z80_test_flags:		dc.b $0

@@ -63,7 +63,7 @@ manual_memcard_tests:
 		bsr	p1p2_input_update
 		bsr	wait_frame
 
-		move.b	p1_input, d0
+		move.b	r_p1_input, d0
 		btst	#D_BUTTON, d0
 		bne	.dont_run_tests
 
@@ -90,8 +90,8 @@ manual_memcard_tests:
 		move.b	d0, REG_CRDBANK
 		move.b	d0, REG_CRDUNLOCK1
 		move.b  d0, REG_CRDUNLOCK2
-		clr.b	memcard_flags
-		clr.l	memcard_size
+		clr.b	r_memcard_flags
+		clr.l	r_memcard_size
 
 		bsr	memcard_oe_tests
 		bne	.test_failed_abort
@@ -103,7 +103,7 @@ manual_memcard_tests:
 		RSUB	print_xy_string_struct_clear
 
 		; add (BAD DATA) if we weren't able to detect
-		btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
+		btst	#MEMCARD_FLAG_BAD_DATA, r_memcard_flags
 		beq	.skip_bad_data
 		lea	XY_STR_BAD_DATA, a0
 		RSUB	print_xy_string_struct
@@ -111,7 +111,7 @@ manual_memcard_tests:
 	.skip_bad_data:
 
 		lea	XY_STR_DBUS_8BIT, a0
-		btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.print_dbus_size
 		lea	XY_STR_DBUS_16BIT, a0
 
@@ -119,7 +119,7 @@ manual_memcard_tests:
 		RSUB	print_xy_string_struct_clear
 
 		; add (WIDE) if double wide bus
-		btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		beq	.print_size
 		lea	XY_STR_DBUS_WIDE, a0
 		RSUB	print_xy_string_struct
@@ -130,7 +130,7 @@ manual_memcard_tests:
 
 		moveq	#13, d0
 		moveq	#25, d1
-		move.l	memcard_size, d2
+		move.l	r_memcard_size, d2
 
 		cmp.l	#1024,d2
 		blt	.print_size_bytes
@@ -177,7 +177,7 @@ manual_memcard_tests:
 		bsr	p1p2_input_update
 		bsr	wait_frame
 
-		btst	#D_BUTTON, p1_input_edge
+		btst	#D_BUTTON, r_p1_input_edge
 		beq	.loop_wait_input_return_menu		; if d pressed, exit test
 
 		rts
@@ -246,7 +246,7 @@ memcard_get_bit_width:
 		; upper byte doesn't match, assume 8bit, but could be corrupt too
 		cmp.w	#$aaaa, d0
 		bne	.is_8bit
-		bset.b	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		bset.b	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 
 		; check for double wide
 		move.w	#$5555, (2, a0)
@@ -255,11 +255,11 @@ memcard_get_bit_width:
 		rts
 
 	.is_16bit_wide:
-		bset.b	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		bset.b	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		rts
 
 	.bad_data:
-		bset.b	#MEMCARD_FLAG_BAD_DATA, memcard_flags
+		bset.b	#MEMCARD_FLAG_BAD_DATA, r_memcard_flags
 
 	.is_8bit:
 		rts
@@ -282,7 +282,7 @@ memcard_get_bit_width:
 memcard_get_size:
 
 		; bad data, assume stock neo geo card size (2k)
-		btst	#MEMCARD_FLAG_BAD_DATA, memcard_flags
+		btst	#MEMCARD_FLAG_BAD_DATA, r_memcard_flags
 		bne	.bad_data
 
 		moveq	#4, d1			; test offset
@@ -324,9 +324,9 @@ memcard_get_size:
 		; 16bit wide cards only 1/2 of the address space contains actual memory
 		; card data.  So we need to adjust to get the correct memory card data size.
 		; For other cards, data size = address size.
-		btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.adjust_size
-		btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		bne	.adjust_size
 		bra	.skip_adjust_size
 
@@ -334,11 +334,11 @@ memcard_get_size:
 		lsr.l	#$1, d2
 
 	.skip_adjust_size:
-		move.l	d2, memcard_size
+		move.l	d2, r_memcard_size
 		rts
 
 	.bad_data:
-		move.l	#2048, memcard_size
+		move.l	#2048, r_memcard_size
 		rts
 
 memcard_we_tests:
@@ -351,7 +351,7 @@ memcard_we_tests:
 
 	.test_passed_lower:
 		; only test upper if 16bit
-		btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.test_passed_upper
 
 		move.w	#$ff00, d0
@@ -438,21 +438,21 @@ memcard_data_tests:
 check_memcard_data:
 
 		lea	MEMCARD_START, a0
-		move.l	memcard_size, d1
+		move.l	r_memcard_size, d1
 
 		move.w	#$ff, d3	; compare mask, default is lower byte only
 		moveq	#2, d4		; address increment amount
 		move.w	d0, d5
 		eor.w	#-1, d5		; poison value
 
-		btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.finished_adjustments
 
 		; 16 bit
 		lsr.l	#$1, d1		; adjust length since we will be reading in words
 		move.w	#$ffff, d3	; adjust mask to check upper byte
 
-		btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		beq	.finished_adjustments
 		moveq	#4, d4		; wide is every other word
 
@@ -506,19 +506,19 @@ memcard_address_tests:
 ; Write an incrementing value at each address line
 ; Read back those values and make sure they are correct.
 check_memcard_address:
-		move.l	memcard_size, d0
+		move.l	r_memcard_size, d0
 
 		move.w	#$ff, d1	; compare mask, default is lower byte only
-		btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.skip_adjust_mask
 		move.w	#$ffff, d1
 
 	.skip_adjust_mask:
 
 		; need to adjust memcard_size to address size
-		btst	#MEMCARD_FLAG_DBUS_16BIT, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.adjust_size
-		btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		bne	.adjust_size
 		bra	.skip_adjust_size
 
@@ -534,7 +534,7 @@ check_memcard_address:
 		move.w	d2, (a0)
 
 		; wide bus, skip 800002
-		btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		beq	.loop_write_next_address
 		lsl.l	#1, d3
 		add.w	#$101, d2
@@ -566,7 +566,7 @@ check_memcard_address:
 		bne	.test_failed
 
 		; wide bus, skip 800002
-		btst	#MEMCARD_FLAG_DBUS_WIDE, memcard_flags
+		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		beq	.loop_read_next_address
 		lsl.l	#1, d3
 		add.w	#$101, d2
@@ -615,3 +615,10 @@ XY_STR_SIZE:			XY_STRING  8, 25, "SIZE:      KB"
 XY_STR_SIZE_BYTES:		XY_STRING 19, 25, "BYTES"
 XY_STR_TESTS_PASSED:		XY_STRING  4,  9, "ALL TESTS PASSED"
 XY_STR_RUNNING_TESTS:		XY_STRING  4,  9, "RUNNING TESTS..."
+
+	section bss
+
+	align 2
+
+r_memcard_size:			dc.l $0
+r_memcard_flags:		dc.b $0

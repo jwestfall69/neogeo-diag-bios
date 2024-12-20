@@ -37,7 +37,7 @@ fix_seek_xy_ssa3:
 		ext.w	d1
 		lsl.w	#5, d0
 		or.w	d1, d0
-		or.w	#FIXMAP, d0
+		or.w	#FIXMAP_START, d0
 		move.w	d0, (-2,a6)
 		SSA3_RETURN
 
@@ -46,7 +46,7 @@ fix_seek_xy_ssa3:
 ;  d0 = line to clear
 fix_clear_line_ssa3:
 		ext.w	d0
-		add.w	#FIXMAP, d0
+		add.w	#FIXMAP_START, d0
 		move.w	d0, (-2,a6)
 		move.w	#$20, (2,a6)
 		moveq	#$20, d0
@@ -63,7 +63,7 @@ fix_clear_ssa3:
 ; fills the entire fix layer with a tile
 ; d0 = tile
 fix_fill_ssa3:
-		move.w	#FIXMAP, (-2,a6)
+		move.w	#FIXMAP_START, (-2,a6)
 		move.w	#1, (2,a6)
 		move.w	#$4ff, d1
 	.loop_next_tile:
@@ -322,12 +322,13 @@ print_digits_dsub:
 		dbra	d1, .loop_pad_space
 		DSUB_RETURN
 
+FIXMAP_BACKUP_SIZE	equ $800	; in words
 fix_backup:
 		movem.l	d0/a0, -(a7)
-		lea	FIXMAP_BACKUP_LOCATION, a0
-		move.w	#FIXMAP, (-2,a6)
+		lea	r_fixmap_backup, a0
+		move.w	#FIXMAP_START, (-2,a6)
 		move.w	#1, (2,a6)
-		move.w	#$7ff, d0
+		move.w	#(FIXMAP_BACKUP_SIZE - 1), d0
 
 	.loop_next_address:
 		nop
@@ -340,13 +341,18 @@ fix_backup:
 
 fix_restore:
 		movem.l	d0/a0, -(a7)
-		lea	FIXMAP_BACKUP_LOCATION, a0
-		move.w	#FIXMAP, (-2,a6)
+		lea	r_fixmap_backup, a0
+		move.w	#FIXMAP_START, (-2,a6)
 		move.w	#1, (2,a6)
-		move.w	#$7ff, d0
+		move.w	#(FIXMAP_BACKUP_SIZE - 1), d0
 
 	.loop_next_address:
 		move.w	(a0)+, (a6)
 		dbra	d0, .loop_next_address
 		movem.l	(a7)+, d0/a0
 		rts
+
+	section	bss
+	align 2
+
+r_fixmap_backup:	dcb.w FIXMAP_BACKUP_SIZE

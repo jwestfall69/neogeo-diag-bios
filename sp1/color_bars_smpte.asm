@@ -14,7 +14,7 @@ manual_color_bars_smpte_test:
 	.loop_run_test:
 		WATCHDOG
 		bsr	p1p2_input_update
-		btst	#D_BUTTON, p1_input_edge	; D pressed?
+		btst	#D_BUTTON, r_p1_input_edge	; D pressed?
 		beq	.loop_run_test
 		rts
 
@@ -35,7 +35,7 @@ setup_palettes:
 
 
 draw_sections:
-		move.w	#FIXMAP + 2, d1		; start 2nd row down
+		move.w	#FIXMAP_START + 2, d1	; start 2nd row down
 		move.w	#$20, (2,a6)		; draw tiles left to right
 
 		lea	TOP_SECTION, a0
@@ -89,7 +89,7 @@ draw_section:
 
 	section data
 
-STR_COLOR_BARS_SMPTE:	  STRING "COLOR BARS SMPTE"
+STR_COLOR_BARS_SMPTE:	STRING "COLOR BARS SMPTE"
 
 SMPTE_COLORS:
 	dc.w	SMPTE_BLACK
