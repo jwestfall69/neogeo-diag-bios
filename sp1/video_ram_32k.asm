@@ -7,7 +7,7 @@
 	global manual_video_ram_32k_tests
 	global STR_VRAM_TEST_LOOP_32K
 
-	section text
+	section code
 
 auto_video_ram_32k_tests:
 		bsr	fix_backup

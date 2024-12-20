@@ -5,7 +5,7 @@
 	global manual_controller_tests
 	global STR_CONTROLLER_TESTS
 
-	section	text
+	section code
 
 	manual_controller_tests:
 		moveq	#$5, d0

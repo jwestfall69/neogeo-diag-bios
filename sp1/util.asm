@@ -19,7 +19,7 @@
 	global wait_p1_input
 	global wait_scanline
 
-	section text
+	section code
 
 ; params:
 ;  d0 * 2.5us = how long to delay

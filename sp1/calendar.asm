@@ -5,7 +5,7 @@
 	global manual_calendar_tests
 	global STR_CALENDAR_IO
 
-	section	text
+	section code
 
 manual_calendar_tests:
 		lea	XY_STR_A_1HZ_PULSE, a0

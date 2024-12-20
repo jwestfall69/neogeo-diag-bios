@@ -7,7 +7,7 @@
 	global print_error_dsub
 	global print_error_z80
 
-	section text
+	section code
 
 ; figure out error description and print error dsub
 ; params:

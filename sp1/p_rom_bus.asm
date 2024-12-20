@@ -6,7 +6,7 @@
 	global manual_p_rom_bus_tests
 	global STR_P_ROM_BUS_TESTS
 
-	section text
+	section code
 
 manual_p_rom_bus_tests:
 		lea	XY_STR_SLOT_NUM, a0

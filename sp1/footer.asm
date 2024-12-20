@@ -1,4 +1,4 @@
-	section footer,data
+	section footer
 
 		; these get filled in by gen-crc-mirror
 		dc.b 	$00			; bios mirror, $00 is running copy, $01 1st copy, $02 2nd, $03 3rd

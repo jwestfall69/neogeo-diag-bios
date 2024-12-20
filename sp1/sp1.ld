@@ -1,24 +1,25 @@
 MEMORY {
-	VECTORS: org=0xc00000, len=0x80
-	ROM: org=0xc00080, len=0x5f80
-	ERR: org=0xc06000, len=0x1ffb
-	FOOTER: org=0xc07ffb, len=0x5 
+	ROM: org=0xc00000, len=0x8000
+	RAM: org=0x100000, len=0x10000
 }
 
 SECTIONS {
-	.vectors: {
+	.vectors 0xc00000: {
 		*(vectors)
-	} >VECTORS
-
-	.rom: {
-		*(text)
-	} >ROM
-
-	.error_addresses: {
+	} > ROM
+	.code 0xc00080: {
+		*(code)
+	} > ROM
+	.data: {
+		*(data)
+	} > ROM
+	.error_addresses 0xc06000: {
 		*(error_addresses)
-	} >ERR
-
-	.footer: {
+	} > ROM
+	.footer 0xc07ffb: {
 		*(footer)
-	} >FOOTER
+	} > ROM
+	.bss (NOLOAD): {
+		*(bss)
+	} > RAM
 }

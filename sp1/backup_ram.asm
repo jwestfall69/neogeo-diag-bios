@@ -7,7 +7,7 @@
 	global manual_backup_ram_tests
 	global STR_BACKUP_RAM_TEST_LOOP
 
-	section text
+	section code
 
 auto_backup_ram_tests:
 		tst.b	REG_STATUS_B			; do test if MVS

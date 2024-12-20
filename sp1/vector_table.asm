@@ -1,6 +1,6 @@
 	include "sp1.inc"
 
-	section vectors,data
+	section vectors
 
 		dc.l	SP_INIT_ADDR
 		dc.l	_start

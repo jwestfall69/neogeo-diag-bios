@@ -4,7 +4,7 @@
 
 	global watchdog_stuck_test_dsub
 
-	section text
+	section code
 
 watchdog_stuck_test_dsub:
 		lea	XY_STR_WATCHDOG_DELAY, a0

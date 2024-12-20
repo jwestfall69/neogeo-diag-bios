@@ -15,7 +15,7 @@
 	global XY_STR_EXPECTED
 	global XY_STR_PASSES
 
-	section	text
+	section code
 
 ;force_z80_tests 	equ 1
 

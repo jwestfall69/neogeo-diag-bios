@@ -26,7 +26,7 @@
 	global print_xy_string_struct_clear_dsub
 	global print_xyp_string
 
-	section text
+	section code
 
 ; set vram addr so its at location x,y of fix layer
 ; params:

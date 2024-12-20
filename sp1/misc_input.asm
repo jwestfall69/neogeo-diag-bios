@@ -5,7 +5,7 @@
 	global manual_misc_input_tests
 	global STR_MISC_INPUT_TEST
 
-	section text
+	section code
 
 manual_misc_input_tests:
 		lea	XY_STR_D_MAIN_MENU, a0

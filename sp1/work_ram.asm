@@ -10,7 +10,7 @@
 	global manual_work_ram_tests
 	global STR_WORK_RAM_TEST_LOOP
 
-	section text
+	section code
 
 manual_work_ram_tests:
 		lea	XY_STR_PASSES,a0

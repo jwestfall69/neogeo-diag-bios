@@ -5,7 +5,7 @@
 	global manual_cpu_pal_addr_test
 	global STR_CPU_PAL_ADDR_TEST
 
-	section text
+	section code
 
 manual_cpu_pal_addr_test:
 

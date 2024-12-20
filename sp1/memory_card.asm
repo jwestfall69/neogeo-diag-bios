@@ -6,7 +6,7 @@
 	global manual_memcard_tests
 	global STR_MEMCARD_TESTS
 
-	section text
+	section code
 
 ; notes:
 ; - 68k a1 line to wired to a0 of memcard slot

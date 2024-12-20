@@ -13,7 +13,7 @@
 	global check_vram_we
 	global check_vram_oe
 
-	section text
+	section code
 
 ; Attempts to read from ram.  If the chip never gets enabled
 ; d1 will be filled with the next data on the data bus, which

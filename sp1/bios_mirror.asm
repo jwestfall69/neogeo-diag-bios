@@ -5,7 +5,7 @@
 
 	global auto_bios_mirror_test_dsub
 
-	section text
+	section code
 
 ; The bios code is only 32k ($8000).  3 copies/mirrors
 ; of it are used to fill the entire 128k of the bios rom.

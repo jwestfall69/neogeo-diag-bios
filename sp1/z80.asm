@@ -7,7 +7,7 @@
 	global auto_z80_tests
 	global z80_slot_switch
 
-	section text
+	section code
 
 auto_z80_tests:
 		lea	XY_STR_Z80_M1_ENABLED, a0

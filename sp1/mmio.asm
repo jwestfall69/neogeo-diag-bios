@@ -5,7 +5,7 @@
 
 	global auto_mmio_tests
 
-	section text
+	section code
 
 auto_mmio_tests:
 		bsr	check_mmio_oe

@@ -5,7 +5,7 @@
 	global manual_video_dac_tests
 	global STR_VIDEO_DAC_TESTS
 
-	section text
+	section code
 
 ; A button = enter full screen mode
 ; B button = toggle darker bit

@@ -1,7 +1,7 @@
 	global dsub_enter
 	global dsub_return
 
-	section text
+	section code
 
 ; dsub_enter/dsub_return allows creating and using dynamic subroutines.
 ; There are 2 modes for calling dynamic subroutines.

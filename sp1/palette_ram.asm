@@ -7,7 +7,7 @@
 	global manual_palette_ram_tests
 	global STR_PAL_RAM_TEST_LOOP
 
-	section text
+	section code
 
 auto_palette_ram_tests:
 		bsr	palette_ram_backup

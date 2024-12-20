@@ -5,7 +5,7 @@
 
 	global auto_bios_crc32_test_dsub
 
-	section text
+	section code
 
 ; verifies the bios crc is correct.  The expected crc32 value
 ; are the 4 bytes located at $7ffc ($c07ffc) of the bios.

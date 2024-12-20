@@ -3,7 +3,7 @@
 
 	global error_address_dsub
 
-	section text
+	section code
 ; params
 ;  d0 = error code
 error_address_dsub:
