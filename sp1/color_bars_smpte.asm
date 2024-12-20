@@ -87,6 +87,7 @@ draw_section:
 
 		rts
 
+	section data
 
 STR_COLOR_BARS_SMPTE:	  STRING "COLOR BARS SMPTE"
 

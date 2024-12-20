@@ -107,6 +107,8 @@ check_mmio_oe_word:
 		dbeq	d2, .loop_test_again
 		rts
 
+	section data
+
 MMIO_ADDRESSES_TABLE_START:
 	dc.l REG_DIPSW
 	dc.l REG_SYSTYPE

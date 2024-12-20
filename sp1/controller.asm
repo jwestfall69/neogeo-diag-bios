@@ -135,6 +135,8 @@ print_player_data:
 		RSUB	print_3_digits
 		rts
 
+	section data
+
 STR_CONTROLLER_TESTS:		STRING "CONTROLLER TESTS"
 
 XY_STR_P1:			XY_STRING  1,  4, "P1"

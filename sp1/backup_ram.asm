@@ -181,4 +181,6 @@ backup_ram_address_tests_dsub:
 		moveq	#0, d0
 		DSUB_RETURN
 
+	section data
+
 STR_BACKUP_RAM_TEST_LOOP:	STRING "BACKUP RAM TEST LOOP (MVS ONLY)"

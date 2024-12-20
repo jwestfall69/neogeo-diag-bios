@@ -404,6 +404,8 @@ check_vram_address:
 		moveq	#-1, d0
 		rts
 
+	section data
+
 MEMORY_DATA_TEST_PATTERNS:
 	dc.w	$0000, $5555, $aaaa, $ffff
 MEMORY_DATA_TEST_PATTERNS_END:

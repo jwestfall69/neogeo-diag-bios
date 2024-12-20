@@ -306,4 +306,6 @@ check_palette_ram_to_245_output:
 		moveq	#-1, d0
 		rts
 
+	section data
+
 STR_PAL_RAM_TEST_LOOP:		STRING "PALETTE RAM TEST LOOP"

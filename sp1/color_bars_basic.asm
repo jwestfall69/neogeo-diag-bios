@@ -148,4 +148,6 @@ draw_tiles:
 
 		rts
 
+	section data
+
 STR_COLOR_BARS_BASIC:		STRING "COLOR BARS BASIC"

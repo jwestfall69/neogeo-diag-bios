@@ -345,5 +345,7 @@ print_hold_ss_to_reset:
 		RSUB	print_xy_string_clear
 		rts
 
+	section data
+
 STR_HOLD_SS_TO_RESET:			STRING "HOLD START/SELECT TO SOFT RESET"
 STR_RELEASE_SS:				STRING "RELEASE START/SELECT"

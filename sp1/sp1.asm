@@ -425,6 +425,7 @@ timer_interrupt:
 		move.w	#$2, ($a,a6)		; ack int
 		rte
 
+	section data
 
 STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
 

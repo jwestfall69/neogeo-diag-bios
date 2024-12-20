@@ -143,4 +143,6 @@ auto_work_ram_address_tests_dsub:
 		moveq	#0, d0
 		DSUB_RETURN
 
+	section data
+
 STR_WORK_RAM_TEST_LOOP:		STRING "WORK RAM TEST LOOP"

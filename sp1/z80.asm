@@ -352,6 +352,8 @@ ack_error:
 	.command_success:
 		rts
 
+	section data
+
 ; struct {
 ; 	byte buttons_pressed; 	(up/down/left/right)
 ;  	byte slot;

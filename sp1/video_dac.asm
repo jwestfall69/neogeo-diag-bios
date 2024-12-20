@@ -304,6 +304,7 @@ draw_color_pair:
 		dbra	d2, .loop_next_color_bit
 		rts
 
+	section data
 
 STR_VIDEO_DAC_TESTS:		STRING "VIDEO DAC TESTS"
 

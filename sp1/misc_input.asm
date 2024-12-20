@@ -180,6 +180,8 @@ misc_input_print_static_items:
 		dbra	d6, .loop_next_entry
 		rts
 
+	section data
+
 ; struct misc_input {
 ;  byte test_bit;                ; bit to test on mmio address
 ;  byte mmio_address[3];         ; minus top byte

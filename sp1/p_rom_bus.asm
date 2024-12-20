@@ -380,6 +380,8 @@ check_p2_rom_we:
 		moveq	#0, d0
 		rts
 
+	section data
+
 STR_P_ROM_BUS_TESTS:		STRING "P ROM BUS TESTS (CUSTOM CART)"
 
 XY_STR_SLOT_NUM:		XY_STRING  4,  8, "SLOT NUMBER: "

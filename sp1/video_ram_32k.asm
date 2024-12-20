@@ -179,4 +179,6 @@ vram_address_tests:
 	.test_passed_a8_a14:
 		rts
 
+	section data
+
 STR_VRAM_TEST_LOOP_32K:		STRING "VRAM TEST LOOP (32K)"

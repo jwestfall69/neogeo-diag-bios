@@ -22,14 +22,16 @@ error_address_dsub:
 		lea	REG_WATCHDOG, a0
 		jmp	(a1)
 
-XY_STR_EA_TRIGGERED:	XY_STRING 4, 27, "ERROR ADDRESS TRIGGERED"
-
+	section error_addresses
 	; $6000 to a little bit before $8000 of the rom is dedicated to
 	; error addresses.  This block of the rom is filled with
 	; .loop:
 	;	move.b d0, (a0)		; watchdog
 	;	bra .loop
 	; which translates into opcodes $1080 $60fc
-	section error_addresses
 
 		blk.l ($1fe2 / 4), $108060fc
+
+	section data
+
+XY_STR_EA_TRIGGERED:	XY_STRING 4, 27, "ERROR ADDRESS TRIGGERED"

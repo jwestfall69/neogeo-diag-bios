@@ -597,6 +597,8 @@ check_memcard_address:
 		moveq	#-1, d0
 		rts
 
+	section data
+
 STR_MEMCARD_TESTS:		STRING "MEMORY CARD TESTS"
 
 XY_STR_A_C_RUN_TEST:		XY_STRING  4, 26, "A+C: Run Test"

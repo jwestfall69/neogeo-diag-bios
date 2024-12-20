@@ -173,6 +173,8 @@ rtc_check_pulse:
 		and.b	d0, d1
 		rts
 
+	section data
+
 STR_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
 
 ; strings for calender io screen
