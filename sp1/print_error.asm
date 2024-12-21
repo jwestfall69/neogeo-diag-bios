@@ -1,5 +1,6 @@
 	include "neogeo.inc"
 	include "macros.inc"
+	include "print_error.inc"
 	include "sp1.inc"
 	include "../common/error_codes.inc"
 
@@ -20,16 +21,15 @@
 ;  a2 = print error dsub
 ;  d0-d2, a0 are unmodified
 error_code_lookup_dsub:
-		lea	(d_ec_lookup_table), a1
-		moveq	#((d_ec_lookup_table_end - d_ec_lookup_table)/6 - 1), d3
-		bra	.loop_ec_lookup_start
 
-	.loop_ec_lookup_next_entry:
-		addq.l	#6, a1
-	.loop_ec_lookup_start:
-		cmp.b 	(a1), d0
-		dbeq	d3, .loop_ec_lookup_next_entry
+		lea	(d_ec_list), a1
+	.loop_ec_next_entry:
+		cmp.b	s_ee_error_code(a1), d0
 		beq	.ec_found
+
+		addq.l	#s_ee_struct_size, a1
+		tst.b	s_ee_error_code(a1)	; list is null terminated
+		bne	.loop_ec_next_entry
 
 		; error code not found
 		lea	print_error_invalid_dsub, a2
@@ -38,28 +38,26 @@ error_code_lookup_dsub:
 		bra	.not_found
 
 	.ec_found:
-		move.b	(1, a1), d4	; print error dsub id
+		move.b	s_ee_print_error_id(a1), d4
+		movea.l	s_ee_description_ptr(a1), a1
 		and.w	#$ff, d4
-		movea.l (2, a1), a1	; error description string
 
-		lea	(d_print_error_table), a2
-		moveq	#((d_print_error_table_end - d_print_error_table)/6), d3
-		bra	.loop_print_error_start
+		lea	(d_ec_print_list), a2
+	.loop_pe_next_entry:
+		cmp.w	s_pe_print_error_id(a2), d4
+		beq	.pe_found
 
-	.loop_print_error_next_entry:
-		addq.l	#6, a2
-	.loop_print_error_start:
-		cmp.w	(a2), d4
-		dbeq	d3, .loop_print_error_next_entry
-		beq	.function_found
+		addq.l	#s_pe_struct_size, a2
+		tst.w	s_pe_print_error_id(a2)	; list is null terminated
+		bne	.loop_pe_next_entry
 
-		; no function was found
+		; no print function was found
 		lea	print_error_invalid_dsub, a2
 		move.b	d4, d1
 		bra	.not_found
 
-	.function_found:
-		movea.l	(2, a2), a2
+	.pe_found:
+		movea.l	s_pe_function_ptr(a2), a2
 
 	.not_found:
 		DSUB_RETURN
@@ -180,19 +178,27 @@ print_error_mmio_dsub:
 		lea	d_xys_address, a0
 		DSUB	print_xy_string_struct
 
-		lea	(d_mmio_error_lookup_table_start - 4), a0
-
+		lea	d_ec_mmio_list, a0
 	.loop_next_entry:
-		addq.l	#4, a0
-		cmp.l	(a0)+, d3
+		cmp.l	s_em_register(a0), d3
+		beq	.reg_found
+
+		addq.l	#s_em_struct_size, a0
+		tst.l	(a0)			; null terminated
 		bne	.loop_next_entry
-		movea.l	(a0), a0
+
+		; fall back on just printing the description
+		bra	.not_found
+
+	.reg_found:
+		movea.l	s_em_description_xys_list_ptr(a0), a0
 
 	.loop_next_xy_string_struct:
 		DSUB	print_xy_string_struct
 		tst.b	(a0)
 		bne	.loop_next_xy_string_struct
 
+	.not_found:
 		movea.l	a1, a0
 		moveq	#4, d0
 		moveq	#5, d1
@@ -267,167 +273,117 @@ print_error_z80:
 
 	section data
 
-; struct ec_lookup {
-;  byte error_code;
-;  byte print_error_dsub_id;
-;  long error_code_description_string;  // macro fills in for us
-; }
-d_ec_lookup_table:
+d_ec_print_list:
+	EC_PRINT_ENTRY PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_dsub
+	EC_PRINT_ENTRY PRINT_ERROR_HEX_BYTE, print_error_hex_byte_dsub
+	EC_PRINT_ENTRY PRINT_ERROR_MEMORY, print_error_memory_dsub
+	EC_PRINT_ENTRY PRINT_ERROR_MMIO, print_error_mmio_dsub
+	EC_PRINT_ENTRY PRINT_ERROR_STRING, print_error_string_dsub
+	EC_PRINT_LIST_END
+
+d_ec_list:
 	; The code for handling errors from the z80 does not use the print function
 	; provided by ec_lookup, but will instead directly call print_error_z80.
 	; This allows handling a bad error code from the z80 differently then the 68k.
 	; If the 68k somehow ended up with a z80 error code it will cause the
 	; PRINT_ERROR_INVALID function to be called
-	EC_LOOKUP_STRUCT EC_Z80_M1_CRC, d_str_z80_m1_crc, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_M1_UPPER_ADDRESS, d_str_z80_m1_upper_address, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_Z80_RAM_DATA_00, d_str_z80_ram_data_00, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_RAM_DATA_55, d_str_z80_ram_data_55, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_RAM_DATA_AA, d_str_z80_ram_data_aa, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_RAM_DATA_FF, d_str_z80_ram_data_ff, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_Z80_RAM_ADDRESS_A0_A7, d_str_z80_ram_address_a0_a7, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_RAM_ADDRESS_A8_A10, d_str_z80_ram_address_a8_a10, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_Z80_RAM_OE, d_str_z80_ram_oe, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_RAM_WE, d_str_z80_ram_we, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_Z80_68K_COMM_NO_HANDSHAKE, d_str_z80_68k_comm_no_handshake, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_68K_COMM_NO_CLEAR, d_str_z80_68k_comm_no_clear, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_Z80_SM1_OE, d_str_z80_sm1_oe, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_SM1_CRC, d_str_z80_sm1_crc, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_YM2610_IO_ERROR, d_str_ym2610_io_error, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_YM2610_TIMER_TIMING_FLAG, d_str_ym2610_timer_timing_flag, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_YM2610_TIMER_TIMING_IRQ, d_str_ym2610_timer_timing_irq, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_YM2610_IRQ_UNEXPECTED, d_str_ym2610_irq_unexpected, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_YM2610_TIMER_INIT_FLAG, d_str_ym2610_timer_init_flag, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_YM2610_TIMER_INIT_IRQ, d_str_ym2610_timer_init_irq, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_M1_BANK_ERROR_16K, d_str_z80_m1_bank_error_16k, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_M1_BANK_ERROR_8K, d_str_z80_m1_bank_error_8k, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_M1_BANK_ERROR_4K, d_str_z80_m1_bank_error_4k, PRINT_ERROR_INVALID
-	EC_LOOKUP_STRUCT EC_Z80_M1_BANK_ERROR_2K, d_str_z80_m1_bank_error_2k, PRINT_ERROR_INVALID
-
-	EC_LOOKUP_STRUCT EC_BIOS_MIRROR, d_str_bios_mirror, PRINT_ERROR_HEX_BYTE
-	EC_LOOKUP_STRUCT EC_BIOS_CRC32, d_str_bios_crc32, PRINT_ERROR_BIOS_CRC32
-
-	EC_LOOKUP_STRUCT EC_WRAM_DEAD_OUTPUT_LOWER, d_str_wram_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_WRAM_DEAD_OUTPUT_UPPER, d_str_wram_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_BRAM_DEAD_OUTPUT_LOWER, d_str_bram_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_BRAM_DEAD_OUTPUT_UPPER, d_str_bram_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_WRAM_UNWRITABLE_LOWER, d_str_wram_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_WRAM_UNWRITABLE_UPPER, d_str_wram_unwritable_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_BRAM_UNWRITABLE_LOWER, d_str_bram_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_BRAM_UNWRITABLE_UPPER, d_str_bram_unwritable_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_WRAM_DATA_LOWER, d_str_wram_data_lower, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_WRAM_DATA_UPPER, d_str_wram_data_upper, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_WRAM_DATA_BOTH, d_str_wram_data_both, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_BRAM_DATA_LOWER, d_str_bram_data_lower, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_BRAM_DATA_UPPER, d_str_bram_data_upper, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_BRAM_DATA_BOTH, d_str_bram_data_both, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_WRAM_ADDRESS_A0_A7, d_str_wram_address_a0_a7, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_WRAM_ADDRESS_A8_A14, d_str_wram_address_a8_a14, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_BRAM_ADDRESS_A0_A7, d_str_bram_address_a0_a7, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_BRAM_ADDRESS_A8_A14, d_str_bram_address_a8_a14, PRINT_ERROR_MEMORY
-
-	EC_LOOKUP_STRUCT EC_PAL_245_DEAD_OUTPUT_LOWER, d_str_pal_245_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_PAL_245_DEAD_OUTPUT_UPPER, d_str_pal_245_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_PAL_DEAD_OUTPUT_LOWER, d_str_pal_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_PAL_DEAD_OUTPUT_UPPER, d_str_pal_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_PAL_UNWRITABLE_LOWER, d_str_pal_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_PAL_UNWRITABLE_UPPER, d_str_pal_unwritable_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_PAL_BANK0_DATA_LOWER, d_str_pal_bank0_data_lower, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_BANK0_DATA_UPPER, d_str_pal_bank0_data_upper, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_BANK0_DATA_BOTH, d_str_pal_bank0_data_both, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_BANK1_DATA_LOWER, d_str_pal_bank1_data_lower, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_BANK1_DATA_UPPER, d_str_pal_bank1_data_upper, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_BANK1_DATA_BOTH, d_str_pal_bank1_data_both, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_ADDRESS_A0_A7, d_str_pal_address_a0_a7, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_PAL_ADDRESS_A0_A12, d_str_pal_address_a0_a12, PRINT_ERROR_MEMORY
-
-	EC_LOOKUP_STRUCT EC_VRAM_32K_DATA_LOWER, d_str_vram_32k_data_lower, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_32K_DATA_UPPER, d_str_vram_32k_data_upper, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_32K_DATA_BOTH, d_str_vram_32k_data_both, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_2K_DATA_LOWER, d_str_vram_2k_data_lower, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_2K_DATA_UPPER, d_str_vram_2k_data_upper, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_2K_DATA_BOTH, d_str_vram_2k_data_both, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_32K_ADDRESS_A0_A7, d_str_vram_32k_address_a0_a7, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_32K_ADDRESS_A8_A14, d_str_vram_32k_address_a8_a14, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_2K_ADDRESS_A0_A7, d_str_vram_2k_address_a0_a7, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_2K_ADDRESS_A8_A10, d_str_vram_2k_address_a8_a10, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_VRAM_32K_DEAD_OUTPUT_LOWER, d_str_vram_32k_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_32K_DEAD_OUTPUT_UPPER, d_str_vram_32k_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_2K_DEAD_OUTPUT_LOWER, d_str_vram_2k_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_2K_DEAD_OUTPUT_UPPER, d_str_vram_2k_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_32K_UNWRITABLE_LOWER, d_str_vram_32k_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_32K_UNWRITABLE_UPPER, d_str_vram_32k_unwritable_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_2K_UNWRITABLE_LOWER, d_str_vram_2k_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_VRAM_2K_UNWRITABLE_UPPER, d_str_vram_2k_unwritable_upper, PRINT_ERROR_STRING
-
-	EC_LOOKUP_STRUCT EC_MMIO_DEAD_OUTPUT, d_str_mmio_dead_output, PRINT_ERROR_MMIO
-
-	EC_LOOKUP_STRUCT EC_MC_245_DEAD_OUTPUT_LOWER, d_str_mc_245_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_MC_245_DEAD_OUTPUT_UPPER, d_str_mc_245_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_MC_DEAD_OUTPUT_LOWER, d_str_mc_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_MC_UNWRITABLE_LOWER, d_str_mc_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_MC_UNWRITABLE_UPPER, d_str_mc_unwritable_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_MC_DATA, d_str_mc_data, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_MC_ADDRESS, d_str_mc_address, PRINT_ERROR_MEMORY
-
-	EC_LOOKUP_STRUCT EC_P1_DEAD_OUTPUT_LOWER, d_str_p1_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P1_DEAD_OUTPUT_UPPER, d_str_p1_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P2_DEAD_OUTPUT_LOWER, d_str_p2_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P2_DEAD_OUTPUT_UPPER, d_str_p2_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P1_245_DEAD_OUTPUT_LOWER, d_str_p1_245_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P1_245_DEAD_OUTPUT_UPPER, d_str_p1_245_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P2_245_DEAD_OUTPUT_LOWER, d_str_p2_245_dead_output_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P2_245_DEAD_OUTPUT_UPPER, d_str_p2_245_dead_output_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P2_UNWRITABLE_LOWER, d_str_p2_unwritable_lower, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P2_UNWRITABLE_UPPER, d_str_p2_unwritable_upper, PRINT_ERROR_STRING
-	EC_LOOKUP_STRUCT EC_P_DATA_BUS, d_str_p_data_bus, PRINT_ERROR_MEMORY
-	EC_LOOKUP_STRUCT EC_P_ADDRESS_BUS, d_str_p_address_bus, PRINT_ERROR_MEMORY
-d_ec_lookup_table_end:
-
-; struct print_error {
-;  byte padding; 0x00;
-;  byte dsub_id;
-;  long dsub_address;
-;}
-d_print_error_table:
-	PRINT_ERROR_STRUCT PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_dsub
-	PRINT_ERROR_STRUCT PRINT_ERROR_HEX_BYTE, print_error_hex_byte_dsub
-	PRINT_ERROR_STRUCT PRINT_ERROR_MEMORY, print_error_memory_dsub
-	PRINT_ERROR_STRUCT PRINT_ERROR_MMIO, print_error_mmio_dsub
-	PRINT_ERROR_STRUCT PRINT_ERROR_STRING, print_error_string_dsub
-d_print_error_table_end:
-
-d_mmio_error_lookup_table_start:
-	dc.l REG_DIPSW, d_xy_mmio_error_c1_1_to_r0_47
-	dc.l REG_SYSTYPE, d_xy_mmio_error_c1_1_to_r0_47
-	dc.l REG_STATUS_A, d_xy_mmio_error_reg_status_a
-	dc.l REG_P1CNT, d_xy_mmio_error_generic_c1
-	dc.l REG_SOUND, d_xy_mmio_error_generic_c1
-	dc.l REG_P2CNT, d_xy_mmio_error_generic_c1
-	dc.l REG_STATUS_B, d_xy_mmio_error_generic_c1
-	dc.l REG_VRAMRW, d_xy_mmio_error_reg_vramrw
-
-d_xy_mmio_error_c1_1_to_r0_47:
-	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
-	XY_STRING_MULTI_END
-d_xy_mmio_error_reg_status_a:
-	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
-	XY_STRING_MULTI_END
-d_xy_mmio_error_generic_c1:
-	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1"
-	XY_STRING_MULTI_END
-d_xy_mmio_error_reg_vramrw:
-	XY_STRING_MULTI 4, 10, "1st gen: ? <-> LSPC-A0(?)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
-	XY_STRING_MULTI_END
+	EC_ENTRY EC_Z80_M1_CRC, PRINT_ERROR_INVALID, d_str_z80_m1_crc
+	EC_ENTRY EC_Z80_M1_UPPER_ADDRESS, PRINT_ERROR_INVALID, d_str_z80_m1_upper_address
+	EC_ENTRY EC_Z80_RAM_DATA_00, PRINT_ERROR_INVALID, d_str_z80_ram_data_00
+	EC_ENTRY EC_Z80_RAM_DATA_55, PRINT_ERROR_INVALID, d_str_z80_ram_data_55
+	EC_ENTRY EC_Z80_RAM_DATA_AA, PRINT_ERROR_INVALID, d_str_z80_ram_data_aa
+	EC_ENTRY EC_Z80_RAM_DATA_FF, PRINT_ERROR_INVALID, d_str_z80_ram_data_ff
+	EC_ENTRY EC_Z80_RAM_ADDRESS_A0_A7, PRINT_ERROR_INVALID, d_str_z80_ram_address_a0_a7
+	EC_ENTRY EC_Z80_RAM_ADDRESS_A8_A10, PRINT_ERROR_INVALID, d_str_z80_ram_address_a8_a10
+	EC_ENTRY EC_Z80_RAM_OE, PRINT_ERROR_INVALID, d_str_z80_ram_oe
+	EC_ENTRY EC_Z80_RAM_WE, PRINT_ERROR_INVALID, d_str_z80_ram_we
+	EC_ENTRY EC_Z80_68K_COMM_NO_HANDSHAKE, PRINT_ERROR_INVALID, d_str_z80_68k_comm_no_handshake
+	EC_ENTRY EC_Z80_68K_COMM_NO_CLEAR, PRINT_ERROR_INVALID, d_str_z80_68k_comm_no_clear
+	EC_ENTRY EC_Z80_SM1_OE, PRINT_ERROR_INVALID, d_str_z80_sm1_oe
+	EC_ENTRY EC_Z80_SM1_CRC, PRINT_ERROR_INVALID, d_str_z80_sm1_crc
+	EC_ENTRY EC_YM2610_IO_ERROR, PRINT_ERROR_INVALID, d_str_ym2610_io_error
+	EC_ENTRY EC_YM2610_TIMER_TIMING_FLAG, PRINT_ERROR_INVALID, d_str_ym2610_timer_timing_flag
+	EC_ENTRY EC_YM2610_TIMER_TIMING_IRQ, PRINT_ERROR_INVALID, d_str_ym2610_timer_timing_irq
+	EC_ENTRY EC_YM2610_IRQ_UNEXPECTED, PRINT_ERROR_INVALID, d_str_ym2610_irq_unexpected
+	EC_ENTRY EC_YM2610_TIMER_INIT_FLAG, PRINT_ERROR_INVALID, d_str_ym2610_timer_init_flag
+	EC_ENTRY EC_YM2610_TIMER_INIT_IRQ, PRINT_ERROR_INVALID, d_str_ym2610_timer_init_irq
+	EC_ENTRY EC_Z80_M1_BANK_ERROR_16K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_16k
+	EC_ENTRY EC_Z80_M1_BANK_ERROR_8K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_8k
+	EC_ENTRY EC_Z80_M1_BANK_ERROR_4K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_4k
+	EC_ENTRY EC_Z80_M1_BANK_ERROR_2K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_2k
+	EC_ENTRY EC_BIOS_MIRROR, PRINT_ERROR_HEX_BYTE, d_str_bios_mirror
+	EC_ENTRY EC_BIOS_CRC32, PRINT_ERROR_BIOS_CRC32, d_str_bios_crc32
+	EC_ENTRY EC_WRAM_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_wram_dead_output_lower
+	EC_ENTRY EC_WRAM_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_wram_dead_output_upper
+	EC_ENTRY EC_BRAM_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_bram_dead_output_lower
+	EC_ENTRY EC_BRAM_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_bram_dead_output_upper
+	EC_ENTRY EC_WRAM_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_wram_unwritable_lower
+	EC_ENTRY EC_WRAM_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_wram_unwritable_upper
+	EC_ENTRY EC_BRAM_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_bram_unwritable_lower
+	EC_ENTRY EC_BRAM_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_bram_unwritable_upper
+	EC_ENTRY EC_WRAM_DATA_LOWER, PRINT_ERROR_MEMORY, d_str_wram_data_lower
+	EC_ENTRY EC_WRAM_DATA_UPPER, PRINT_ERROR_MEMORY, d_str_wram_data_upper
+	EC_ENTRY EC_WRAM_DATA_BOTH, PRINT_ERROR_MEMORY, d_str_wram_data_both
+	EC_ENTRY EC_BRAM_DATA_LOWER, PRINT_ERROR_MEMORY, d_str_bram_data_lower
+	EC_ENTRY EC_BRAM_DATA_UPPER, PRINT_ERROR_MEMORY, d_str_bram_data_upper
+	EC_ENTRY EC_BRAM_DATA_BOTH, PRINT_ERROR_MEMORY, d_str_bram_data_both
+	EC_ENTRY EC_WRAM_ADDRESS_A0_A7, PRINT_ERROR_MEMORY, d_str_wram_address_a0_a7
+	EC_ENTRY EC_WRAM_ADDRESS_A8_A14, PRINT_ERROR_MEMORY, d_str_wram_address_a8_a14
+	EC_ENTRY EC_BRAM_ADDRESS_A0_A7, PRINT_ERROR_MEMORY, d_str_bram_address_a0_a7
+	EC_ENTRY EC_BRAM_ADDRESS_A8_A14, PRINT_ERROR_MEMORY, d_str_bram_address_a8_a14
+	EC_ENTRY EC_PAL_245_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_pal_245_dead_output_lower
+	EC_ENTRY EC_PAL_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_pal_245_dead_output_upper
+	EC_ENTRY EC_PAL_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_pal_dead_output_lower
+	EC_ENTRY EC_PAL_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_pal_dead_output_upper
+	EC_ENTRY EC_PAL_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_pal_unwritable_lower
+	EC_ENTRY EC_PAL_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_pal_unwritable_upper
+	EC_ENTRY EC_PAL_BANK0_DATA_LOWER, PRINT_ERROR_MEMORY, d_str_pal_bank0_data_lower
+	EC_ENTRY EC_PAL_BANK0_DATA_UPPER, PRINT_ERROR_MEMORY, d_str_pal_bank0_data_upper
+	EC_ENTRY EC_PAL_BANK0_DATA_BOTH, PRINT_ERROR_MEMORY, d_str_pal_bank0_data_both
+	EC_ENTRY EC_PAL_BANK1_DATA_LOWER, PRINT_ERROR_MEMORY, d_str_pal_bank1_data_lower
+	EC_ENTRY EC_PAL_BANK1_DATA_UPPER, PRINT_ERROR_MEMORY, d_str_pal_bank1_data_upper
+	EC_ENTRY EC_PAL_BANK1_DATA_BOTH, PRINT_ERROR_MEMORY, d_str_pal_bank1_data_both
+	EC_ENTRY EC_PAL_ADDRESS_A0_A7, PRINT_ERROR_MEMORY, d_str_pal_address_a0_a7
+	EC_ENTRY EC_PAL_ADDRESS_A0_A12, PRINT_ERROR_MEMORY, d_str_pal_address_a0_a12
+	EC_ENTRY EC_VRAM_32K_DATA_LOWER, PRINT_ERROR_MEMORY, d_str_vram_32k_data_lower
+	EC_ENTRY EC_VRAM_32K_DATA_UPPER, PRINT_ERROR_MEMORY, d_str_vram_32k_data_upper
+	EC_ENTRY EC_VRAM_32K_DATA_BOTH, PRINT_ERROR_MEMORY, d_str_vram_32k_data_both
+	EC_ENTRY EC_VRAM_2K_DATA_LOWER, PRINT_ERROR_MEMORY, d_str_vram_2k_data_lower
+	EC_ENTRY EC_VRAM_2K_DATA_UPPER, PRINT_ERROR_MEMORY, d_str_vram_2k_data_upper
+	EC_ENTRY EC_VRAM_2K_DATA_BOTH, PRINT_ERROR_MEMORY, d_str_vram_2k_data_both
+	EC_ENTRY EC_VRAM_32K_ADDRESS_A0_A7, PRINT_ERROR_MEMORY, d_str_vram_32k_address_a0_a7
+	EC_ENTRY EC_VRAM_32K_ADDRESS_A8_A14, PRINT_ERROR_MEMORY, d_str_vram_32k_address_a8_a14
+	EC_ENTRY EC_VRAM_2K_ADDRESS_A0_A7, PRINT_ERROR_MEMORY, d_str_vram_2k_address_a0_a7
+	EC_ENTRY EC_VRAM_2K_ADDRESS_A8_A10, PRINT_ERROR_MEMORY, d_str_vram_2k_address_a8_a10
+	EC_ENTRY EC_VRAM_32K_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_vram_32k_dead_output_lower
+	EC_ENTRY EC_VRAM_32K_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_vram_32k_dead_output_upper
+	EC_ENTRY EC_VRAM_2K_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_vram_2k_dead_output_lower
+	EC_ENTRY EC_VRAM_2K_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_vram_2k_dead_output_upper
+	EC_ENTRY EC_VRAM_32K_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_vram_32k_unwritable_lower
+	EC_ENTRY EC_VRAM_32K_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_vram_32k_unwritable_upper
+	EC_ENTRY EC_VRAM_2K_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_vram_2k_unwritable_lower
+	EC_ENTRY EC_VRAM_2K_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_vram_2k_unwritable_upper
+	EC_ENTRY EC_MMIO_DEAD_OUTPUT, PRINT_ERROR_MMIO, d_str_mmio_dead_output
+	EC_ENTRY EC_MC_245_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_mc_245_dead_output_lower
+	EC_ENTRY EC_MC_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_mc_245_dead_output_upper
+	EC_ENTRY EC_MC_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_mc_dead_output_lower
+	EC_ENTRY EC_MC_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_mc_unwritable_lower
+	EC_ENTRY EC_MC_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_mc_unwritable_upper
+	EC_ENTRY EC_MC_DATA, PRINT_ERROR_MEMORY, d_str_mc_data
+	EC_ENTRY EC_MC_ADDRESS, PRINT_ERROR_MEMORY, d_str_mc_address
+	EC_ENTRY EC_P1_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_p1_dead_output_lower
+	EC_ENTRY EC_P1_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_p1_dead_output_upper
+	EC_ENTRY EC_P2_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_p2_dead_output_lower
+	EC_ENTRY EC_P2_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_p2_dead_output_upper
+	EC_ENTRY EC_P1_245_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_p1_245_dead_output_lower
+	EC_ENTRY EC_P1_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_p1_245_dead_output_upper
+	EC_ENTRY EC_P2_245_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_p2_245_dead_output_lower
+	EC_ENTRY EC_P2_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_p2_245_dead_output_upper
+	EC_ENTRY EC_P2_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_p2_unwritable_lower
+	EC_ENTRY EC_P2_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_p2_unwritable_upper
+	EC_ENTRY EC_P_DATA_BUS, PRINT_ERROR_MEMORY, d_str_p_data_bus
+	EC_ENTRY EC_P_ADDRESS_BUS, PRINT_ERROR_MEMORY, d_str_p_address_bus
+	EC_LIST_END
 
 d_str_invalid_error_code:		STRING "INVALID ERROR CODE"
 d_str_invalid_error:			STRING "INVALID ERROR"
@@ -554,3 +510,31 @@ d_str_p2_unwritable_lower:		STRING "P2 UNWRITABLE (LOWER)"
 d_str_p2_unwritable_upper:		STRING "P2 UNWRITABLE (UPPER)"
 d_str_p_data_bus:			STRING "P DATA BUS"
 d_str_p_address_bus:			STRING "P ADDRESS BUS"
+
+d_ec_mmio_list:
+	EC_MMIO_ENTRY REG_DIPSW, d_xy_mmio_error_c1_1_to_r0_47
+	EC_MMIO_ENTRY REG_SYSTYPE, d_xy_mmio_error_c1_1_to_r0_47
+	EC_MMIO_ENTRY REG_STATUS_A, d_xy_mmio_error_reg_status_a
+	EC_MMIO_ENTRY REG_P1CNT, d_xy_mmio_error_generic_c1
+	EC_MMIO_ENTRY REG_SOUND, d_xy_mmio_error_generic_c1
+	EC_MMIO_ENTRY REG_P2CNT, d_xy_mmio_error_generic_c1
+	EC_MMIO_ENTRY REG_STATUS_B, d_xy_mmio_error_generic_c1
+	EC_MMIO_ENTRY REG_VRAMRW, d_xy_mmio_error_reg_vramrw
+	EC_MMIO_LIST_END
+
+d_xy_mmio_error_c1_1_to_r0_47:
+	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
+	XY_STRING_MULTI_END
+d_xy_mmio_error_reg_status_a:
+	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
+	XY_STRING_MULTI_END
+d_xy_mmio_error_generic_c1:
+	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1"
+	XY_STRING_MULTI_END
+d_xy_mmio_error_reg_vramrw:
+	XY_STRING_MULTI 4, 10, "1st gen: ? <-> LSPC-A0(?)"
+	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
+	XY_STRING_MULTI_END

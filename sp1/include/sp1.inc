@@ -54,14 +54,6 @@ SMPTE_PAL_RED			equ $0d
 SMPTE_PAL_WHITE			equ $0e
 SMPTE_PAL_YELLOW		equ $0f
 
-; print error function ids
-PRINT_ERROR_MEMORY		equ $01
-PRINT_ERROR_HEX_BYTE		equ $02
-PRINT_ERROR_BIOS_CRC32		equ $03
-PRINT_ERROR_MMIO		equ $04
-PRINT_ERROR_STRING		equ $05
-PRINT_ERROR_INVALID		equ $ff
-
 ; memcard flags (bset/btst bits)
 MEMCARD_FLAG_BAD_DATA		equ $00
 MEMCARD_FLAG_DBUS_16BIT		equ $01

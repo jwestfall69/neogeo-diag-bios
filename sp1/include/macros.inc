@@ -93,13 +93,3 @@
 		WATCHDOG
 		bra .loop_stall
 	endm
-
-	macro EC_LOOKUP_STRUCT
-		dc.b \1, \3
-		dc.l \2
-	endm
-
-	macro PRINT_ERROR_STRUCT
-		dc.b $00, \1
-		dc.l \2
-	endm
