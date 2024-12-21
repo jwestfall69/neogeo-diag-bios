@@ -3,27 +3,28 @@
 	include "sp1.inc"
 
 	global manual_calendar_tests
-	global STR_CALENDAR_IO
+
+	global d_str_calendar_io
 
 	section code
 
 manual_calendar_tests:
-		lea	XY_STR_A_1HZ_PULSE, a0
+		lea	d_xys_a_1hz_pulse, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_B_64HZ_PULSE, a0
+		lea	d_xys_b_64hz_pulse, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_C_4096HZ_PULSE, a0
+		lea	d_xys_c_4096hz_pulse, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_D_MAIN_MENU, a0
-		RSUB	print_xy_string_struct_clear
-
-		lea	XY_STR_ACTUAL, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_EXPECTED, a0
+		lea	d_xys_actual, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_4990_TP, a0
+		lea	d_xys_expected, a0
+		RSUB	print_xy_string_struct_clear
+
+		lea	d_xys_4990_tp, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	rtc_set_1_hz
@@ -82,7 +83,7 @@ rtc_update_hz:
 		bsr	rtc_send_command
 
 		move.l	d1, -(a7)
-		lea	XY_STR_WAITING_PULSE, a0
+		lea	d_xys_waiting_pulse, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	rtc_wait_pulse
@@ -175,15 +176,15 @@ rtc_check_pulse:
 
 	section data
 
-STR_CALENDAR_IO:		STRING "CALENDAR I/O (MVS ONLY)"
+d_str_calendar_io:		STRING "CALENDAR I/O (MVS ONLY)"
 
 ; strings for calender io screen
-XY_STR_WAITING_PULSE:		XY_STRING  4, 20, "WAITING FOR CALENDAR PULSE..."
-XY_STR_4990_TP:			XY_STRING  4, 14, "4990 TP:"
+d_xys_waiting_pulse:		XY_STRING  4, 20, "WAITING FOR CALENDAR PULSE..."
+d_xys_4990_tp:			XY_STRING  4, 14, "4990 TP:"
 
-XY_STR_A_1HZ_PULSE:		XY_STRING  4, 24, "A: 1Hz pulse"
-XY_STR_B_64HZ_PULSE:		XY_STRING  4, 25, "B: 64Hz pulse"
-XY_STR_C_4096HZ_PULSE:		XY_STRING  4, 26, "C: 4096Hz pulse"
+d_xys_a_1hz_pulse:		XY_STRING  4, 24, "A: 1Hz pulse"
+d_xys_b_64hz_pulse:		XY_STRING  4, 25, "B: 64Hz pulse"
+d_xys_c_4096hz_pulse:		XY_STRING  4, 26, "C: 4096Hz pulse"
 
 	section bss
 

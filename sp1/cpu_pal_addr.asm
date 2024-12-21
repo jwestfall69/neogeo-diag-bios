@@ -3,19 +3,20 @@
 	include "sp1.inc"
 
 	global manual_cpu_pal_addr_test
-	global STR_CPU_PAL_ADDR_TEST
+
+	global d_str_cpu_pal_addr_test
 
 	section code
 
 manual_cpu_pal_addr_test:
 
-		lea	XY_STR_CPU_PAL_LINE1, a0
+		lea	d_xys_cpu_pal_line1, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_CPU_PAL_LINE2, a0
+		lea	d_xys_cpu_pal_line2, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_CPU_PAL_LINE3, a0
+		lea	d_xys_cpu_pal_line3, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		lea	PALETTE_RAM_START + $aa, a0
@@ -37,8 +38,8 @@ manual_cpu_pal_addr_test:
 
 	section data
 
-XY_STR_CPU_PAL_LINE1:		XY_STRING  4, 13, "THIS SCREEN SHOULD REMAIN WHITE"
-XY_STR_CPU_PAL_LINE2:		XY_STRING  4, 15, "TEXT ON BLACK BACKGROUND, WITH"
-XY_STR_CPU_PAL_LINE3:		XY_STRING  4, 17, "COLORED SCROLLING DOTS"
+d_xys_cpu_pal_line1:		XY_STRING  4, 13, "THIS SCREEN SHOULD REMAIN WHITE"
+d_xys_cpu_pal_line2:		XY_STRING  4, 15, "TEXT ON BLACK BACKGROUND, WITH"
+d_xys_cpu_pal_line3:		XY_STRING  4, 17, "COLORED SCROLLING DOTS"
 
-STR_CPU_PAL_ADDR_TEST:		STRING "CPU/PAL ADDR TEST"
+d_str_cpu_pal_addr_test:		STRING "CPU/PAL ADDR TEST"

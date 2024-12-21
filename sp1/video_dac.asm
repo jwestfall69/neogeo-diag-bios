@@ -3,7 +3,8 @@
 	include "sp1.inc"
 
 	global manual_video_dac_tests
-	global STR_VIDEO_DAC_TESTS
+
+	global d_str_video_dac_tests
 
 	section code
 
@@ -54,6 +55,8 @@ manual_video_dac_tests:
 ; B button = toggle darker bit
 ; C button = toggle shadow register
 ; D button = return to main video screen
+FS_TILE_BASE_PAL_MIN		equ $4000
+FS_TILE_BASE_PAL_MAX		equ $9000
 draw_fullscreen:
 
 		; clear shadow/darker bit that might have been enabled on main screen
@@ -65,7 +68,7 @@ draw_fullscreen:
 		SSA3	fix_fill				; fills the screen red/color bit 0
 
 		move.w	#FS_TILE_BASE_PAL_MIN, d3		; start tile base pal
-		lea	FS_TILE_OFFSETS, a0
+		lea	d_fs_tile_offsets, a0
 		moveq	#0, d4					; tile offset in array
 
 	.loop_input:
@@ -203,24 +206,24 @@ setup_palette_group:
 draw_main_screen:
 		SSA3	fix_clear
 
-		lea	STR_VIDEO_DAC_TESTS, a0
+		lea	d_str_video_dac_tests, a0
 		moveq	#13, d0
 		moveq	#3, d1
 		RSUB	print_xy_string
 
-		lea	XY_STR_A_FULL_SCREEN, a0
+		lea	d_xys_a_full_screen, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_B_TOGGLE_DB, a0
+		lea	d_xys_b_toggle_db, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_C_TOGGLE_SHADOW, a0
+		lea	d_xys_c_toggle_shadow, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_ALL, a0
+		lea	d_xys_all, a0
 		RSUB	print_xy_string_struct_clear
 
 		; print the B0 B1 ... B4 header (backwards)
@@ -306,16 +309,14 @@ draw_color_pair:
 
 	section data
 
-STR_VIDEO_DAC_TESTS:		STRING "VIDEO DAC TESTS"
+d_str_video_dac_tests:		STRING "VIDEO DAC TESTS"
 
-XY_STR_A_FULL_SCREEN:		XY_STRING  4, 24, "A: Toggle Full Screen"
-XY_STR_B_TOGGLE_DB:		XY_STRING  4, 25, "B: Toggle Darker Bit"
-XY_STR_C_TOGGLE_SHADOW:		XY_STRING  4, 26, "C: Toggle Shadow Register"
-XY_STR_ALL:			XY_STRING 29,  6, "ALL"
+d_xys_a_full_screen:		XY_STRING  4, 24, "A: Toggle Full Screen"
+d_xys_b_toggle_db:		XY_STRING  4, 25, "B: Toggle Darker Bit"
+d_xys_c_toggle_shadow:		XY_STRING  4, 26, "C: Toggle Shadow Register"
+d_xys_all:			XY_STRING 29,  6, "ALL"
 
 ; full screen stuff
-FS_TILE_BASE_PAL_MIN		equ $4000
-FS_TILE_BASE_PAL_MAX		equ $9000
-FS_TILE_OFFSETS:		dc.w $0000, $0020, $6000, $6020
+d_fs_tile_offsets:		dc.w $0000, $0020, $6000, $6020
 
 

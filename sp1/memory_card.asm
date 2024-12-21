@@ -4,7 +4,7 @@
 	include "../common/error_codes.inc"
 
 	global manual_memcard_tests
-	global STR_MEMCARD_TESTS
+	global d_str_memcard_tests
 
 	section code
 
@@ -30,14 +30,14 @@
 ;       800006         000002         3344
 manual_memcard_tests:
 
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		move.b	REG_STATUS_B, d0
 		and.b	#$30, d0
 		beq	.memcard_inserted
 
-		lea	XY_STR_NOT_DETECTED, a0
+		lea	d_xys_not_detected, a0
 		RSUB	print_xy_string_struct_clear
 		bra	.loop_wait_input_return_menu
 
@@ -46,16 +46,16 @@ manual_memcard_tests:
 		btst	#$6, d0
 		beq	.memcard_not_write_protect
 
-		lea	XY_STR_WRITE_PROTECT, a0
+		lea	d_xys_write_protect, a0
 		RSUB	print_xy_string_struct_clear
 		bra	.loop_wait_input_return_menu
 
 	.memcard_not_write_protect:
-		lea	XY_STR_WARNING1, a0
+		lea	d_xys_warning1, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_WARNING2, a0
+		lea	d_xys_warning2, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_A_C_RUN_TEST, a0
+		lea	d_xys_a_c_run_test, a0
 		RSUB	print_xy_string_struct_clear
 
 	.loop_wait_input_run_test:
@@ -82,7 +82,7 @@ manual_memcard_tests:
 		SSA3	fix_clear_line
 		moveq	#27, d0
 		SSA3	fix_clear_line
-		lea	XY_STR_RUNNING_TESTS, a0
+		lea	d_xys_running_tests, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#$0, d0
@@ -99,21 +99,21 @@ manual_memcard_tests:
 		bsr	memcard_get_bit_width
 		bsr	memcard_get_size
 
-		lea	XY_STR_DETECT, a0
+		lea	d_xys_detect, a0
 		RSUB	print_xy_string_struct_clear
 
 		; add (BAD DATA) if we weren't able to detect
 		btst	#MEMCARD_FLAG_BAD_DATA, r_memcard_flags
 		beq	.skip_bad_data
-		lea	XY_STR_BAD_DATA, a0
+		lea	d_xys_bad_data, a0
 		RSUB	print_xy_string_struct
 
 	.skip_bad_data:
 
-		lea	XY_STR_DBUS_8BIT, a0
+		lea	d_xys_dbus_8bit, a0
 		btst	#MEMCARD_FLAG_DBUS_16BIT, r_memcard_flags
 		beq	.print_dbus_size
-		lea	XY_STR_DBUS_16BIT, a0
+		lea	d_xys_dbus_16bit, a0
 
 	.print_dbus_size:
 		RSUB	print_xy_string_struct_clear
@@ -121,11 +121,11 @@ manual_memcard_tests:
 		; add (WIDE) if double wide bus
 		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		beq	.print_size
-		lea	XY_STR_DBUS_WIDE, a0
+		lea	d_xys_dbus_wide, a0
 		RSUB	print_xy_string_struct
 
 	.print_size:
-		lea	XY_STR_SIZE, a0
+		lea	d_xys_size, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#13, d0
@@ -142,7 +142,7 @@ manual_memcard_tests:
 
 	.print_size_bytes:
 		RSUB	print_5_digits
-		lea	XY_STR_SIZE_BYTES, a0
+		lea	d_xys_size_bytes, a0
 		RSUB	print_xy_string_struct
 
 	.print_size_done:
@@ -155,7 +155,7 @@ manual_memcard_tests:
 		bsr	memcard_address_tests
 		bne	.test_failed_abort
 
-		lea	XY_STR_TESTS_PASSED, a0
+		lea	d_xys_tests_passed, a0
 		RSUB	print_xy_string_struct
 
 		bra	.wait_input_return_menu
@@ -169,7 +169,7 @@ manual_memcard_tests:
 		move.b	d0, REG_CRDLOCK1
 		move.b  d0, REG_CRDLOCK2
 
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 	.loop_wait_input_return_menu:
@@ -599,22 +599,22 @@ check_memcard_address:
 
 	section data
 
-STR_MEMCARD_TESTS:		STRING "MEMORY CARD TESTS"
+d_str_memcard_tests:		STRING "MEMORY CARD TESTS"
 
-XY_STR_A_C_RUN_TEST:		XY_STRING  4, 26, "A+C: Run Test"
-XY_STR_WARNING1:		XY_STRING  4,  8, "WARNING: ALL DATA ON THE MEMORY"
-XY_STR_WARNING2:		XY_STRING  4,  9, "CARD WILL BE OVERWRITTEN!"
-XY_STR_NOT_DETECTED:		XY_STRING  4,  8, "ERROR: MEMORY CARD NOT DETECTED"
-XY_STR_WRITE_PROTECT:		XY_STRING  4,  8, "ERROR: MEMORY CARD WRITE PROTECTED"
-XY_STR_DETECT:			XY_STRING  4, 22, "DETECTED"
-XY_STR_BAD_DATA:		XY_STRING 13, 22, "(BAD DATA)"
-XY_STR_DBUS_8BIT:		XY_STRING  4, 24, "DATA BUS: 8-BIT"
-XY_STR_DBUS_16BIT:		XY_STRING  4, 24, "DATA BUS: 16-BIT"
-XY_STR_DBUS_WIDE:		XY_STRING 21, 24, "(WIDE)"
-XY_STR_SIZE:			XY_STRING  8, 25, "SIZE:      KB"
-XY_STR_SIZE_BYTES:		XY_STRING 19, 25, "BYTES"
-XY_STR_TESTS_PASSED:		XY_STRING  4,  9, "ALL TESTS PASSED"
-XY_STR_RUNNING_TESTS:		XY_STRING  4,  9, "RUNNING TESTS..."
+d_xys_a_c_run_test:		XY_STRING  4, 26, "A+C: Run Test"
+d_xys_warning1:			XY_STRING  4,  8, "WARNING: ALL DATA ON THE MEMORY"
+d_xys_warning2:			XY_STRING  4,  9, "CARD WILL BE OVERWRITTEN!"
+d_xys_not_detected:		XY_STRING  4,  8, "ERROR: MEMORY CARD NOT DETECTED"
+d_xys_write_protect:		XY_STRING  4,  8, "ERROR: MEMORY CARD WRITE PROTECTED"
+d_xys_detect:			XY_STRING  4, 22, "DETECTED"
+d_xys_bad_data:			XY_STRING 13, 22, "(BAD DATA)"
+d_xys_dbus_8bit:		XY_STRING  4, 24, "DATA BUS: 8-BIT"
+d_xys_dbus_16bit:		XY_STRING  4, 24, "DATA BUS: 16-BIT"
+d_xys_dbus_wide:		XY_STRING 21, 24, "(WIDE)"
+d_xys_size:			XY_STRING  8, 25, "SIZE:      KB"
+d_xys_size_bytes:		XY_STRING 19, 25, "BYTES"
+d_xys_tests_passed:		XY_STRING  4,  9, "ALL TESTS PASSED"
+d_xys_running_tests:		XY_STRING  4,  9, "RUNNING TESTS..."
 
 	section bss
 

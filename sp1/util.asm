@@ -60,7 +60,7 @@ loop_reset_check:
 loop_reset_check_dsub:
 		moveq	#4, d0
 		moveq	#27, d1
-		lea	STR_HOLD_SS_TO_RESET, a0
+		lea	d_str_hold_ss_to_reset, a0
 		DSUB	print_xy_string_clear
 
 	.loop_ss_not_pressed:
@@ -71,7 +71,7 @@ loop_reset_check_dsub:
 
 		moveq	#4, d0
 		moveq	#27, d1
-		lea	STR_RELEASE_SS, a0
+		lea	d_str_release_ss, a0
 		DSUB	print_xy_string_clear
 
 	.loop_ss_pressed:
@@ -95,7 +95,7 @@ check_reset_request:
 
 		moveq	#4, d0
 		moveq	#27, d1
-		lea	STR_RELEASE_SS, a0
+		lea	d_str_release_ss, a0
 		RSUB	print_xy_string_clear
 
 	.loop_ss_pressed:
@@ -352,14 +352,14 @@ error_to_credit_leds_dsub:
 print_hold_ss_to_reset:
 		moveq	#4, d0
 		moveq	#27, d1
-		lea	STR_HOLD_SS_TO_RESET, a0
+		lea	d_str_hold_ss_to_reset, a0
 		RSUB	print_xy_string_clear
 		rts
 
 	section data
 
-STR_HOLD_SS_TO_RESET:		STRING "HOLD START/SELECT TO SOFT RESET"
-STR_RELEASE_SS:			STRING "RELEASE START/SELECT"
+d_str_hold_ss_to_reset:		STRING "HOLD START/SELECT TO SOFT RESET"
+d_str_release_ss:		STRING "RELEASE START/SELECT"
 
 	section bss
 

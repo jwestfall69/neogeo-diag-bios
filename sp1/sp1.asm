@@ -6,12 +6,13 @@
 
 	global _start
 	global manual_tests
-	global XY_STR_A_TO_RESUME
-	global XY_STR_D_MAIN_MENU
-	global XY_STR_ADDRESS
-	global XY_STR_ACTUAL
-	global XY_STR_EXPECTED
-	global XY_STR_PASSES
+
+	global d_xys_a_to_resume
+	global d_xys_d_main_menu
+	global d_xys_address
+	global d_xys_actual
+	global d_xys_expected
+	global d_xys_passes
 
 	global r_main_menu_cursor
 
@@ -94,30 +95,30 @@ automatic_tests:
 
 	.skip_slot_switch:
 
-		lea	XY_STR_Z80_WAITING, a0
+		lea	d_xys_z80_waiting, a0
 		RSUB	print_xy_string_struct_clear
 		bsr	auto_z80_tests
 
 	.skip_z80_test:
 
 		bsr	automatic_function_tests
-		lea	XY_STR_ALL_TESTS_PASSED, a0
+		lea	d_xys_all_tests_passed, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_ABCD_MAIN_MENU, a0
+		lea	d_xys_abcd_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		tst.b	r_z80_test_flags
 
 		bne	.loop_user_input
 
-		lea	XY_STR_Z80_TESTS_SKIPPED, a0
+		lea	d_xys_z80_tests_skipped, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_Z80_HOLD_D_AND_SOFT, a0
+		lea	d_xys_z80_hold_d_and_soft, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_Z80_RESET_WITH_CART, a0
+		lea	d_xys_z80_reset_with_cart, a0
 		RSUB	print_xy_string_struct_clear
 
 	.loop_user_input:
@@ -177,12 +178,12 @@ automatic_psub_tests_dsub:
 
 
 AUTOMATIC_PSUB_TEST_STRUCT_START:
-	dc.l	auto_bios_mirror_test_dsub, STR_TESTING_BIOS_MIRROR
-	dc.l	auto_bios_crc32_test_dsub, STR_TESTING_BIOS_CRC32
-	dc.l	auto_work_ram_oe_tests_dsub, STR_TESTING_WORK_RAM_OE
-	dc.l	auto_work_ram_we_tests_dsub, STR_TESTING_WORK_RAM_WE
-	dc.l	auto_work_ram_data_tests_dsub, STR_TESTING_WORK_RAM_DATA
-	dc.l	auto_work_ram_address_tests_dsub, STR_TESTING_WORK_RAM_ADDRESS
+	dc.l	auto_bios_mirror_test_dsub, d_str_testing_bios_mirror
+	dc.l	auto_bios_crc32_test_dsub, d_str_testing_bios_crc32
+	dc.l	auto_work_ram_oe_tests_dsub, d_str_testing_work_ram_oe
+	dc.l	auto_work_ram_we_tests_dsub, d_str_testing_work_ram_we
+	dc.l	auto_work_ram_data_tests_dsub, d_str_testing_work_ram_data
+	dc.l	auto_work_ram_address_tests_dsub, d_str_testing_work_ram_address
 AUTOMATIC_PSUB_TEST_STRUCT_END:
 
 ; runs automatic tests that are subroutine based;
@@ -235,11 +236,11 @@ automatic_function_tests:
 		rts
 
 AUTOMATIC_FUNC_TEST_STRUCT_START:
-	dc.l	auto_backup_ram_tests, STR_TESTING_BACKUP_RAM
-	dc.l	auto_palette_ram_tests, STR_TESTING_PALETTE_RAM
-	dc.l	auto_video_ram_2k_tests, STR_TESTING_VIDEO_RAM_2K
-	dc.l	auto_video_ram_32k_tests, STR_TESTING_VIDEO_RAM_32K
-	dc.l	auto_mmio_tests, STR_TESTING_MMIO
+	dc.l	auto_backup_ram_tests, d_str_testing_backup_ram
+	dc.l	auto_palette_ram_tests, d_str_testing_palette_ram
+	dc.l	auto_video_ram_2k_tests, d_str_testing_video_ram_2k
+	dc.l	auto_video_ram_32k_tests, d_str_testing_video_ram_32k
+	dc.l	auto_mmio_tests, d_str_testing_mmio
 AUTOMATIC_FUNC_TEST_STRUCT_END:
 
 ; prints headers
@@ -255,7 +256,7 @@ print_header_dsub:
 
 		moveq	#2, d0
 		moveq	#3, d1
-		lea	STR_VERSION_HEADER, a0
+		lea	d_str_version_header, a0
 		DSUB	print_xy_string_clear
 		DSUB_RETURN
 
@@ -391,53 +392,53 @@ main_menu_loop:
 ;  word flags,  // 0 = valid for both, 1 = aes disabled, 2 = mvs disable
 ; }
 MAIN_MENU_ITEMS_START:
-	MAIN_MENU_ITEM STR_CALENDAR_IO, manual_calendar_tests, 1
-	MAIN_MENU_ITEM STR_COLOR_BARS_BASIC, manual_color_bars_basic_test, 0
-	MAIN_MENU_ITEM STR_COLOR_BARS_SMPTE, manual_color_bars_smpte_test, 0
-	MAIN_MENU_ITEM STR_VIDEO_DAC_TESTS, manual_video_dac_tests, 0
-	MAIN_MENU_ITEM STR_CONTROLLER_TESTS, manual_controller_tests, 0
-	MAIN_MENU_ITEM STR_WORK_RAM_TEST_LOOP, manual_work_ram_tests, 0
-	MAIN_MENU_ITEM STR_BACKUP_RAM_TEST_LOOP, manual_backup_ram_tests, 1
-	MAIN_MENU_ITEM STR_PAL_RAM_TEST_LOOP, manual_palette_ram_tests, 0
-	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_32K, manual_video_ram_32k_tests, 0
-	MAIN_MENU_ITEM STR_VRAM_TEST_LOOP_2K, manual_video_ram_2k_tests, 0
-	MAIN_MENU_ITEM STR_MISC_INPUT_TEST, manual_misc_input_tests, 0
-	MAIN_MENU_ITEM STR_CPU_PAL_ADDR_TEST, manual_cpu_pal_addr_test, 0
-	MAIN_MENU_ITEM STR_MEMCARD_TESTS, manual_memcard_tests, 0
-	MAIN_MENU_ITEM STR_P_ROM_BUS_TESTS, manual_p_rom_bus_tests, 0
+	MAIN_MENU_ITEM d_str_calendar_io, manual_calendar_tests, 1
+	MAIN_MENU_ITEM d_str_color_bars_basic, manual_color_bars_basic_test, 0
+	MAIN_MENU_ITEM d_str_color_bars_smpte, manual_color_bars_smpte_test, 0
+	MAIN_MENU_ITEM d_str_video_dac_tests, manual_video_dac_tests, 0
+	MAIN_MENU_ITEM d_str_controller_tests, manual_controller_tests, 0
+	MAIN_MENU_ITEM d_str_work_ram_test_loop, manual_work_ram_tests, 0
+	MAIN_MENU_ITEM d_str_backup_ram_test_loop, manual_backup_ram_tests, 1
+	MAIN_MENU_ITEM d_str_pal_ram_test_loop, manual_palette_ram_tests, 0
+	MAIN_MENU_ITEM d_str_vram_test_loop_32k, manual_video_ram_32k_tests, 0
+	MAIN_MENU_ITEM d_str_vram_test_loop_2k, manual_video_ram_2k_tests, 0
+	MAIN_MENU_ITEM d_str_misc_input_test, manual_misc_input_tests, 0
+	MAIN_MENU_ITEM d_str_cpu_pal_addr_test, manual_cpu_pal_addr_test, 0
+	MAIN_MENU_ITEM d_str_memcard_tests, manual_memcard_tests, 0
+	MAIN_MENU_ITEM d_str_p_rom_bus_tests, manual_p_rom_bus_tests, 0
 MAIN_MENU_ITEMS_END:
 
 	section data
 
-STR_VERSION_HEADER:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
+d_str_version_header:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
 
-XY_STR_A_TO_RESUME:		XY_STRING  4, 26, "A: Release to Resume"
-XY_STR_D_MAIN_MENU:		XY_STRING  4, 27, "D: Return to menu"
+d_xys_a_to_resume:		XY_STRING  4, 26, "A: Release to Resume"
+d_xys_d_main_menu:		XY_STRING  4, 27, "D: Return to menu"
 
-XY_STR_ADDRESS:			XY_STRING  4,  8, "ADDRESS:"
-XY_STR_ACTUAL:			XY_STRING  4, 10, "ACTUAL:"
-XY_STR_EXPECTED:		XY_STRING  4, 12, "EXPECTED:"
-XY_STR_PASSES:			XY_STRING  4, 14, "PASSES:"
+d_xys_address:			XY_STRING  4,  8, "ADDRESS:"
+d_xys_actual:			XY_STRING  4, 10, "ACTUAL:"
+d_xys_expected:			XY_STRING  4, 12, "EXPECTED:"
+d_xys_passes:			XY_STRING  4, 14, "PASSES:"
 
-XY_STR_ALL_TESTS_PASSED:	XY_STRING  4,  5, "ALL TESTS PASSED"
-XY_STR_ABCD_MAIN_MENU:		XY_STRING  4, 21, "PRESS ABCD FOR MAIN MENU"
+d_xys_all_tests_passed:		XY_STRING  4,  5, "ALL TESTS PASSED"
+d_xys_abcd_main_menu:		XY_STRING  4, 21, "PRESS ABCD FOR MAIN MENU"
 
-XY_STR_Z80_WAITING:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
-XY_STR_Z80_TESTS_SKIPPED:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
-XY_STR_Z80_HOLD_D_AND_SOFT:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
-XY_STR_Z80_RESET_WITH_CART:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
+d_xys_z80_waiting:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
+d_xys_z80_tests_skipped:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
+d_xys_z80_hold_d_and_soft:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
+d_xys_z80_reset_with_cart:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
 
-STR_TESTING_BIOS_MIRROR:	STRING "TESTING BIOS MIRRORING..."
-STR_TESTING_BIOS_CRC32:		STRING "TESTING BIOS CRC32..."
-STR_TESTING_WORK_RAM_OE:	STRING "TESTING WORK RAM /OE..."
-STR_TESTING_WORK_RAM_WE:	STRING "TESTING WORK RAM /WE..."
-STR_TESTING_WORK_RAM_DATA:	STRING "TESTING WORK RAM DATA..."
-STR_TESTING_WORK_RAM_ADDRESS:	STRING "TESTING WORK RAM ADDRESS..."
-STR_TESTING_BACKUP_RAM:		STRING "TESTING BACKUP RAM..."
-STR_TESTING_PALETTE_RAM:	STRING "TESTING PALETTE RAM..."
-STR_TESTING_VIDEO_RAM_2K:	STRING "TESTING VIDEO RAM (2K)..."
-STR_TESTING_VIDEO_RAM_32K:	STRING "TESTING VIDEO RAM (32K)..."
-STR_TESTING_MMIO:		STRING "TESTING MMIO..."
+d_str_testing_bios_mirror:	STRING "TESTING BIOS MIRRORING..."
+d_str_testing_bios_crc32:	STRING "TESTING BIOS CRC32..."
+d_str_testing_work_ram_oe:	STRING "TESTING WORK RAM /OE..."
+d_str_testing_work_ram_we:	STRING "TESTING WORK RAM /WE..."
+d_str_testing_work_ram_data:	STRING "TESTING WORK RAM DATA..."
+d_str_testing_work_ram_address:	STRING "TESTING WORK RAM ADDRESS..."
+d_str_testing_backup_ram:	STRING "TESTING BACKUP RAM..."
+d_str_testing_palette_ram:	STRING "TESTING PALETTE RAM..."
+d_str_testing_video_ram_2k:	STRING "TESTING VIDEO RAM (2K)..."
+d_str_testing_video_ram_32k:	STRING "TESTING VIDEO RAM (32K)..."
+d_str_testing_mmio:		STRING "TESTING MMIO..."
 
 	section bss
 

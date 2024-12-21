@@ -5,7 +5,8 @@
 
 	global auto_palette_ram_tests
 	global manual_palette_ram_tests
-	global STR_PAL_RAM_TEST_LOOP
+
+	global d_str_pal_ram_test_loop
 
 	section code
 
@@ -33,11 +34,11 @@ auto_palette_ram_tests:
 		rts
 
 manual_palette_ram_tests:
-		lea	XY_STR_PASSES, a0
+		lea	d_xys_passes, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_A_TO_RESUME, a0
+		lea	d_xys_a_to_resume, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	palette_ram_backup
@@ -308,4 +309,4 @@ check_palette_ram_to_245_output:
 
 	section data
 
-STR_PAL_RAM_TEST_LOOP:		STRING "PALETTE RAM TEST LOOP"
+d_str_pal_ram_test_loop:	STRING "PALETTE RAM TEST LOOP"

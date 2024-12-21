@@ -12,13 +12,13 @@
 	section code
 
 auto_z80_tests:
-		lea	XY_STR_Z80_M1_ENABLED, a0
+		lea	d_xys_z80_m1_enabled, a0
 		RSUB	print_xy_string_struct
 
-		lea	XY_STR_Z80_TESTING_COMM_PORT, a0
+		lea	d_xys_z80_testing_comm_port, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_Z80_SND_REG, a0
+		lea	d_xys_z80_snd_reg, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	start_comm_test
@@ -40,7 +40,7 @@ z80_slot_switch:
 
 		bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, r_z80_test_flags
 
-		lea	XY_STR_Z80_SWITCHING_M1, a0
+		lea	d_xys_z80_switching_m1, a0
 		RSUB	print_xy_string_struct_clear
 
 		move.b	#$01, REG_SOUND				; tell z80 to prep for m1 switch
@@ -62,8 +62,8 @@ z80_slot_switch:
 		and.b	d1, d0
 		eor.b	d1, d0
 
-		moveq	#((SLOT_SELECT_END - SLOT_SELECT_START)/2 - 1), d1
-		lea	(SLOT_SELECT_START - 1), a0
+		moveq	#((d_slot_select_end - d_slot_select_start)/2 - 1), d1
+		lea	(d_slot_select_start - 1), a0
 
 	.loop_next_entry:
 		addq.l	#1, a0
@@ -76,7 +76,7 @@ z80_slot_switch:
 	.do_slot_switch:
 
 		move.b	(a0), d3
-		lea	(XY_STR_Z80_SLOT_SWITCH_NUM), a0	; "[SS ]"
+		lea	(d_xys_z80_slot_switch_num), a0	; "[SS ]"
 		RSUB	print_xy_string_struct
 
 		move.b	#32, d0
@@ -103,19 +103,19 @@ slot_switch_ignored:
 		moveq	#12, d1
 		DSUB	print_hex_byte
 
-		lea	XY_STR_ACTUAL, a0
+		lea	d_xys_actual, a0
 		DSUB	print_xy_string_struct
 
-		lea	XY_STR_EXPECTED, a0
+		lea	d_xys_expected, a0
 		DSUB	print_xy_string_struct
 
-		lea	XY_STR_Z80_SM1_IGNORED, a0
+		lea	d_xys_z80_sm1_ignored, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_Z80_SM1_RESPONSIVE, a0
+		lea	d_xys_z80_sm1_responsive, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_Z80_MV1BC_HOLD_B, a0
+		lea	d_xys_z80_mv1bc_hold_b, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_Z80_PRESS_START, a0
+		lea	d_xys_z80_press_start, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	print_hold_ss_to_reset
@@ -198,14 +198,14 @@ check_sm1_test:
 		move.b	d0, REG_BRDFIX
 		move.b	#COMM_SM1_TEST_SWITCH_SM1_DONE, REG_SOUND
 
-		lea	(XY_STR_Z80_SM1_TESTS), a0		; "[SM1]" to indicate m1 is running sm1 tests
+		lea	(d_xys_z80_sm1_tests), a0		; "[SM1]" to indicate m1 is running sm1 tests
 		RSUB	print_xy_string_struct
 
 		bsr	z80_wait_clear
 		rts
 
 	.deny_sm1_tests:
-		move.b  #COMM_SM1_TEST_SWITCH_SM1_DENY, REG_SOUND
+		move.b	#COMM_SM1_TEST_SWITCH_SM1_DENY, REG_SOUND
 		bsr	z80_wait_clear
 		rts
 
@@ -277,11 +277,11 @@ start_comm_test:
 		rts
 
 	.z80_hello_timeout:
-		lea	XY_STR_Z80_COMM_NO_HELLO, a0
+		lea	d_xys_z80_comm_no_hello, a0
 		bra	.print_comm_error
 
 	.z80_ack_timeout:
-		lea	XY_STR_Z80_COMM_NO_ACK, a0
+		lea	d_xys_z80_comm_no_ack, a0
 
 	.print_comm_error:
 		move.b	d1, d0
@@ -305,15 +305,15 @@ print_comm_error:
 
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_EXPECTED, a0
+		lea	d_xys_expected, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_ACTUAL, a0
+		lea	d_xys_actual, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_Z80_SKIP_TEST, a0
+		lea	d_xys_z80_skip_test, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_Z80_PRESS_D_RESET, a0
+		lea	d_xys_z80_press_d_reset, a0
 		RSUB	print_xy_string_struct_clear
 
 		move.w	(a7)+, d2
@@ -326,10 +326,10 @@ print_comm_error:
 		moveq	#10, d1
 		RSUB	print_hex_byte				; actual value
 
-		lea	XY_STR_Z80_MAKE_SURE, a0
+		lea	d_xys_z80_make_sure, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_Z80_CART_CLEAN, a0
+		lea	d_xys_z80_cart_clean, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	check_error
@@ -360,31 +360,31 @@ ack_error:
 ; 	byte buttons_pressed; 	(up/down/left/right)
 ;  	byte slot;
 ; }
-SLOT_SELECT_START:
+d_slot_select_start:
 	dc.b	$01, $02			; up = slot 2
 	dc.b	$09, $03			; up+right = slot 3
 	dc.b	$08, $04			; right = slot 4
 	dc.b	$0a, $05			; down+right = slot 5
 	dc.b	$02, $06			; down = slot 6
-SLOT_SELECT_END:
+d_slot_select_end:
 	dc.b	$00, $01			; no match = slot 1
 
-XY_STR_Z80_SWITCHING_M1:	XY_STRING  4,  5, "SWITCHING TO CART M1..."
-XY_STR_Z80_SM1_IGNORED:		XY_STRING  3,  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
-XY_STR_Z80_SM1_RESPONSIVE:	XY_STRING  3,  7, "SM1 RESPONSE"
-XY_STR_Z80_PRESS_START:		XY_STRING  3, 16, "PRESS START TO FORCE SLOT SWITCH"
-XY_STR_Z80_MV1BC_HOLD_B:	XY_STRING  3, 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
-XY_STR_Z80_TESTING_COMM_PORT:	XY_STRING  4,  5, "TESTING Z80 COMM. PORT..."
-XY_STR_Z80_COMM_NO_HELLO:	XY_STRING  4,  5, "Z80->68k COMM ISSUE (HELLO)"
-XY_STR_Z80_COMM_NO_ACK:		XY_STRING  4,  5, "Z80->68k COMM ISSUE (ACK)"
-XY_STR_Z80_SKIP_TEST:		XY_STRING  4, 24, "TO SKIP Z80 TESTING, RELEASE"
-XY_STR_Z80_PRESS_D_RESET:	XY_STRING  4, 25, "D BUTTON AND SOFT RESET."
-XY_STR_Z80_MAKE_SURE:		XY_STRING  4, 21, "FOR Z80 TESTING, MAKE SURE TEST"
-XY_STR_Z80_CART_CLEAN:		XY_STRING  4, 22, "CART IS CLEAN AND FUNCTIONAL."
-XY_STR_Z80_M1_ENABLED:		XY_STRING 34,  4, "[M1]"
-XY_STR_Z80_SLOT_SWITCH_NUM:	XY_STRING 29,  4, "[SS ]"
-XY_STR_Z80_SM1_TESTS:		XY_STRING 24,  4, "[SM1]"
-XY_STR_Z80_SND_REG:		XY_STRING  4, 10, "SND REG: "
+d_xys_z80_switching_m1:		XY_STRING  4,  5, "SWITCHING TO CART M1..."
+d_xys_z80_sm1_ignored:		XY_STRING  3,  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
+d_xys_z80_sm1_responsive:	XY_STRING  3,  7, "SM1 RESPONSE"
+d_xys_z80_press_start:		XY_STRING  3, 16, "PRESS START TO FORCE SLOT SWITCH"
+d_xys_z80_mv1bc_hold_b:		XY_STRING  3, 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
+d_xys_z80_testing_comm_port:	XY_STRING  4,  5, "TESTING Z80 COMM. PORT..."
+d_xys_z80_comm_no_hello:	XY_STRING  4,  5, "Z80->68k COMM ISSUE (HELLO)"
+d_xys_z80_comm_no_ack:		XY_STRING  4,  5, "Z80->68k COMM ISSUE (ACK)"
+d_xys_z80_skip_test:		XY_STRING  4, 24, "TO SKIP Z80 TESTING, RELEASE"
+d_xys_z80_press_d_reset:	XY_STRING  4, 25, "D BUTTON AND SOFT RESET."
+d_xys_z80_make_sure:		XY_STRING  4, 21, "FOR Z80 TESTING, MAKE SURE TEST"
+d_xys_z80_cart_clean:		XY_STRING  4, 22, "CART IS CLEAN AND FUNCTIONAL."
+d_xys_z80_m1_enabled:		XY_STRING 34,  4, "[M1]"
+d_xys_z80_slot_switch_num:	XY_STRING 29,  4, "[SS ]"
+d_xys_z80_sm1_tests:		XY_STRING 24,  4, "[SM1]"
+d_xys_z80_snd_reg:		XY_STRING  4, 10, "SND REG: "
 
 	section bss
 

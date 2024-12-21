@@ -5,7 +5,8 @@
 
 	global auto_backup_ram_tests
 	global manual_backup_ram_tests
-	global STR_BACKUP_RAM_TEST_LOOP
+
+	global d_str_backup_ram_test_loop
 
 	section code
 
@@ -36,9 +37,9 @@ auto_backup_ram_tests:
 		rts
 
 manual_backup_ram_tests:
-		lea	XY_STR_PASSES,a0
+		lea	d_xys_passes,a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#0, d6				; passes
@@ -183,4 +184,4 @@ backup_ram_address_tests_dsub:
 
 	section data
 
-STR_BACKUP_RAM_TEST_LOOP:	STRING "BACKUP RAM TEST LOOP (MVS ONLY)"
+d_str_backup_ram_test_loop:	STRING "BACKUP RAM TEST LOOP (MVS ONLY)"

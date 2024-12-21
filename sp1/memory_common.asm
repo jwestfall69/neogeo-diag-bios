@@ -185,8 +185,8 @@ check_vram_we:
 check_ram_data_dsub:
 		subq.w	#1, d0
 
-		lea	MEMORY_DATA_TEST_PATTERNS, a1
-		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+		lea	d_data_test_patterns, a1
+		moveq	#((d_data_test_patterns_end - d_data_test_patterns)/2 - 1), d3
 		move.l	d0, d4
 		movea.l	a0, a2
 
@@ -246,8 +246,8 @@ check_vram_data:
 		subq.w	#1, d1
 		move.w	d1, d5				; backup length
 
-		lea	MEMORY_DATA_TEST_PATTERNS, a1
-		moveq	#((MEMORY_DATA_TEST_PATTERNS_END - MEMORY_DATA_TEST_PATTERNS)/2 - 1), d3
+		lea	d_data_test_patterns, a1
+		moveq	#((d_data_test_patterns_end - d_data_test_patterns)/2 - 1), d3
 
 	.loop_next_pattern:
 		move.w	d5, d1
@@ -406,6 +406,6 @@ check_vram_address:
 
 	section data
 
-MEMORY_DATA_TEST_PATTERNS:
+d_data_test_patterns:
 	dc.w	$0000, $5555, $aaaa, $ffff
-MEMORY_DATA_TEST_PATTERNS_END:
+d_data_test_patterns_end:

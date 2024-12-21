@@ -16,10 +16,10 @@ auto_mmio_tests:
 		rts
 
 ; does OE test against all the registers in the
-; MMIO_ADDRESSES_TABLE_START table
+; d_mmio_addresses_table_start table
 check_mmio_oe:
-		lea	MMIO_ADDRESSES_TABLE_START, a1
-		moveq	#((MMIO_ADDRESSES_TABLE_END - MMIO_ADDRESSES_TABLE_START)/4 - 1), d6
+		lea	d_mmio_addresses_table_start, a1
+		moveq	#((d_mmio_addresses_table_end - d_mmio_addresses_table_start)/4 - 1), d6
 
 	.loop_next_test:
 		movea.l	(a1)+, a0
@@ -109,7 +109,7 @@ check_mmio_oe_word:
 
 	section data
 
-MMIO_ADDRESSES_TABLE_START:
+d_mmio_addresses_table_start:
 	dc.l REG_DIPSW
 	dc.l REG_SYSTYPE
 	dc.l REG_STATUS_A
@@ -117,4 +117,4 @@ MMIO_ADDRESSES_TABLE_START:
 	dc.l REG_SOUND
 	dc.l REG_P2CNT
 	dc.l REG_STATUS_B
-MMIO_ADDRESSES_TABLE_END:
+d_mmio_addresses_table_end:

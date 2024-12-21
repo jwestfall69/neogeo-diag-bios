@@ -4,22 +4,23 @@
 	include "../common/error_codes.inc"
 
 	global manual_p_rom_bus_tests
-	global STR_P_ROM_BUS_TESTS
+
+	global d_str_p_rom_bus_tests
 
 	section code
 
 manual_p_rom_bus_tests:
-		lea	XY_STR_SLOT_NUM, a0
+		lea	d_xys_slot_num, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_TESTS_REQUIRE, a0
+		lea	d_xys_tests_require, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_CUSTOM_CART, a0
+		lea	d_xys_custom_cart, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	XY_STR_A_C_RUN_TEST, a0
+		lea	d_xys_a_c_run_test, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		bsr	get_slot_count
@@ -98,7 +99,7 @@ manual_p_rom_bus_tests:
 		moveq	#26, d0
 		SSA3	fix_clear_line
 
-		lea	XY_STR_PASSES, a0
+		lea	d_xys_passes, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#0, d6	; passes
@@ -382,9 +383,9 @@ check_p2_rom_we:
 
 	section data
 
-STR_P_ROM_BUS_TESTS:		STRING "P ROM BUS TESTS (CUSTOM CART)"
+d_str_p_rom_bus_tests:		STRING "P ROM BUS TESTS (CUSTOM CART)"
 
-XY_STR_SLOT_NUM:		XY_STRING  4,  8, "SLOT NUMBER: "
-XY_STR_TESTS_REQUIRE:		XY_STRING  4, 20, "THESE TESTS REQUIRE A"
-XY_STR_CUSTOM_CART:		XY_STRING  5, 21, "CUSTOM CART TO WORK"
-XY_STR_A_C_RUN_TEST:		XY_STRING  4, 26, "A+C: Run Test"
+d_xys_slot_num:			XY_STRING  4,  8, "SLOT NUMBER: "
+d_xys_tests_require:		XY_STRING  4, 20, "THESE TESTS REQUIRE A"
+d_xys_custom_cart:		XY_STRING  5, 21, "CUSTOM CART TO WORK"
+d_xys_a_c_run_test:		XY_STRING  4, 26, "A+C: Run Test"

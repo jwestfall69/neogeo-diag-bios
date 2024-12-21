@@ -3,7 +3,8 @@
 	include "sp1.inc"
 
 	global manual_color_bars_basic_test
-	global STR_COLOR_BARS_BASIC
+
+	global d_str_color_bars_basic
 
 	section code
 
@@ -20,7 +21,7 @@
 ; blue  = tile 0x00, palette bank1
 ; white = tile 0x20, palette bank1
 manual_color_bars_basic_test:
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 		bsr	setup_palettes
 		bsr	draw_tiles
@@ -150,4 +151,4 @@ draw_tiles:
 
 	section data
 
-STR_COLOR_BARS_BASIC:		STRING "COLOR BARS BASIC"
+d_str_color_bars_basic:		STRING "COLOR BARS BASIC"

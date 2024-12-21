@@ -3,7 +3,8 @@
 	include "sp1.inc"
 
 	global manual_color_bars_smpte_test
-	global STR_COLOR_BARS_SMPTE
+
+	global d_str_color_bars_smpte
 
 	section code
 
@@ -89,7 +90,7 @@ draw_section:
 
 	section data
 
-STR_COLOR_BARS_SMPTE:	STRING "COLOR BARS SMPTE"
+d_str_color_bars_smpte:	STRING "COLOR BARS SMPTE"
 
 SMPTE_COLORS:
 	dc.w	SMPTE_BLACK

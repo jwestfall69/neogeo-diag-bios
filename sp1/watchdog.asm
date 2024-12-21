@@ -7,11 +7,11 @@
 	section code
 
 watchdog_stuck_test_dsub:
-		lea	XY_STR_WATCHDOG_DELAY, a0
+		lea	d_xys_watchdog_delay, a0
 		DSUB	print_xy_string_struct_clear
-		lea	XY_STR_WATCHDOG_TEXT_REMAINS, a0
+		lea	d_xys_watchdog_text_remains, a0
 		DSUB	print_xy_string_struct_clear
-		lea	XY_STR_WATCHDOG_STUCK, a0
+		lea	d_xys_watchdog_stuck, a0
 		DSUB	print_xy_string_struct_clear
 
 		move.l	#$c930, d0		; 128760us / 128.76ms
@@ -25,6 +25,6 @@ watchdog_stuck_test_dsub:
 
 	section data
 
-XY_STR_WATCHDOG_DELAY:		XY_STRING  4,  5, "WATCHDOG DELAY..."
-XY_STR_WATCHDOG_TEXT_REMAINS:	XY_STRING  4,  8, "IF THIS TEXT REMAINS HERE..."
-XY_STR_WATCHDOG_STUCK:		XY_STRING  4, 10, "THEN SYSTEM IS STUCK IN WATCHDOG"
+d_xys_watchdog_delay:		XY_STRING  4,  5, "WATCHDOG DELAY..."
+d_xys_watchdog_text_remains:	XY_STRING  4,  8, "IF THIS TEXT REMAINS HERE..."
+d_xys_watchdog_stuck:		XY_STRING  4, 10, "THEN SYSTEM IS STUCK IN WATCHDOG"

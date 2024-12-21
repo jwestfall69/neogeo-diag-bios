@@ -5,7 +5,8 @@
 
 	global auto_video_ram_2k_tests
 	global manual_video_ram_2k_tests
-	global STR_VRAM_TEST_LOOP_2K
+
+	global d_str_vram_test_loop_2k
 
 	section code
 
@@ -30,10 +31,10 @@ auto_video_ram_2k_tests:
 		rts
 
 manual_video_ram_2k_tests:
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct
 
-		lea	XY_STR_PASSES, a0
+		lea	d_xys_passes, a0
 		RSUB	print_xy_string_struct
 
 		moveq	#$0, d6
@@ -141,4 +142,4 @@ vram_address_tests:
 
 	section data
 
-STR_VRAM_TEST_LOOP_2K:		STRING "VRAM TEST LOOP (2K)"
+d_str_vram_test_loop_2k:		STRING "VRAM TEST LOOP (2K)"

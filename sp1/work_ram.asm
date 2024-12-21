@@ -8,14 +8,15 @@
 	global auto_work_ram_oe_tests_dsub
 	global auto_work_ram_we_tests_dsub
 	global manual_work_ram_tests
-	global STR_WORK_RAM_TEST_LOOP
+
+	global d_str_work_ram_test_loop
 
 	section code
 
 manual_work_ram_tests:
-		lea	XY_STR_PASSES,a0
+		lea	d_xys_passes,a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 
 		moveq	#DSUB_INIT_PSEUDO, d7		; init dsub for pseudo subroutines
@@ -145,4 +146,4 @@ auto_work_ram_address_tests_dsub:
 
 	section data
 
-STR_WORK_RAM_TEST_LOOP:		STRING "WORK RAM TEST LOOP"
+d_str_work_ram_test_loop:		STRING "WORK RAM TEST LOOP"

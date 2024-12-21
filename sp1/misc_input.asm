@@ -3,12 +3,12 @@
 	include "sp1.inc"
 
 	global manual_misc_input_tests
-	global STR_MISC_INPUT_TEST
+	global d_str_misc_input_test
 
 	section code
 
 manual_misc_input_tests:
-		lea	XY_STR_D_MAIN_MENU, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xy_string_struct_clear
 		bsr	misc_input_print_static
 	.loop_run_test:
@@ -20,30 +20,31 @@ manual_misc_input_tests:
 		rts
 
 misc_input_print_static:
-		lea	XY_STR_MEMORY_CARD, a0
+		lea	d_xys_memory_card, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	MI_ITEM_CD1, a0
+		lea	d_mi_item_cd1, a0
 		moveq	#$9, d0
 		moveq	#$3, d1
 		bsr	misc_input_print_static_items
 
-		lea	XY_STR_SYSTEM_TYPE, a0
+		lea	d_xys_system_type, a0
 		RSUB	print_xy_string_struct_clear
 
-		lea	MI_ITEM_TYPE, a0
+		lea	d_mi_item_type, a0
+		moveq	#$e, d0
 		moveq	#$1, d1
 		bsr	misc_input_print_static_items
 
 		tst.b	REG_STATUS_B
 		bpl	.system_aes
 
-		lea	MI_ITEM_CFG_A, a0
+		lea	d_mi_item_cfg_a, a0
 		moveq	#$f, d0
 		moveq	#$2, d1
 		bsr	misc_input_print_static_items
 
-		lea	XY_STR_HARD_DIPS, a0
+		lea	d_xys_hard_dips, a0
 		RSUB	print_xy_string_struct_clear
 
 	.system_aes:
@@ -51,12 +52,12 @@ misc_input_print_static:
 
 
 misc_input_update_dynamic:
-		lea	MI_ITEM_CD1,a0
+		lea	d_mi_item_cd1,a0
 		moveq	#$9, d0
 		moveq	#$3, d1
 		bsr	misc_input_print_dynamic_items
 
-		lea	MI_ITEM_TYPE, a0
+		lea	d_mi_item_type, a0
 		moveq	#$e, d0
 		moveq	#$1, d1
 		bsr	misc_input_print_dynamic_items
@@ -64,12 +65,12 @@ misc_input_update_dynamic:
 		tst.b	REG_STATUS_B
 		bpl	.system_aes
 
-		lea	MI_ITEM_CFG_A, a0
+		lea	d_mi_item_cfg_a, a0
 		moveq	#$f, d0
 		moveq	#$2, d1
 		bsr	misc_input_print_dynamic_items
 
-		lea	STR_SYSTEM_CONFIG_AS, a0
+		lea	d_str_system_config_as, a0
 		moveq	#$4, d0
 		moveq	#$12, d1
 		RSUB	print_xy_string
@@ -189,33 +190,33 @@ misc_input_print_static_items:
 ;  long bit_disabled_string_address;
 ;  long bit_enabled_string_address;
 ;}
-MI_ITEM_CD1:	MISC_INPUT_ITEM $04, $38, $00, $00, STR_CD1, STR_CARD_DETECTED, STR_CARD_EMPTY
-MI_ITEM_CD2:	MISC_INPUT_ITEM $05, $38, $00, $00, STR_CD2, STR_CARD_DETECTED, STR_CARD_EMPTY
-MI_ITEM_WP:	MISC_INPUT_ITEM $06, $38, $00, $00, STR_WP, STR_CARD_WP_OFF, STR_CARD_WP_ON
-MI_ITEM_TYPE:	MISC_INPUT_ITEM $07, $38, $00, $00, STR_TYPE, STR_TYPE_AES, STR_TYPE_MVS
-MI_ITEM_CFG_A:	MISC_INPUT_ITEM $05, $32, $00, $01, STR_CFG_A, STR_CFG_A_LOW, STR_CFG_A_HIGH
-MI_ITEM_CFG_B:	MISC_INPUT_ITEM $06, $30, $00, $81, STR_CFG_B, STR_CFG_B_LOW, STR_CFG_B_HIGH
+d_mi_item_cd1:			MISC_INPUT_ITEM $04, $38, $00, $00, d_str_cd1, d_str_card_detected, d_str_card_empty
+d_mi_item_cd2:			MISC_INPUT_ITEM $05, $38, $00, $00, d_str_cd2, d_str_card_detected, d_str_card_empty
+d_mi_item_wp:			MISC_INPUT_ITEM $06, $38, $00, $00, d_str_wp, d_str_card_wp_off, d_str_card_wp_on
+d_mi_item_type:			MISC_INPUT_ITEM $07, $38, $00, $00, d_str_type, d_str_type_aes, d_str_type_mvs
+d_mi_item_cfg_a:		MISC_INPUT_ITEM $05, $32, $00, $01, d_str_cfg_a, d_str_cfg_a_low, d_str_cfg_a_high
+d_mi_item_cfg_b:		MISC_INPUT_ITEM $06, $30, $00, $81, d_str_cfg_b, d_str_cfg_b_low, d_str_cfg_b_high
 
-STR_MISC_INPUT_TEST:		STRING "MISC. INPUT TEST"
+d_str_misc_input_test:		STRING "MISC. INPUT TEST"
 
-STR_SYSTEM_CONFIG_AS:		STRING "SYSTEM CONFIGURED AS A   SLOT"
+d_str_system_config_as:		STRING "SYSTEM CONFIGURED AS A   SLOT"
 
-XY_STR_MEMORY_CARD:		XY_STRING  4,  8, "MEMORY CARD:"
-XY_STR_SYSTEM_TYPE:		XY_STRING  4, 13, "SYSTEM TYPE:"
-XY_STR_HARD_DIPS:		XY_STRING  4, 20, "HARD DIPS 12345678"
-STR_CD1:			STRING "/CD1"
-STR_CD2:			STRING "/CD2"
-STR_CARD_DETECTED:		STRING "(CARD DETECTED)"
-STR_CARD_EMPTY:			STRING "(CARD SLOT EMPTY)"
-STR_WP:				STRING "/WP"
-STR_CARD_WP_OFF:		STRING "(CARD WP OFF)"
-STR_CARD_WP_ON:			STRING "(CARD WP ON)"
-STR_TYPE:			STRING "TYPE"
-STR_TYPE_AES:			STRING "(SYSTEM IS AES)"
-STR_TYPE_MVS:			STRING "(SYSTEM IS MVS)"
-STR_CFG_A:			STRING "CFG-A"
-STR_CFG_A_LOW:			STRING "(CFG-A LOW)"
-STR_CFG_A_HIGH:			STRING "(CFG-A HIGH)"
-STR_CFG_B:			STRING "CFG-B"
-STR_CFG_B_LOW:			STRING "(CFG-B LOW)"
-STR_CFG_B_HIGH:			STRING "(CFG-B HIGH)"
+d_xys_memory_card:		XY_STRING  4,  8, "MEMORY CARD:"
+d_xys_system_type:		XY_STRING  4, 13, "SYSTEM TYPE:"
+d_xys_hard_dips:		XY_STRING  4, 20, "HARD DIPS 12345678"
+d_str_cd1:			STRING "/CD1"
+d_str_cd2:			STRING "/CD2"
+d_str_card_detected:		STRING "(CARD DETECTED)"
+d_str_card_empty:		STRING "(CARD SLOT EMPTY)"
+d_str_wp:			STRING "/WP"
+d_str_card_wp_off:		STRING "(CARD WP OFF)"
+d_str_card_wp_on:		STRING "(CARD WP ON)"
+d_str_type:			STRING "TYPE"
+d_str_type_aes:			STRING "(SYSTEM IS AES)"
+d_str_type_mvs:			STRING "(SYSTEM IS MVS)"
+d_str_cfg_a:			STRING "CFG-A"
+d_str_cfg_a_low:		STRING "(CFG-A LOW)"
+d_str_cfg_a_high:		STRING "(CFG-A HIGH)"
+d_str_cfg_b:			STRING "CFG-B"
+d_str_cfg_b_low:		STRING "(CFG-B LOW)"
+d_str_cfg_b_high:		STRING "(CFG-B HIGH)"

@@ -9,7 +9,7 @@
 error_address_dsub:
 
 		move.b	d0, d6
-		lea	XY_STR_EA_TRIGGERED, a0
+		lea	d_xys_ea_triggered, a0
 		DSUB	print_xy_string_struct
 		move.b	d6, d0
 
@@ -34,4 +34,4 @@ error_address_dsub:
 
 	section data
 
-XY_STR_EA_TRIGGERED:	XY_STRING 4, 27, "ERROR ADDRESS TRIGGERED"
+d_xys_ea_triggered:	XY_STRING 4, 27, "ERROR ADDRESS TRIGGERED"

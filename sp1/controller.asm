@@ -3,7 +3,8 @@
 	include "sp1.inc"
 
 	global manual_controller_tests
-	global STR_CONTROLLER_TESTS
+
+	global d_str_controller_tests
 
 	section code
 
@@ -32,9 +33,9 @@
 		rts
 
 print_labels:
-		lea	XY_STR_P1, a0
+		lea	d_xys_p1, a0
 		RSUB	print_xy_string_struct_clear
-		lea	XY_STR_P2, a0
+		lea	d_xys_p2, a0
 		RSUB	print_xy_string_struct_clear
 		moveq	#$7, d3
 		moveq	#$25, d4
@@ -54,7 +55,7 @@ print_labels:
 
 print_row_labels:
 		move.b	d0, d3
-		lea	ROW_LABELS, a0
+		lea	d_row_labels, a0
 	.loop_next_buttom:
 		moveq	#$4, d0
 		move.b	d3, d1
@@ -137,12 +138,12 @@ print_player_data:
 
 	section data
 
-STR_CONTROLLER_TESTS:		STRING "CONTROLLER TESTS"
+d_str_controller_tests:		STRING "CONTROLLER TESTS"
 
-XY_STR_P1:			XY_STRING  1,  4, "P1"
-XY_STR_P2:			XY_STRING  1, 17, "P2"
+d_xys_p1:			XY_STRING  1,  4, "P1"
+d_xys_p2:			XY_STRING  1, 17, "P2"
 
-ROW_LABELS:
+d_row_labels:
 	dc.b "UP", $0
 	dc.b "DN", $0
 	dc.b "LF", $0
@@ -156,4 +157,3 @@ ROW_LABELS:
 	dc.b "HEX", $0
 	dc.b "DEC", $0
 	dc.b $0
-
