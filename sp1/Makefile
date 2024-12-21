@@ -1,67 +1,61 @@
-OBJS = obj/backup_ram.o \
-       obj/bios_crc32.o \
-       obj/bios_mirror.o \
-       obj/calendar.o \
-       obj/color_bars_basic.o \
-       obj/color_bars_smpte.o \
-       obj/controller.o \
-       obj/cpu_pal_addr.o \
-       obj/dsub.o \
-       obj/error_address.o \
-       obj/fix_util.o \
-       obj/footer.o \
-       obj/memory_card.o \
-       obj/memory_common.o \
-       obj/misc_input.o \
-       obj/mmio.o \
-       obj/p_rom_bus.o \
-       obj/palette_ram.o \
-       obj/print_error.o \
-       obj/sp1.o \
-       obj/util.o \
-       obj/vector_table.o \
-       obj/video_dac.o \
-       obj/video_ram_2k.o \
-       obj/video_ram_32k.o \
-       obj/watchdog.o \
-       obj/work_ram.o \
-       obj/z80.o
-
-INCS = include/macros.inc \
-       include/neogeo.inc \
-       include/sp1.inc \
-       ../common/error_codes.inc \
-       ../common/comm.inc
-
 HOST_CC = cc
 VASM = vasmm68k_mot
 VASM_FLAGS = -Fvobj -m68000 -spaces -chklabels -Iinclude -quiet
 VLINK = vlink
 VLINK_FLAGS = -brawbin1 -Tsp1.ld
-OUTPUT_DIR = output
-OBJ_DIR = obj
+BUILD_DIR=build
+OBJ_DIR=$(BUILD_DIR)/obj
+WORK_DIR=$(BUILD_DIR)/work
 MKDIR = mkdir
 DD = dd
 
-$(OUTPUT_DIR)/sp1.bin: $(OUTPUT_DIR)/sp1.raw
-	./gen-crc-mirror $(OUTPUT_DIR)/sp1.raw
-	$(DD) if=$(OUTPUT_DIR)/sp1.raw of=$(OUTPUT_DIR)/sp1.bin conv=swab
+OBJS = $(OBJ_DIR)/dsub.o \
+       $(OBJ_DIR)/error_address.o \
+       $(OBJ_DIR)/fix_util.o \
+       $(OBJ_DIR)/footer.o \
+       $(OBJ_DIR)/print_error.o \
+       $(OBJ_DIR)/sp1.o \
+       $(OBJ_DIR)/util.o \
+       $(OBJ_DIR)/vector_table.o \
+       $(OBJ_DIR)/tests/backup_ram.o \
+       $(OBJ_DIR)/tests/bios_crc32.o \
+       $(OBJ_DIR)/tests/bios_mirror.o \
+       $(OBJ_DIR)/tests/calendar.o \
+       $(OBJ_DIR)/tests/color_bars_basic.o \
+       $(OBJ_DIR)/tests/color_bars_smpte.o \
+       $(OBJ_DIR)/tests/controller.o \
+       $(OBJ_DIR)/tests/cpu_pal_addr.o \
+       $(OBJ_DIR)/tests/memory_card.o \
+       $(OBJ_DIR)/tests/memory_common.o \
+       $(OBJ_DIR)/tests/misc_input.o \
+       $(OBJ_DIR)/tests/mmio.o \
+       $(OBJ_DIR)/tests/p_rom_bus.o \
+       $(OBJ_DIR)/tests/palette_ram.o \
+       $(OBJ_DIR)/tests/video_dac.o \
+       $(OBJ_DIR)/tests/video_ram_2k.o \
+       $(OBJ_DIR)/tests/video_ram_32k.o \
+       $(OBJ_DIR)/tests/watchdog.o \
+       $(OBJ_DIR)/tests/work_ram.o \
+       $(OBJ_DIR)/tests/z80.o
 
-$(OUTPUT_DIR)/sp1.raw: gen-crc-mirror $(OUTPUT_DIR) $(OBJ_DIR) $(OBJS)
-	$(VLINK) $(VLINK_FLAGS) -o $(OUTPUT_DIR)/sp1.raw $(OBJS)
+INCS = $(wildcard include/*.inc) \
+       $(wildcard ../common/*.inc)
 
-$(OBJ_DIR)/%.o: %.asm $(INCS)
+$(BUILD_DIR)/sp1.bin: $(WORK_DIR)/sp1.raw
+	$(WORK_DIR)/gen-crc-mirror $(WORK_DIR)/sp1.raw
+	$(DD) if=$(WORK_DIR)/sp1.raw of=$(BUILD_DIR)/sp1.bin conv=swab
+
+$(WORK_DIR)/sp1.raw: $(WORK_DIR)/gen-crc-mirror $(WORK_DIR) $(OBJS)
+	$(VLINK) $(VLINK_FLAGS) -o $(WORK_DIR)/sp1.raw $(OBJS)
+
+$(OBJ_DIR)/%.o: src/%.asm $(INCS)
 	 $(VASM) $(VASM_FLAGS) -o $@ $<
 
-gen-crc-mirror: gen-crc-mirror.c
-	$(HOST_CC) gen-crc-mirror.c -o gen-crc-mirror
+$(WORK_DIR)/gen-crc-mirror: util/gen-crc-mirror.c $(WORK_DIR)
+	$(HOST_CC) util/gen-crc-mirror.c -o $(WORK_DIR)/gen-crc-mirror
 
-$(OUTPUT_DIR):
-	$(MKDIR) $(OUTPUT_DIR)
-
-$(OBJ_DIR):
-	$(MKDIR) $(OBJ_DIR)
+$(WORK_DIR):
+	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests
 
 clean:
-	rm -f gen-crc-mirror $(OUTPUT_DIR)/sp1.raw $(OUTPUT_DIR)/sp1.bin obj/*.o
-
+	rm -rf $(BUILD_DIR)

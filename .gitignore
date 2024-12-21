@@ -1,6 +1,7 @@
 */debug/
 */output/
 */obj/
+*/build/
 
 m1/gen-crc-mirror-bank
 sp1/gen-crc-mirror
