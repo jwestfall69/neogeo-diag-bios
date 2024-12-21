@@ -9,7 +9,8 @@ WORK_DIR=$(BUILD_DIR)/work
 MKDIR = mkdir
 DD = dd
 
-OBJS = $(OBJ_DIR)/dsub.o \
+OBJS = $(OBJ_DIR)/auto_tests.o \
+       $(OBJ_DIR)/dsub.o \
        $(OBJ_DIR)/error_address.o \
        $(OBJ_DIR)/fix_util.o \
        $(OBJ_DIR)/footer.o \

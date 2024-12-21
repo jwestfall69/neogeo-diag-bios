@@ -40,19 +40,19 @@ _start:
 		SSA3	fix_clear
 
 		moveq	#-$10, d0
-		and.b	REG_P1CNT, d0			; check for A+B+C+D being pressed, if not automatic_tests
+		and.b	REG_P1CNT, d0			; check for A+B+C+D being pressed, if not auto_tests
 
-		bne	automatic_tests
+		bne	auto_tests
 
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
 		clr.b	r_main_menu_cursor
 		bra	manual_tests
 
-automatic_tests:
+auto_tests:
 		PSUB	print_header
 		PSUB	watchdog_stuck_test
-		PSUB	automatic_psub_tests
+		PSUB	auto_psub_tests
 
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
@@ -101,7 +101,7 @@ automatic_tests:
 
 	.skip_z80_test:
 
-		bsr	automatic_function_tests
+		bsr	auto_func_tests
 		lea	d_xys_all_tests_passed, a0
 		RSUB	print_xy_string_struct_clear
 
@@ -134,114 +134,6 @@ automatic_tests:
 		clr.b	r_main_menu_cursor
 		SSA3	fix_clear
 		bra	manual_tests
-
-; runs automatic tests that are psub based
-automatic_psub_tests_dsub:
-		moveq	#0, d6
-	.loop_next_test:
-		movea.l	(AUTOMATIC_PSUB_TEST_STRUCT_START+4,pc,d6.w),a0
-		moveq	#4, d0
-		moveq	#5, d1
-		DSUB	print_xy_string_clear			; print the test description to screen
-
-		movea.l	(AUTOMATIC_PSUB_TEST_STRUCT_START,pc,d6.w), a2
-		lea	(.dsub_return), a3			; manually do dsub call since the DSUB macro wont
-		bra	dsub_enter				; work in this case
-	.dsub_return:
-
-		tst.b	d0					; check result
-		beq	.test_passed
-
-		move.b	d0, d6
-		DSUB	print_error
-		moveq	#0, d0
-		move.b	d6, d0
-
-		tst.b	REG_STATUS_B
-		bpl	.skip_error_to_credit_leds	; skip if aes
-		DSUB	error_to_credit_leds
-
-	.skip_error_to_credit_leds:
-		btst	#4, REG_P1CNT			; if "A" held down, do error address
-		bne	.skip_error_address
-		move.b	d6, d0
-		DSUB	error_address
-
-	.skip_error_address:
-		bra	loop_reset_check_dsub
-
-	.test_passed:
-		addq.w	#8, d6
-		cmp.w	#(AUTOMATIC_PSUB_TEST_STRUCT_END - AUTOMATIC_PSUB_TEST_STRUCT_START), d6
-		bne	.loop_next_test
-		DSUB_RETURN
-
-
-AUTOMATIC_PSUB_TEST_STRUCT_START:
-	dc.l	auto_bios_mirror_test_dsub, d_str_testing_bios_mirror
-	dc.l	auto_bios_crc32_test_dsub, d_str_testing_bios_crc32
-	dc.l	auto_work_ram_oe_tests_dsub, d_str_testing_work_ram_oe
-	dc.l	auto_work_ram_we_tests_dsub, d_str_testing_work_ram_we
-	dc.l	auto_work_ram_data_tests_dsub, d_str_testing_work_ram_data
-	dc.l	auto_work_ram_address_tests_dsub, d_str_testing_work_ram_address
-AUTOMATIC_PSUB_TEST_STRUCT_END:
-
-; runs automatic tests that are subroutine based;
-automatic_function_tests:
-		lea	AUTOMATIC_FUNC_TEST_STRUCT_START, a5
-		moveq	#((AUTOMATIC_FUNC_TEST_STRUCT_END - AUTOMATIC_FUNC_TEST_STRUCT_START)/8 - 1), d6
-
-	.loop_next_test:
-		movea.l	(a5)+, a4			; test function address
-		movea.l	(a5)+, a0			; test name string address
-		movea.l	a0, a0
-		moveq	#4, d0
-		moveq	#5, d1
-		RSUB	print_xy_string_clear		; at 4,5 print test name
-
-		move.l	a5, -(a7)
-		move.w	d6, -(a7)
-		jsr	(a4)				; run function
-		move.w	(a7)+, d6
-		movea.l	(a7)+, a5
-
-		tst.b	d0				; check result
-		beq	.test_passed
-
-		move.w	d0, -(a7)
-		RSUB	print_error
-		move.w	(a7)+, d0
-		move.b	d0, d6
-
-		tst.b	r_z80_test_flags		; if z80 test enabled, send error code to z80
-		beq	.skip_error_to_z80
-		move.b	d0, REG_SOUND
-
-	.skip_error_to_z80:
-		tst.b	REG_STATUS_B
-		bpl	.skip_error_to_credit_leds	; skip if aes
-		RSUB	error_to_credit_leds
-
-	.skip_error_to_credit_leds:
-		btst	#4, REG_P1CNT			; if "A" held down, do error address
-		bne	.skip_error_address
-		move.b	d6, d0
-		DSUB	error_address
-
-	.skip_error_address:
-		bra	loop_reset_check
-
-	.test_passed:
-		dbra	d6, .loop_next_test
-		rts
-
-AUTOMATIC_FUNC_TEST_STRUCT_START:
-	dc.l	auto_backup_ram_tests, d_str_testing_backup_ram
-	dc.l	auto_palette_ram_tests, d_str_testing_palette_ram
-	dc.l	auto_video_ram_2k_tests, d_str_testing_video_ram_2k
-	dc.l	auto_video_ram_32k_tests, d_str_testing_video_ram_32k
-	dc.l	auto_mmio_tests, d_str_testing_mmio
-AUTOMATIC_FUNC_TEST_STRUCT_END:
 
 ; prints headers
 ; NEO DIAGNOSTICS v0.19aXX - SMKDAN/ACK
@@ -427,18 +319,6 @@ d_xys_z80_waiting:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
 d_xys_z80_tests_skipped:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
 d_xys_z80_hold_d_and_soft:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
 d_xys_z80_reset_with_cart:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
-
-d_str_testing_bios_mirror:	STRING "TESTING BIOS MIRRORING..."
-d_str_testing_bios_crc32:	STRING "TESTING BIOS CRC32..."
-d_str_testing_work_ram_oe:	STRING "TESTING WORK RAM /OE..."
-d_str_testing_work_ram_we:	STRING "TESTING WORK RAM /WE..."
-d_str_testing_work_ram_data:	STRING "TESTING WORK RAM DATA..."
-d_str_testing_work_ram_address:	STRING "TESTING WORK RAM ADDRESS..."
-d_str_testing_backup_ram:	STRING "TESTING BACKUP RAM..."
-d_str_testing_palette_ram:	STRING "TESTING PALETTE RAM..."
-d_str_testing_video_ram_2k:	STRING "TESTING VIDEO RAM (2K)..."
-d_str_testing_video_ram_32k:	STRING "TESTING VIDEO RAM (32K)..."
-d_str_testing_mmio:		STRING "TESTING MMIO..."
 
 	section bss
 
