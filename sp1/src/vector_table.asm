@@ -29,7 +29,6 @@ irq2_handler:
 		rte
 
 	section bss
-
 	align 2
 
 r_vblank_count:		dc.w $0

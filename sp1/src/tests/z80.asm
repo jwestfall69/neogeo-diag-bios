@@ -387,5 +387,6 @@ d_xys_z80_sm1_tests:		XY_STRING 24,  4, "[SM1]"
 d_xys_z80_snd_reg:		XY_STRING  4, 10, "SND REG: "
 
 	section bss
+	align 2
 
 r_z80_test_flags:		dc.b $0

@@ -362,6 +362,7 @@ d_str_hold_ss_to_reset:		STRING "HOLD START/SELECT TO SOFT RESET"
 d_str_release_ss:		STRING "RELEASE START/SELECT"
 
 	section bss
+	align 2
 
 r_p1_input:			dc.b $0
 r_p1_input_edge:		dc.b $0

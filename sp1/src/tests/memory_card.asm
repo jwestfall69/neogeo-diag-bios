@@ -617,7 +617,6 @@ d_xys_tests_passed:		XY_STRING  4,  9, "ALL TESTS PASSED"
 d_xys_running_tests:		XY_STRING  4,  9, "RUNNING TESTS..."
 
 	section bss
-
 	align 2
 
 r_memcard_size:			dc.l $0

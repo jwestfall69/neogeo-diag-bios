@@ -321,5 +321,6 @@ d_xys_z80_hold_d_and_soft:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
 d_xys_z80_reset_with_cart:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
 
 	section bss
+	align 2
 
 r_main_menu_cursor:		dc.b $0
