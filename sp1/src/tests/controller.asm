@@ -4,8 +4,6 @@
 
 	global manual_controller_tests
 
-	global d_str_controller_tests
-
 	section code
 
 	manual_controller_tests:
@@ -137,8 +135,6 @@ print_player_data:
 		rts
 
 	section data
-
-d_str_controller_tests:		STRING "CONTROLLER TESTS"
 
 d_xys_p1:			XY_STRING  1,  4, "P1"
 d_xys_p2:			XY_STRING  1, 17, "P2"

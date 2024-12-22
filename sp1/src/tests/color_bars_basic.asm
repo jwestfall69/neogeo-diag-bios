@@ -4,8 +4,6 @@
 
 	global manual_color_bars_basic_test
 
-	global d_str_color_bars_basic
-
 	section code
 
 ; Tiles 0x00 and 0x20 along with palette bank switching are used to
@@ -148,7 +146,3 @@ draw_tiles:
 		dbra	d1, .loop_next_shade
 
 		rts
-
-	section data
-
-d_str_color_bars_basic:		STRING "COLOR BARS BASIC"

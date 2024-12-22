@@ -9,8 +9,6 @@
 	global auto_work_ram_we_tests_dsub
 	global manual_work_ram_tests
 
-	global d_str_work_ram_test_loop
-
 	section code
 
 manual_work_ram_tests:
@@ -57,10 +55,10 @@ manual_work_ram_tests:
 		SSA3	fix_clear
 
 		; re-init stuff and return to menu
-		move.b	#5, r_main_menu_cursor
+		move.b	#5, r_menu_cursor
 		movea.l	$0, a7				; re-init SP
 		moveq	#DSUB_INIT_REAL, d7		; init dsub for real subroutines
-		bra	manual_tests
+		bra	main_menu
 
 auto_work_ram_oe_tests_dsub:
 		lea	WORK_RAM_START, a0
@@ -143,7 +141,3 @@ auto_work_ram_address_tests_dsub:
 	.test_passed_a8_a14:
 		moveq	#0, d0
 		DSUB_RETURN
-
-	section data
-
-d_str_work_ram_test_loop:		STRING "WORK RAM TEST LOOP"

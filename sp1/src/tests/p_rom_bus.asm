@@ -5,8 +5,6 @@
 
 	global manual_p_rom_bus_tests
 
-	global d_str_p_rom_bus_tests
-
 	section code
 
 manual_p_rom_bus_tests:
@@ -382,8 +380,6 @@ check_p2_rom_we:
 		rts
 
 	section data
-
-d_str_p_rom_bus_tests:		STRING "P ROM BUS TESTS (CUSTOM CART)"
 
 d_xys_slot_num:			XY_STRING  4,  8, "SLOT NUMBER: "
 d_xys_tests_require:		XY_STRING  4, 20, "THESE TESTS REQUIRE A"

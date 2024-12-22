@@ -4,8 +4,6 @@
 
 	global manual_color_bars_smpte_test
 
-	global d_str_color_bars_smpte
-
 	section code
 
 manual_color_bars_smpte_test:
@@ -89,8 +87,6 @@ draw_section:
 		rts
 
 	section data
-
-d_str_color_bars_smpte:	STRING "COLOR BARS SMPTE"
 
 SMPTE_COLORS:
 	dc.w	SMPTE_BLACK

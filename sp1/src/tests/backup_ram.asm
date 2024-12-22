@@ -6,8 +6,6 @@
 	global auto_backup_ram_tests
 	global manual_backup_ram_tests
 
-	global d_str_backup_ram_test_loop
-
 	section code
 
 auto_backup_ram_tests:
@@ -181,7 +179,3 @@ backup_ram_address_tests_dsub:
 	.test_passed_a8_a14:
 		moveq	#0, d0
 		DSUB_RETURN
-
-	section data
-
-d_str_backup_ram_test_loop:	STRING "BACKUP RAM TEST LOOP (MVS ONLY)"

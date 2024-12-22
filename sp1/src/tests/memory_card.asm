@@ -4,7 +4,6 @@
 	include "../common/error_codes.inc"
 
 	global manual_memcard_tests
-	global d_str_memcard_tests
 
 	section code
 
@@ -598,8 +597,6 @@ check_memcard_address:
 		rts
 
 	section data
-
-d_str_memcard_tests:		STRING "MEMORY CARD TESTS"
 
 d_xys_a_c_run_test:		XY_STRING  4, 26, "A+C: Run Test"
 d_xys_warning1:			XY_STRING  4,  8, "WARNING: ALL DATA ON THE MEMORY"

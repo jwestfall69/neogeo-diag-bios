@@ -4,8 +4,6 @@
 
 	global manual_cpu_pal_addr_test
 
-	global d_str_cpu_pal_addr_test
-
 	section code
 
 manual_cpu_pal_addr_test:
@@ -41,5 +39,3 @@ manual_cpu_pal_addr_test:
 d_xys_cpu_pal_line1:		XY_STRING  4, 13, "THIS SCREEN SHOULD REMAIN WHITE"
 d_xys_cpu_pal_line2:		XY_STRING  4, 15, "TEXT ON BLACK BACKGROUND, WITH"
 d_xys_cpu_pal_line3:		XY_STRING  4, 17, "COLORED SCROLLING DOTS"
-
-d_str_cpu_pal_addr_test:		STRING "CPU/PAL ADDR TEST"

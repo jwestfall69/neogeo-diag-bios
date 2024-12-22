@@ -6,8 +6,6 @@
 	global auto_video_ram_32k_tests
 	global manual_video_ram_32k_tests
 
-	global d_str_vram_test_loop_32k
-
 	section code
 
 auto_video_ram_32k_tests:
@@ -179,7 +177,3 @@ vram_address_tests:
 
 	.test_passed_a8_a14:
 		rts
-
-	section data
-
-d_str_vram_test_loop_32k:		STRING "VRAM TEST LOOP (32K)"

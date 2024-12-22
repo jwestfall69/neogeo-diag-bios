@@ -6,8 +6,6 @@
 	global auto_palette_ram_tests
 	global manual_palette_ram_tests
 
-	global d_str_pal_ram_test_loop
-
 	section code
 
 auto_palette_ram_tests:
@@ -96,7 +94,6 @@ manual_palette_ram_tests:
 
 	.test_exit:
 		rts
-
 
 palette_ram_we_tests:
 		lea	PALETTE_RAM_START, a0
@@ -306,7 +303,3 @@ check_palette_ram_to_245_output:
 	.test_failed:
 		moveq	#-1, d0
 		rts
-
-	section data
-
-d_str_pal_ram_test_loop:	STRING "PALETTE RAM TEST LOOP"

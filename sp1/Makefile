@@ -14,10 +14,12 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/error_address.o \
        $(OBJ_DIR)/fix_util.o \
        $(OBJ_DIR)/footer.o \
+       $(OBJ_DIR)/menu.o \
        $(OBJ_DIR)/print_error.o \
        $(OBJ_DIR)/sp1.o \
        $(OBJ_DIR)/util.o \
        $(OBJ_DIR)/vector_table.o \
+       $(OBJ_DIR)/menus/main.o \
        $(OBJ_DIR)/tests/backup_ram.o \
        $(OBJ_DIR)/tests/bios_crc32.o \
        $(OBJ_DIR)/tests/bios_mirror.o \
@@ -56,7 +58,7 @@ $(WORK_DIR)/gen-crc-mirror: util/gen-crc-mirror.c $(WORK_DIR)
 	$(HOST_CC) util/gen-crc-mirror.c -o $(WORK_DIR)/gen-crc-mirror
 
 $(WORK_DIR):
-	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests
+	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests $(OBJ_DIR)/menus
 
 clean:
 	rm -rf $(BUILD_DIR)

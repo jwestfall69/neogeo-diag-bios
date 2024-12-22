@@ -4,8 +4,6 @@
 
 	global manual_calendar_tests
 
-	global d_str_calendar_io
-
 	section code
 
 manual_calendar_tests:
@@ -175,8 +173,6 @@ rtc_check_pulse:
 		rts
 
 	section data
-
-d_str_calendar_io:		STRING "CALENDAR I/O (MVS ONLY)"
 
 ; strings for calender io screen
 d_xys_waiting_pulse:		XY_STRING  4, 20, "WAITING FOR CALENDAR PULSE..."

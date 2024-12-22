@@ -3,7 +3,6 @@
 	include "sp1.inc"
 
 	global manual_misc_input_tests
-	global d_str_misc_input_test
 
 	section code
 
@@ -196,8 +195,6 @@ d_mi_item_wp:			MISC_INPUT_ITEM $06, $38, $00, $00, d_str_wp, d_str_card_wp_off,
 d_mi_item_type:			MISC_INPUT_ITEM $07, $38, $00, $00, d_str_type, d_str_type_aes, d_str_type_mvs
 d_mi_item_cfg_a:		MISC_INPUT_ITEM $05, $32, $00, $01, d_str_cfg_a, d_str_cfg_a_low, d_str_cfg_a_high
 d_mi_item_cfg_b:		MISC_INPUT_ITEM $06, $30, $00, $81, d_str_cfg_b, d_str_cfg_b_low, d_str_cfg_b_high
-
-d_str_misc_input_test:		STRING "MISC. INPUT TEST"
 
 d_str_system_config_as:		STRING "SYSTEM CONFIGURED AS A   SLOT"
 
