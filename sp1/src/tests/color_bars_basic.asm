@@ -1,6 +1,6 @@
 	include "neogeo.inc"
 	include "macros.inc"
-	include "sp1.inc"
+	include "diag.inc"
 
 	global manual_color_bars_basic_test
 

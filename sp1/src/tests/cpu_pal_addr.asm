@@ -1,6 +1,6 @@
 	include "neogeo.inc"
 	include "macros.inc"
-	include "sp1.inc"
+	include "diag.inc"
 
 	global manual_cpu_pal_addr_test
 

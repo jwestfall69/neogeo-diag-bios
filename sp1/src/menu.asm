@@ -1,7 +1,7 @@
 	include "macros.inc"
 	include "menu.inc"
 	include "neogeo.inc"
-	include "sp1.inc"
+	include "diag.inc"
 
 	global menu
 	global r_menu_cursor

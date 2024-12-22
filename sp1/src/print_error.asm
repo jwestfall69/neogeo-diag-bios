@@ -1,7 +1,7 @@
 	include "neogeo.inc"
 	include "macros.inc"
 	include "print_error.inc"
-	include "sp1.inc"
+	include "diag.inc"
 	include "../common/error_codes.inc"
 
 	global error_code_lookup_dsub
