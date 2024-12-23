@@ -8,7 +8,7 @@
 
 	section code
 
-MENU_X_OFFSET		equ $4
+MENU_X_OFFSET		equ LEFT_MARGIN
 MENU_Y_OFFSET		equ $7
 
 CURSOR_CLEAR_CHAR	equ $20
@@ -98,7 +98,7 @@ menu:
 		SSA3	fix_clear
 
 		move.l	s_me_name_ptr(a1), a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		RSUB	print_xy_string
 

@@ -58,10 +58,8 @@ loop_reset_check:
 
 ; loop forever checking for reset request
 loop_reset_check_dsub:
-		moveq	#4, d0
-		moveq	#27, d1
-		lea	d_str_hold_ss_to_reset, a0
-		DSUB	print_xy_string_clear
+		lea	d_xys_hold_ss_to_reset, a0
+		DSUB	print_xys_string_clear
 
 	.loop_ss_not_pressed:
 		WATCHDOG
@@ -69,10 +67,8 @@ loop_reset_check_dsub:
 		and.b	REG_STATUS_B, d0
 		bne	.loop_ss_not_pressed		; loop until P1 start+select both held down
 
-		moveq	#4, d0
-		moveq	#27, d1
-		lea	d_str_release_ss, a0
-		DSUB	print_xy_string_clear
+		lea	d_xys_release_ss, a0
+		DSUB	print_xys_string_clear
 
 	.loop_ss_pressed:
 		WATCHDOG
@@ -93,10 +89,8 @@ check_reset_request:
 
 		bne	.ss_not_pressed			; P1 start+select not pressed, exit out
 
-		moveq	#4, d0
-		moveq	#27, d1
-		lea	d_str_release_ss, a0
-		RSUB	print_xy_string_clear
+		lea	d_xys_release_ss, a0
+		RSUB	print_xys_string_clear
 
 	.loop_ss_pressed:
 		WATCHDOG
@@ -350,16 +344,14 @@ error_to_credit_leds_dsub:
 		DSUB_RETURN
 
 print_hold_ss_to_reset:
-		moveq	#4, d0
-		moveq	#27, d1
-		lea	d_str_hold_ss_to_reset, a0
-		RSUB	print_xy_string_clear
+		lea	d_xys_hold_ss_to_reset, a0
+		RSUB	print_xys_string_clear
 		rts
 
 	section data
 
-d_str_hold_ss_to_reset:		STRING "HOLD START/SELECT TO SOFT RESET"
-d_str_release_ss:		STRING "RELEASE START/SELECT"
+d_xys_hold_ss_to_reset:		XY_STRING LEFT_MARGIN, 27, "HOLD START/SELECT TO SOFT RESET"
+d_xys_release_ss:		XY_STRING LEFT_MARGIN, 27, "RELEASE START/SELECT"
 
 	section bss
 	align 2

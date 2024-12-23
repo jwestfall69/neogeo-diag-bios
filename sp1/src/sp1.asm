@@ -154,19 +154,19 @@ print_header_dsub:
 
 d_str_version_header:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
 
-d_xys_a_to_resume:		XY_STRING  4, 26, "A: Release to Resume"
-d_xys_d_main_menu:		XY_STRING  4, 27, "D: Return to menu"
+d_xys_a_to_resume:		XY_STRING LEFT_MARGIN, 26, "A: Release to Resume"
+d_xys_d_main_menu:		XY_STRING LEFT_MARGIN, 27, "D: Return to menu"
 
-d_xys_address:			XY_STRING  4,  8, "ADDRESS:"
-d_xys_actual:			XY_STRING  4, 10, "ACTUAL:"
-d_xys_expected:			XY_STRING  4, 12, "EXPECTED:"
-d_xys_passes:			XY_STRING  4, 14, "PASSES:"
+d_xys_address:			XY_STRING LEFT_MARGIN,  8, "ADDRESS:"
+d_xys_actual:			XY_STRING LEFT_MARGIN, 10, "ACTUAL:"
+d_xys_expected:			XY_STRING LEFT_MARGIN, 12, "EXPECTED:"
+d_xys_passes:			XY_STRING LEFT_MARGIN, 14, "PASSES:"
 
-d_xys_all_tests_passed:		XY_STRING  4,  5, "ALL TESTS PASSED"
-d_xys_abcd_main_menu:		XY_STRING  4, 21, "PRESS ABCD FOR MAIN MENU"
-d_xys_hold_ss_to_reset:		XY_STRING  4, 27, "HOLD START/SELECT TO SOFT RESET"
+d_xys_all_tests_passed:		XY_STRING LEFT_MARGIN,  5, "ALL TESTS PASSED"
+d_xys_abcd_main_menu:		XY_STRING LEFT_MARGIN, 21, "PRESS ABCD FOR MAIN MENU"
+d_xys_hold_ss_to_reset:		XY_STRING LEFT_MARGIN, 27, "HOLD START/SELECT TO SOFT RESET"
 
-d_xys_z80_waiting:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
-d_xys_z80_tests_skipped:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
-d_xys_z80_hold_d_and_soft:	XY_STRING  4, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
-d_xys_z80_reset_with_cart:	XY_STRING  4, 25, "RESET WITH TEST CART INSERTED."
+d_xys_z80_waiting:		XY_STRING LEFT_MARGIN,  5, "WAITING FOR Z80 TO FINISH TESTS..."
+d_xys_z80_tests_skipped:	XY_STRING LEFT_MARGIN, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
+d_xys_z80_hold_d_and_soft:	XY_STRING LEFT_MARGIN, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
+d_xys_z80_reset_with_cart:	XY_STRING LEFT_MARGIN, 25, "RESET WITH TEST CART INSERTED."

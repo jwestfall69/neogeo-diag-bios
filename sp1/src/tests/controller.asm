@@ -55,7 +55,7 @@ print_row_labels:
 		move.b	d0, d3
 		lea	d_row_labels, a0
 	.loop_next_buttom:
-		moveq	#$4, d0
+		moveq	#LEFT_MARGIN, d0
 		move.b	d3, d1
 		RSUB	print_xy_string
 		addq.b	#1, d3

@@ -1,3 +1,4 @@
+	include "diag.inc"
 	include "macros.inc"
 	include "menu.inc"
 
@@ -40,7 +41,7 @@ d_menu_list:
 	MENU_ENTRY manual_p_rom_bus_tests, d_str_p_rom_bus_tests, 0
 	MENU_LIST_END
 
-d_xys_menu_title:		XY_STRING 4, 5, "MAIN MENU"
+d_xys_menu_title:		XY_STRING LEFT_MARGIN, 5, "MAIN MENU"
 
 d_str_backup_ram_tests:		STRING "BACKUP RAM TESTS (MVS ONLY)"
 d_str_calendar_io:		STRING "CALENDAR I/O (MVS ONLY)"

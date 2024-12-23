@@ -7,6 +7,9 @@ BIOS_CRC32_ADDR			equ $c07ffc
 DSUB_INIT_PSEUDO		equ $0c
 DSUB_INIT_REAL			equ $18
 
+; fix layer x offset where we start printing stuff
+LEFT_MARGIN			equ 4
+
 ; bits we can set/check in z80_test_flags
 Z80_TEST_FLAG_ENABLED		equ $0
 Z80_TEST_FLAG_SLOT_SWITCH	equ $1

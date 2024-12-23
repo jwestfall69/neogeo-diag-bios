@@ -88,7 +88,7 @@ manual_memcard_tests:
 		move.b	d0, REG_CRDNORMAL
 		move.b	d0, REG_CRDBANK
 		move.b	d0, REG_CRDUNLOCK1
-		move.b  d0, REG_CRDUNLOCK2
+		move.b	d0, REG_CRDUNLOCK2
 		clr.b	r_memcard_flags
 		clr.l	r_memcard_size
 
@@ -166,7 +166,7 @@ manual_memcard_tests:
 
 	.wait_input_return_menu:
 		move.b	d0, REG_CRDLOCK1
-		move.b  d0, REG_CRDLOCK2
+		move.b	d0, REG_CRDLOCK2
 
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
@@ -598,20 +598,20 @@ check_memcard_address:
 
 	section data
 
-d_xys_a_c_run_test:		XY_STRING  4, 26, "A+C: Run Test"
-d_xys_warning1:			XY_STRING  4,  8, "WARNING: ALL DATA ON THE MEMORY"
-d_xys_warning2:			XY_STRING  4,  9, "CARD WILL BE OVERWRITTEN!"
-d_xys_not_detected:		XY_STRING  4,  8, "ERROR: MEMORY CARD NOT DETECTED"
-d_xys_write_protect:		XY_STRING  4,  8, "ERROR: MEMORY CARD WRITE PROTECTED"
-d_xys_detect:			XY_STRING  4, 22, "DETECTED"
+d_xys_a_c_run_test:		XY_STRING LEFT_MARGIN, 26, "A+C: Run Test"
+d_xys_warning1:			XY_STRING LEFT_MARGIN,  8, "WARNING: ALL DATA ON THE MEMORY"
+d_xys_warning2:			XY_STRING LEFT_MARGIN,  9, "CARD WILL BE OVERWRITTEN!"
+d_xys_not_detected:		XY_STRING LEFT_MARGIN,  8, "ERROR: MEMORY CARD NOT DETECTED"
+d_xys_write_protect:		XY_STRING LEFT_MARGIN,  8, "ERROR: MEMORY CARD WRITE PROTECTED"
+d_xys_detect:			XY_STRING LEFT_MARGIN, 22, "DETECTED"
 d_xys_bad_data:			XY_STRING 13, 22, "(BAD DATA)"
-d_xys_dbus_8bit:		XY_STRING  4, 24, "DATA BUS: 8-BIT"
-d_xys_dbus_16bit:		XY_STRING  4, 24, "DATA BUS: 16-BIT"
+d_xys_dbus_8bit:		XY_STRING LEFT_MARGIN, 24, "DATA BUS: 8-BIT"
+d_xys_dbus_16bit:		XY_STRING LEFT_MARGIN, 24, "DATA BUS: 16-BIT"
 d_xys_dbus_wide:		XY_STRING 21, 24, "(WIDE)"
 d_xys_size:			XY_STRING  8, 25, "SIZE:      KB"
 d_xys_size_bytes:		XY_STRING 19, 25, "BYTES"
-d_xys_tests_passed:		XY_STRING  4,  9, "ALL TESTS PASSED"
-d_xys_running_tests:		XY_STRING  4,  9, "RUNNING TESTS..."
+d_xys_tests_passed:		XY_STRING LEFT_MARGIN,  9, "ALL TESTS PASSED"
+d_xys_running_tests:		XY_STRING LEFT_MARGIN,  9, "RUNNING TESTS..."
 
 	section bss
 	align 2

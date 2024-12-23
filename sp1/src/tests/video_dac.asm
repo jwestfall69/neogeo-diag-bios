@@ -309,9 +309,9 @@ draw_color_pair:
 
 d_str_video_dac_tests:		STRING "VIDEO DAC TESTS"
 
-d_xys_a_full_screen:		XY_STRING  4, 24, "A: Toggle Full Screen"
-d_xys_b_toggle_db:		XY_STRING  4, 25, "B: Toggle Darker Bit"
-d_xys_c_toggle_shadow:		XY_STRING  4, 26, "C: Toggle Shadow Register"
+d_xys_a_full_screen:		XY_STRING LEFT_MARGIN, 24, "A: Toggle Full Screen"
+d_xys_b_toggle_db:		XY_STRING LEFT_MARGIN, 25, "B: Toggle Darker Bit"
+d_xys_c_toggle_shadow:		XY_STRING LEFT_MARGIN, 26, "C: Toggle Shadow Register"
 d_xys_all:			XY_STRING 29,  6, "ALL"
 
 ; full screen stuff

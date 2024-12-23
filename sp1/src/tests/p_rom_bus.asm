@@ -381,7 +381,7 @@ check_p2_rom_we:
 
 	section data
 
-d_xys_slot_num:			XY_STRING  4,  8, "SLOT NUMBER: "
-d_xys_tests_require:		XY_STRING  4, 20, "THESE TESTS REQUIRE A"
-d_xys_custom_cart:		XY_STRING  5, 21, "CUSTOM CART TO WORK"
-d_xys_a_c_run_test:		XY_STRING  4, 26, "A+C: Run Test"
+d_xys_slot_num:			XY_STRING LEFT_MARGIN,  8, "SLOT NUMBER: "
+d_xys_tests_require:		XY_STRING LEFT_MARGIN, 20, "THESE TESTS REQUIRE A"
+d_xys_custom_cart:		XY_STRING LEFT_MARGIN, 21, "CUSTOM CART TO WORK"
+d_xys_a_c_run_test:		XY_STRING LEFT_MARGIN, 26, "A+C: Run Test"

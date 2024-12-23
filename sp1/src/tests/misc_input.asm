@@ -69,10 +69,8 @@ misc_input_update_dynamic:
 		moveq	#$2, d1
 		bsr	misc_input_print_dynamic_items
 
-		lea	d_str_system_config_as, a0
-		moveq	#$4, d0
-		moveq	#$12, d1
-		RSUB	print_xy_string
+		lea	d_xys_system_config_as, a0
+		RSUB	print_xys_string
 
 		bsr	get_slot_count
 		move.b	d0, d2
@@ -181,6 +179,7 @@ misc_input_print_static_items:
 		rts
 
 	section data
+	align 2
 
 ; struct misc_input {
 ;  byte test_bit;                ; bit to test on mmio address
@@ -196,11 +195,6 @@ d_mi_item_type:			MISC_INPUT_ITEM $07, $38, $00, $00, d_str_type, d_str_type_aes
 d_mi_item_cfg_a:		MISC_INPUT_ITEM $05, $32, $00, $01, d_str_cfg_a, d_str_cfg_a_low, d_str_cfg_a_high
 d_mi_item_cfg_b:		MISC_INPUT_ITEM $06, $30, $00, $81, d_str_cfg_b, d_str_cfg_b_low, d_str_cfg_b_high
 
-d_str_system_config_as:		STRING "SYSTEM CONFIGURED AS A   SLOT"
-
-d_xys_memory_card:		XY_STRING  4,  8, "MEMORY CARD:"
-d_xys_system_type:		XY_STRING  4, 13, "SYSTEM TYPE:"
-d_xys_hard_dips:		XY_STRING  4, 20, "HARD DIPS 12345678"
 d_str_cd1:			STRING "/CD1"
 d_str_cd2:			STRING "/CD2"
 d_str_card_detected:		STRING "(CARD DETECTED)"
@@ -217,3 +211,8 @@ d_str_cfg_a_high:		STRING "(CFG-A HIGH)"
 d_str_cfg_b:			STRING "CFG-B"
 d_str_cfg_b_low:		STRING "(CFG-B LOW)"
 d_str_cfg_b_high:		STRING "(CFG-B HIGH)"
+
+d_xys_system_config_as:		XY_STRING LEFT_MARGIN, 18, "SYSTEM CONFIGURED AS A   SLOT"
+d_xys_memory_card:		XY_STRING LEFT_MARGIN,  8, "MEMORY CARD:"
+d_xys_system_type:		XY_STRING LEFT_MARGIN, 13, "SYSTEM TYPE:"
+d_xys_hard_dips:		XY_STRING LEFT_MARGIN, 20, "HARD DIPS 12345678"

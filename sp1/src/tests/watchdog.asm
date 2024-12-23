@@ -25,6 +25,6 @@ watchdog_stuck_test_dsub:
 
 	section data
 
-d_xys_watchdog_delay:		XY_STRING  4,  5, "WATCHDOG DELAY..."
-d_xys_watchdog_text_remains:	XY_STRING  4,  8, "IF THIS TEXT REMAINS HERE..."
-d_xys_watchdog_stuck:		XY_STRING  4, 10, "THEN SYSTEM IS STUCK IN WATCHDOG"
+d_xys_watchdog_delay:		XY_STRING LEFT_MARGIN,  5, "WATCHDOG DELAY..."
+d_xys_watchdog_text_remains:	XY_STRING LEFT_MARGIN,  8, "IF THIS TEXT REMAINS HERE..."
+d_xys_watchdog_stuck:		XY_STRING LEFT_MARGIN, 10, "THEN SYSTEM IS STUCK IN WATCHDOG"

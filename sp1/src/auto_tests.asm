@@ -1,4 +1,5 @@
 	include "auto_tests.inc"
+	include "diag.inc"
 	include "macros.inc"
 	include "neogeo.inc"
 
@@ -22,7 +23,7 @@ auto_psub_tests_dsub:
 		cmp.l	#0, a0				; null terminated list
 		beq	.all_tests_done
 
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		DSUB	print_xy_string_clear		; print the test description to screen
 
@@ -71,7 +72,7 @@ auto_func_tests:
 		beq	.all_tests_done
 
 		move.l	s_ae_name_ptr(a1), a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		RSUB	print_xy_string_clear		; at 4,5 print test name
 

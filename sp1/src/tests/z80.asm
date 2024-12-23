@@ -238,7 +238,7 @@ check_done:
 
 start_comm_test:
 		move.b	#COMM_TEST_HELLO, d1
-		move.w  #500, d2
+		move.w	#500, d2
 		bra	.loop_start_wait_hello
 
 	; wait up to 5 seconds for hello (10ms * 500 loops)
@@ -369,22 +369,22 @@ d_slot_select_start:
 d_slot_select_end:
 	dc.b	$00, $01			; no match = slot 1
 
-d_xys_z80_switching_m1:		XY_STRING  4,  5, "SWITCHING TO CART M1..."
-d_xys_z80_sm1_ignored:		XY_STRING  3,  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
-d_xys_z80_sm1_responsive:	XY_STRING  3,  7, "SM1 RESPONSE"
-d_xys_z80_press_start:		XY_STRING  3, 16, "PRESS START TO FORCE SLOT SWITCH"
-d_xys_z80_mv1bc_hold_b:		XY_STRING  3, 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
-d_xys_z80_testing_comm_port:	XY_STRING  4,  5, "TESTING Z80 COMM. PORT..."
-d_xys_z80_comm_no_hello:	XY_STRING  4,  5, "Z80->68k COMM ISSUE (HELLO)"
-d_xys_z80_comm_no_ack:		XY_STRING  4,  5, "Z80->68k COMM ISSUE (ACK)"
-d_xys_z80_skip_test:		XY_STRING  4, 24, "TO SKIP Z80 TESTING, RELEASE"
-d_xys_z80_press_d_reset:	XY_STRING  4, 25, "D BUTTON AND SOFT RESET."
-d_xys_z80_make_sure:		XY_STRING  4, 21, "FOR Z80 TESTING, MAKE SURE TEST"
-d_xys_z80_cart_clean:		XY_STRING  4, 22, "CART IS CLEAN AND FUNCTIONAL."
+d_xys_z80_switching_m1:		XY_STRING LEFT_MARGIN,  5, "SWITCHING TO CART M1..."
+d_xys_z80_sm1_ignored:		XY_STRING (LEFT_MARGIN - 1),  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
+d_xys_z80_sm1_responsive:	XY_STRING (LEFT_MARGIN - 1),  7, "SM1 RESPONSE"
+d_xys_z80_press_start:		XY_STRING (LEFT_MARGIN - 1), 16, "PRESS START TO FORCE SLOT SWITCH"
+d_xys_z80_mv1bc_hold_b:		XY_STRING (LEFT_MARGIN - 1), 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
+d_xys_z80_testing_comm_port:	XY_STRING LEFT_MARGIN,  5, "TESTING Z80 COMM. PORT..."
+d_xys_z80_comm_no_hello:	XY_STRING LEFT_MARGIN,  5, "Z80->68k COMM ISSUE (HELLO)"
+d_xys_z80_comm_no_ack:		XY_STRING LEFT_MARGIN,  5, "Z80->68k COMM ISSUE (ACK)"
+d_xys_z80_skip_test:		XY_STRING LEFT_MARGIN, 24, "TO SKIP Z80 TESTING, RELEASE"
+d_xys_z80_press_d_reset:	XY_STRING LEFT_MARGIN, 25, "D BUTTON AND SOFT RESET."
+d_xys_z80_make_sure:		XY_STRING LEFT_MARGIN, 21, "FOR Z80 TESTING, MAKE SURE TEST"
+d_xys_z80_cart_clean:		XY_STRING LEFT_MARGIN, 22, "CART IS CLEAN AND FUNCTIONAL."
 d_xys_z80_m1_enabled:		XY_STRING 34,  4, "[M1]"
 d_xys_z80_slot_switch_num:	XY_STRING 29,  4, "[SS ]"
 d_xys_z80_sm1_tests:		XY_STRING 24,  4, "[SM1]"
-d_xys_z80_snd_reg:		XY_STRING  4, 10, "SND REG: "
+d_xys_z80_snd_reg:		XY_STRING LEFT_MARGIN, 10, "SND REG: "
 
 	section bss
 	align 2

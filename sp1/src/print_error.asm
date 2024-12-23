@@ -90,7 +90,7 @@ print_error_bios_crc32_dsub:
 		DSUB	print_xys_string
 
 		movea.l	a1, a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		jmp	print_xy_string_clear_dsub	; error description and DSUB_RETURN
 
@@ -120,7 +120,7 @@ print_error_hex_byte_dsub:
 		DSUB	print_xys_string
 
 		movea.l	a1, a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		jmp	print_xy_string_clear_dsub	; error description and DSUB_RETURN
 
@@ -160,7 +160,7 @@ print_error_memory_dsub:
 		DSUB	print_xys_string
 
 		movea.l	a1, a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		jmp	print_xy_string_clear_dsub	; error description and DSUB_RETURN
 
@@ -200,7 +200,7 @@ print_error_mmio_dsub:
 
 	.not_found:
 		movea.l	a1, a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		jmp	print_xy_string_clear_dsub
 
@@ -209,7 +209,7 @@ print_error_mmio_dsub:
 ;  a1 = error description
 print_error_string_dsub:
 		movea.l	a1, a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#5, d1
 		jmp	print_xy_string_clear_dsub		; error description and DSUB_RETURN
 
@@ -227,12 +227,12 @@ print_error_invalid_dsub:
 		lea	d_str_invalid_error, a0
 		DSUB	print_xy_string_clear
 
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#6, d1
 		lea	d_str_error_code, a0
 		DSUB	print_xy_string_clear
 
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		move	#7, d1
 		lea	d_str_print_function, a0
 		DSUB	print_xy_string_clear
@@ -261,7 +261,7 @@ print_error_z80:
 		RSUB	print_xys_string
 
 		movea.l	a1, a0
-		moveq	#4, d0
+		moveq	#LEFT_MARGIN, d0
 		moveq	#14, d1
 		RSUB	print_xy_string
 
@@ -405,7 +405,7 @@ d_str_z80_68k_comm_no_clear:		STRING "68K->Z80 COMM ISSUE (CLEAR)"
 d_str_z80_sm1_oe:			STRING "SM1 DEAD OUTPUT"
 d_str_z80_sm1_crc:			STRING "SM1 CRC ERROR"
 
-d_xys_z80_error_code:			XY_STRING 4, 12, "Z80 REPORTED ERROR CODE: "
+d_xys_z80_error_code:			XY_STRING LEFT_MARGIN, 12, "Z80 REPORTED ERROR CODE: "
 
 d_str_ym2610_io_error:			STRING "YM2610 I/O ERROR"
 d_str_ym2610_timer_timing_flag:		STRING "YM2610 TIMER TIMING (FLAG)"
@@ -523,18 +523,18 @@ d_ec_mmio_list:
 	EC_MMIO_LIST_END
 
 d_xy_mmio_error_c1_1_to_r0_47:
-	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
+	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: (no info)"
+	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
 	XY_STRING_MULTI_END
 d_xy_mmio_error_reg_status_a:
-	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
+	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: (no info)"
+	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
 	XY_STRING_MULTI_END
 d_xy_mmio_error_generic_c1:
-	XY_STRING_MULTI 4, 10, "1st gen: (no info)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1"
+	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: (no info)"
+	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1"
 	XY_STRING_MULTI_END
 d_xy_mmio_error_reg_vramrw:
-	XY_STRING_MULTI 4, 10, "1st gen: ? <-> LSPC-A0(?)"
-	XY_STRING_MULTI 4, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
+	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: ? <-> LSPC-A0(?)"
+	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
 	XY_STRING_MULTI_END

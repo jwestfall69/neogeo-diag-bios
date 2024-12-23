@@ -1,6 +1,6 @@
+	include "diag.inc"
 	include "neogeo.inc"
 	include "macros.inc"
-	include "diag.inc"
 
 	global manual_cpu_pal_addr_test
 
@@ -36,6 +36,6 @@ manual_cpu_pal_addr_test:
 
 	section data
 
-d_xys_cpu_pal_line1:		XY_STRING  4, 13, "THIS SCREEN SHOULD REMAIN WHITE"
-d_xys_cpu_pal_line2:		XY_STRING  4, 15, "TEXT ON BLACK BACKGROUND, WITH"
-d_xys_cpu_pal_line3:		XY_STRING  4, 17, "COLORED SCROLLING DOTS"
+d_xys_cpu_pal_line1:		XY_STRING LEFT_MARGIN, 13, "THIS SCREEN SHOULD REMAIN WHITE"
+d_xys_cpu_pal_line2:		XY_STRING LEFT_MARGIN, 15, "TEXT ON BLACK BACKGROUND, WITH"
+d_xys_cpu_pal_line3:		XY_STRING LEFT_MARGIN, 17, "COLORED SCROLLING DOTS"

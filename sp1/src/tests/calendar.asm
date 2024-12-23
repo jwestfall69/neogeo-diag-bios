@@ -175,12 +175,12 @@ rtc_check_pulse:
 	section data
 
 ; strings for calender io screen
-d_xys_waiting_pulse:		XY_STRING  4, 20, "WAITING FOR CALENDAR PULSE..."
-d_xys_4990_tp:			XY_STRING  4, 14, "4990 TP:"
+d_xys_waiting_pulse:		XY_STRING LEFT_MARGIN, 20, "WAITING FOR CALENDAR PULSE..."
+d_xys_4990_tp:			XY_STRING LEFT_MARGIN, 14, "4990 TP:"
 
-d_xys_a_1hz_pulse:		XY_STRING  4, 24, "A: 1Hz pulse"
-d_xys_b_64hz_pulse:		XY_STRING  4, 25, "B: 64Hz pulse"
-d_xys_c_4096hz_pulse:		XY_STRING  4, 26, "C: 4096Hz pulse"
+d_xys_a_1hz_pulse:		XY_STRING LEFT_MARGIN, 24, "A: 1Hz pulse"
+d_xys_b_64hz_pulse:		XY_STRING LEFT_MARGIN, 25, "B: 64Hz pulse"
+d_xys_c_4096hz_pulse:		XY_STRING LEFT_MARGIN, 26, "C: 4096Hz pulse"
 
 	section bss
 	align 2

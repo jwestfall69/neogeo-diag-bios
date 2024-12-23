@@ -1,3 +1,4 @@
+	include "diag.inc"
 	include "neogeo.inc"
 	include "macros.inc"
 
@@ -34,4 +35,4 @@ error_address_dsub:
 
 	section data
 
-d_xys_ea_triggered:	XY_STRING 4, 27, "ERROR ADDRESS TRIGGERED"
+d_xys_ea_triggered:	XY_STRING LEFT_MARGIN, 27, "ERROR ADDRESS TRIGGERED"
