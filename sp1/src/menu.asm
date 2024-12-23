@@ -8,8 +8,8 @@
 
 	section code
 
-MENU_X_OFFSET		equ $6
-MENU_Y_OFFSET		equ $5
+MENU_X_OFFSET		equ $4
+MENU_Y_OFFSET		equ $7
 
 CURSOR_CLEAR_CHAR	equ $20
 CURSOR_CHAR		equ $11
