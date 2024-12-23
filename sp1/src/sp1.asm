@@ -106,8 +106,10 @@ auto_tests:
 		lea	d_xys_abcd_main_menu, a0
 		RSUB	print_xys_string_clear
 
-		tst.b	r_z80_test_flags
+		lea	d_xys_hold_ss_to_reset, a0
+		RSUB	print_xys_string_clear
 
+		tst.b	r_z80_test_flags
 		bne	.loop_user_input
 
 		lea	d_xys_z80_tests_skipped, a0
@@ -162,6 +164,7 @@ d_xys_passes:			XY_STRING  4, 14, "PASSES:"
 
 d_xys_all_tests_passed:		XY_STRING  4,  5, "ALL TESTS PASSED"
 d_xys_abcd_main_menu:		XY_STRING  4, 21, "PRESS ABCD FOR MAIN MENU"
+d_xys_hold_ss_to_reset:		XY_STRING  4, 27, "HOLD START/SELECT TO SOFT RESET"
 
 d_xys_z80_waiting:		XY_STRING  4,  5, "WAITING FOR Z80 TO FINISH TESTS..."
 d_xys_z80_tests_skipped:	XY_STRING  4, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
