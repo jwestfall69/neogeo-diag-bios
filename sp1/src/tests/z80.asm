@@ -355,6 +355,7 @@ ack_error:
 		rts
 
 	section data
+	align 1
 
 ; struct {
 ; 	byte buttons_pressed; 	(up/down/left/right)
@@ -387,6 +388,6 @@ d_xys_z80_sm1_tests:		XY_STRING 24,  4, "[SM1]"
 d_xys_z80_snd_reg:		XY_STRING LEFT_MARGIN, 10, "SND REG: "
 
 	section bss
-	align 2
+	align 1
 
 r_z80_test_flags:		dc.b $0

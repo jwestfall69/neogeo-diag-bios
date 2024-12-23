@@ -29,7 +29,7 @@ irq2_handler:
 		rte
 
 	section bss
-	align 2
+	align 1
 
 r_vblank_count:		dc.w $0
 r_timer_count:		dc.w $0

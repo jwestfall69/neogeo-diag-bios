@@ -152,6 +152,9 @@ print_header_dsub:
 		DSUB	print_xy_string_clear
 		DSUB_RETURN
 
+	section data
+	align 1
+
 d_str_version_header:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
 
 d_xys_a_to_resume:		XY_STRING LEFT_MARGIN, 26, "A: Release to Resume"

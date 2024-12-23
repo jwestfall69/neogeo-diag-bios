@@ -116,8 +116,7 @@ auto_func_tests:
 		rts
 
 	section data
-
-	align 2
+	align 1
 
 d_auto_psub_list:
 	AUTO_ENTRY auto_bios_mirror_test_dsub, d_str_testing_bios_mirror

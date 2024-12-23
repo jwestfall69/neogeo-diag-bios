@@ -24,6 +24,7 @@ watchdog_stuck_test_dsub:
 		DSUB_RETURN
 
 	section data
+	align 1
 
 d_xys_watchdog_delay:		XY_STRING LEFT_MARGIN,  5, "WATCHDOG DELAY..."
 d_xys_watchdog_text_remains:	XY_STRING LEFT_MARGIN,  8, "IF THIS TEXT REMAINS HERE..."

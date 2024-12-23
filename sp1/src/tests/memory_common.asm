@@ -405,6 +405,7 @@ check_vram_address:
 		rts
 
 	section data
+	align 1
 
 d_data_test_patterns:
 	dc.w	$0000, $5555, $aaaa, $ffff

@@ -24,6 +24,7 @@
 	global print_xy_string_clear_dsub
 	global print_xys_string_dsub
 	global print_xys_string_clear_dsub
+	global print_xys_string_list_dsub
 	global print_xyp_string
 
 	section code
@@ -154,6 +155,28 @@ print_xys_string_dsub:
 		move.w	d2, (a6)
 		move.b	(a0)+, d2
 		bne	.loop_next_char
+		DSUB_RETURN
+
+; prints xy string at x,y
+; params:
+;  a0 - start of xy string struct list
+print_xys_string_list_dsub:
+		move.b	(a0)+, d0
+		cmp.b	#$ff, d0
+		beq	.list_end
+
+		move.b	(a0)+, d1
+		SSA3	fix_seek_xy
+		move.w	#$20, (2,a6)
+		moveq	#0, d2
+		move.b	(a0)+, d2
+	.loop_next_char:
+		move.w	d2, (a6)
+		move.b	(a0)+, d2
+		bne	.loop_next_char
+		bra	print_xys_string_list_dsub
+
+	.list_end:
 		DSUB_RETURN
 
 ; prints the char n times starting at x,y
@@ -353,6 +376,6 @@ fix_restore:
 		rts
 
 	section	bss
-	align 2
+	align 1
 
 r_fixmap_backup:	dcb.w FIXMAP_BACKUP_SIZE

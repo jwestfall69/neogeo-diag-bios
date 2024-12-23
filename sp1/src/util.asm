@@ -349,12 +349,13 @@ print_hold_ss_to_reset:
 		rts
 
 	section data
+	align 1
 
 d_xys_hold_ss_to_reset:		XY_STRING LEFT_MARGIN, 27, "HOLD START/SELECT TO SOFT RESET"
 d_xys_release_ss:		XY_STRING LEFT_MARGIN, 27, "RELEASE START/SELECT"
 
 	section bss
-	align 2
+	align 1
 
 r_p1_input:			dc.b $0
 r_p1_input_edge:		dc.b $0

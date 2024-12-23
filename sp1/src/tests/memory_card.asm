@@ -597,6 +597,7 @@ check_memcard_address:
 		rts
 
 	section data
+	align 1
 
 d_xys_a_c_run_test:		XY_STRING LEFT_MARGIN, 26, "A+C: Run Test"
 d_xys_warning1:			XY_STRING LEFT_MARGIN,  8, "WARNING: ALL DATA ON THE MEMORY"
@@ -614,7 +615,7 @@ d_xys_tests_passed:		XY_STRING LEFT_MARGIN,  9, "ALL TESTS PASSED"
 d_xys_running_tests:		XY_STRING LEFT_MARGIN,  9, "RUNNING TESTS..."
 
 	section bss
-	align 2
+	align 1
 
 r_memcard_size:			dc.l $0
 r_memcard_flags:		dc.b $0

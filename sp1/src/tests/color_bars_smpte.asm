@@ -87,6 +87,7 @@ draw_section:
 		rts
 
 	section data
+	align 1
 
 SMPTE_COLORS:
 	dc.w	SMPTE_BLACK

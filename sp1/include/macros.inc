@@ -60,22 +60,15 @@
 
 	macro STRING
 		dc.b \1, $0
-		align 1
 	endm
 
 	macro XY_STRING
 		dc.b \1, \2
 		dc.b \3, $0
-		align 1
 	endm
 
-	macro XY_STRING_MULTI
-		dc.b \1, \2
-		dc.b \3, $0
-	endm
-
-	macro XY_STRING_MULTI_END
-		dc.b $0
+	macro XY_STRING_LIST_END
+		dc.b $ff
 	endm
 
 	macro MAIN_MENU_ITEM

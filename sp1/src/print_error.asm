@@ -192,11 +192,7 @@ print_error_mmio_dsub:
 
 	.reg_found:
 		movea.l	s_em_description_xys_list_ptr(a0), a0
-
-	.loop_next_xy_string_struct:
-		DSUB	print_xys_string
-		tst.b	(a0)
-		bne	.loop_next_xy_string_struct
+		DSUB	print_xys_string_list
 
 	.not_found:
 		movea.l	a1, a0
@@ -272,6 +268,7 @@ print_error_z80:
 		rts
 
 	section data
+	align 1
 
 d_ec_print_list:
 	EC_PRINT_ENTRY PRINT_ERROR_BIOS_CRC32, print_error_bios_crc32_dsub
@@ -511,30 +508,34 @@ d_str_p2_unwritable_upper:		STRING "P2 UNWRITABLE (UPPER)"
 d_str_p_data_bus:			STRING "P DATA BUS"
 d_str_p_address_bus:			STRING "P ADDRESS BUS"
 
+	align 1
+
 d_ec_mmio_list:
-	EC_MMIO_ENTRY REG_DIPSW, d_xy_mmio_error_c1_1_to_r0_47
-	EC_MMIO_ENTRY REG_SYSTYPE, d_xy_mmio_error_c1_1_to_r0_47
-	EC_MMIO_ENTRY REG_STATUS_A, d_xy_mmio_error_reg_status_a
-	EC_MMIO_ENTRY REG_P1CNT, d_xy_mmio_error_generic_c1
-	EC_MMIO_ENTRY REG_SOUND, d_xy_mmio_error_generic_c1
-	EC_MMIO_ENTRY REG_P2CNT, d_xy_mmio_error_generic_c1
-	EC_MMIO_ENTRY REG_STATUS_B, d_xy_mmio_error_generic_c1
-	EC_MMIO_ENTRY REG_VRAMRW, d_xy_mmio_error_reg_vramrw
+	EC_MMIO_ENTRY REG_DIPSW, d_xys_mmio_error_c1_1_to_r0_47_list
+	EC_MMIO_ENTRY REG_SYSTYPE, d_xys_mmio_error_c1_1_to_r0_47_list
+	EC_MMIO_ENTRY REG_STATUS_A, d_xys_mmio_error_reg_status_a_list
+	EC_MMIO_ENTRY REG_P1CNT, d_xys_mmio_error_generic_c1_list
+	EC_MMIO_ENTRY REG_SOUND, d_xys_mmio_error_generic_c1_list
+	EC_MMIO_ENTRY REG_P2CNT, d_xys_mmio_error_generic_c1_list
+	EC_MMIO_ENTRY REG_STATUS_B, d_xys_mmio_error_generic_c1_list
+	EC_MMIO_ENTRY REG_VRAMRW, d_xys_mmio_error_reg_vramrw_list
 	EC_MMIO_LIST_END
 
-d_xy_mmio_error_c1_1_to_r0_47:
-	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: (no info)"
-	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
-	XY_STRING_MULTI_END
-d_xy_mmio_error_reg_status_a:
-	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: (no info)"
-	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
-	XY_STRING_MULTI_END
-d_xy_mmio_error_generic_c1:
-	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: (no info)"
-	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1"
-	XY_STRING_MULTI_END
-d_xy_mmio_error_reg_vramrw:
-	XY_STRING_MULTI LEFT_MARGIN, 10, "1st gen: ? <-> LSPC-A0(?)"
-	XY_STRING_MULTI LEFT_MARGIN, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
-	XY_STRING_MULTI_END
+d_xys_mmio_error_c1_1_to_r0_47_list:
+	XY_STRING LEFT_MARGIN, 10, "1st gen: (no info)"
+	XY_STRING LEFT_MARGIN, 11, "2nd gen: NEO-C1(1) <-> NEO-F0(47)"
+	XY_STRING_LIST_END
+d_xys_mmio_error_reg_status_a_list:
+	XY_STRING LEFT_MARGIN, 10, "1st gen: (no info)"
+	XY_STRING LEFT_MARGIN, 11, "2nd gen: NEO-C1(2) <-> NEO-F0(34)"
+	XY_STRING_LIST_END
+
+d_xys_mmio_error_generic_c1_list:
+	XY_STRING LEFT_MARGIN, 10, "1st gen: (no info)"
+	XY_STRING LEFT_MARGIN, 11, "2nd gen: NEO-C1"
+	XY_STRING_LIST_END
+
+d_xys_mmio_error_reg_vramrw_list:
+	XY_STRING LEFT_MARGIN, 10, "1st gen: ? <-> LSPC-A0(?)"
+	XY_STRING LEFT_MARGIN, 11, "2nd gen: NEO-C1 <-> LSPC2-A2(172)"
+	XY_STRING_LIST_END

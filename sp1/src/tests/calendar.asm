@@ -183,6 +183,6 @@ d_xys_b_64hz_pulse:		XY_STRING LEFT_MARGIN, 25, "B: 64Hz pulse"
 d_xys_c_4096hz_pulse:		XY_STRING LEFT_MARGIN, 26, "C: 4096Hz pulse"
 
 	section bss
-	align 2
+	align 1
 
 r_rtc_pulse_state:		dc.b $0

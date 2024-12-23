@@ -380,6 +380,7 @@ check_p2_rom_we:
 		rts
 
 	section data
+	align 1
 
 d_xys_slot_num:			XY_STRING LEFT_MARGIN,  8, "SLOT NUMBER: "
 d_xys_tests_require:		XY_STRING LEFT_MARGIN, 20, "THESE TESTS REQUIRE A"

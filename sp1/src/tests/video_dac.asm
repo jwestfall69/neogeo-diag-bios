@@ -306,6 +306,10 @@ draw_color_pair:
 		rts
 
 	section data
+	align 1
+
+; full screen stuff
+d_fs_tile_offsets:		dc.w $0000, $0020, $6000, $6020
 
 d_str_video_dac_tests:		STRING "VIDEO DAC TESTS"
 
@@ -314,5 +318,3 @@ d_xys_b_toggle_db:		XY_STRING LEFT_MARGIN, 25, "B: Toggle Darker Bit"
 d_xys_c_toggle_shadow:		XY_STRING LEFT_MARGIN, 26, "C: Toggle Shadow Register"
 d_xys_all:			XY_STRING 29,  6, "ALL"
 
-; full screen stuff
-d_fs_tile_offsets:		dc.w $0000, $0020, $6000, $6020

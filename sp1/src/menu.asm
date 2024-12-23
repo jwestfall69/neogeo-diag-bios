@@ -149,7 +149,7 @@ print_menu_list:
 		rts
 
 	section bss
-	align 2
+	align 1
 
 r_menu_list:		dc.l	$0
 r_menu_cursor:		dc.b	$0

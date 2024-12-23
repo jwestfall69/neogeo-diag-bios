@@ -34,5 +34,6 @@ error_address_dsub:
 		blk.l ($1fe2 / 4), $108060fc
 
 	section data
+	align 1
 
 d_xys_ea_triggered:	XY_STRING LEFT_MARGIN, 27, "ERROR ADDRESS TRIGGERED"

@@ -108,6 +108,7 @@ check_mmio_oe_word:
 		rts
 
 	section data
+	align 1
 
 d_mmio_addresses_table_start:
 	dc.l REG_DIPSW

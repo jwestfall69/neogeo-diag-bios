@@ -179,7 +179,7 @@ misc_input_print_static_items:
 		rts
 
 	section data
-	align 2
+	align 1
 
 ; struct misc_input {
 ;  byte test_bit;                ; bit to test on mmio address
