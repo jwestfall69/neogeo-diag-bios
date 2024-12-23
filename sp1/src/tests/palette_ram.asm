@@ -33,11 +33,11 @@ auto_palette_ram_tests:
 
 manual_palette_ram_tests:
 		lea	d_xys_passes, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_a_to_resume, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	palette_ram_backup
 

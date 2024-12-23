@@ -10,7 +10,7 @@ error_address_dsub:
 
 		move.b	d0, d6
 		lea	d_xys_ea_triggered, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 		move.b	d6, d0
 
 		; convert the error code into a error_address

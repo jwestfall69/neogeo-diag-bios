@@ -32,9 +32,9 @@
 
 print_labels:
 		lea	d_xys_p1, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_p2, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		moveq	#$7, d3
 		moveq	#$25, d4
 	.loop_next_header:

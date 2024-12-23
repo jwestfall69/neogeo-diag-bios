@@ -30,10 +30,10 @@ auto_video_ram_2k_tests:
 
 manual_video_ram_2k_tests:
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		lea	d_xys_passes, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		moveq	#$0, d6
 

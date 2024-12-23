@@ -8,7 +8,7 @@
 
 manual_misc_input_tests:
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		bsr	misc_input_print_static
 	.loop_run_test:
 		bsr	p1p2_input_update
@@ -20,7 +20,7 @@ manual_misc_input_tests:
 
 misc_input_print_static:
 		lea	d_xys_memory_card, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_mi_item_cd1, a0
 		moveq	#$9, d0
@@ -28,7 +28,7 @@ misc_input_print_static:
 		bsr	misc_input_print_static_items
 
 		lea	d_xys_system_type, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_mi_item_type, a0
 		moveq	#$e, d0
@@ -44,7 +44,7 @@ misc_input_print_static:
 		bsr	misc_input_print_static_items
 
 		lea	d_xys_hard_dips, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 	.system_aes:
 		rts

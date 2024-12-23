@@ -9,13 +9,13 @@
 manual_cpu_pal_addr_test:
 
 		lea	d_xys_cpu_pal_line1, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_cpu_pal_line2, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_cpu_pal_line3, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	PALETTE_RAM_START + $aa, a0
 		moveq	#0, d1

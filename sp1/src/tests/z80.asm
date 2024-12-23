@@ -13,13 +13,13 @@
 
 auto_z80_tests:
 		lea	d_xys_z80_m1_enabled, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		lea	d_xys_z80_testing_comm_port, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_z80_snd_reg, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	start_comm_test
 
@@ -41,7 +41,7 @@ z80_slot_switch:
 		bset.b	#Z80_TEST_FLAG_SLOT_SWITCH, r_z80_test_flags
 
 		lea	d_xys_z80_switching_m1, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		move.b	#$01, REG_SOUND				; tell z80 to prep for m1 switch
 
@@ -77,7 +77,7 @@ z80_slot_switch:
 
 		move.b	(a0), d3
 		lea	(d_xys_z80_slot_switch_num), a0	; "[SS ]"
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		move.b	#32, d0
 		moveq	#4, d1
@@ -104,19 +104,19 @@ slot_switch_ignored:
 		DSUB	print_hex_byte
 
 		lea	d_xys_actual, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_xys_expected, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_xys_z80_sm1_ignored, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_z80_sm1_responsive, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_z80_mv1bc_hold_b, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_z80_press_start, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	print_hold_ss_to_reset
 
@@ -199,7 +199,7 @@ check_sm1_test:
 		move.b	#COMM_SM1_TEST_SWITCH_SM1_DONE, REG_SOUND
 
 		lea	(d_xys_z80_sm1_tests), a0		; "[SM1]" to indicate m1 is running sm1 tests
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		bsr	z80_wait_clear
 		rts
@@ -303,18 +303,18 @@ print_reg_sound:
 print_comm_error:
 		move.w	d0, -(a7)
 
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_expected, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_actual, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_z80_skip_test, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_z80_press_d_reset, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		move.w	(a7)+, d2
 		moveq	#14, d0
@@ -327,10 +327,10 @@ print_comm_error:
 		RSUB	print_hex_byte				; actual value
 
 		lea	d_xys_z80_make_sure, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_z80_cart_clean, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	check_error
 		bra	loop_reset_check

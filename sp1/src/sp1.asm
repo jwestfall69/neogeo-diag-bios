@@ -94,30 +94,30 @@ auto_tests:
 	.skip_slot_switch:
 
 		lea	d_xys_z80_waiting, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		bsr	auto_z80_tests
 
 	.skip_z80_test:
 
 		bsr	auto_func_tests
 		lea	d_xys_all_tests_passed, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_abcd_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		tst.b	r_z80_test_flags
 
 		bne	.loop_user_input
 
 		lea	d_xys_z80_tests_skipped, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_z80_hold_d_and_soft, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_z80_reset_with_cart, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 	.loop_user_input:
 		WATCHDOG

@@ -210,19 +210,19 @@ draw_main_screen:
 		RSUB	print_xy_string
 
 		lea	d_xys_a_full_screen, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_b_toggle_db, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_c_toggle_shadow, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_all, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		; print the B0 B1 ... B4 header (backwards)
 		moveq	#4, d5		; bits to print

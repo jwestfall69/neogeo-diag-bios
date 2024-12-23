@@ -8,11 +8,11 @@
 
 watchdog_stuck_test_dsub:
 		lea	d_xys_watchdog_delay, a0
-		DSUB	print_xy_string_struct_clear
+		DSUB	print_xys_string_clear
 		lea	d_xys_watchdog_text_remains, a0
-		DSUB	print_xy_string_struct_clear
+		DSUB	print_xys_string_clear
 		lea	d_xys_watchdog_stuck, a0
-		DSUB	print_xy_string_struct_clear
+		DSUB	print_xys_string_clear
 
 		move.l	#$c930, d0		; 128760us / 128.76ms
 		DSUB	delay

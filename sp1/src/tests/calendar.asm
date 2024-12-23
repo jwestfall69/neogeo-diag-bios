@@ -8,22 +8,22 @@
 
 manual_calendar_tests:
 		lea	d_xys_a_1hz_pulse, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_b_64hz_pulse, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_c_4096hz_pulse, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_actual, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_expected, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_4990_tp, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	rtc_set_1_hz
 
@@ -82,7 +82,7 @@ rtc_update_hz:
 
 		move.l	d1, -(a7)
 		lea	d_xys_waiting_pulse, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	rtc_wait_pulse
 

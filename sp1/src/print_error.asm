@@ -84,10 +84,10 @@ print_error_bios_crc32_dsub:
 		DSUB	print_hex_long
 
 		lea	d_xys_expected, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_xys_actual, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		movea.l	a1, a0
 		moveq	#4, d0
@@ -114,10 +114,10 @@ print_error_hex_byte_dsub:
 		DSUB	print_hex_byte
 
 		lea	d_xys_expected, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_xys_actual, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		movea.l	a1, a0
 		moveq	#4, d0
@@ -151,13 +151,13 @@ print_error_memory_dsub:
 		DSUB	print_hex_word			; actual
 
 		lea	d_xys_address, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_xys_expected, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_xys_actual, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		movea.l	a1, a0
 		moveq	#4, d0
@@ -176,7 +176,7 @@ print_error_mmio_dsub:
 		DSUB	print_hex_3_bytes
 
 		lea	d_xys_address, a0
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 
 		lea	d_ec_mmio_list, a0
 	.loop_next_entry:
@@ -194,7 +194,7 @@ print_error_mmio_dsub:
 		movea.l	s_em_description_xys_list_ptr(a0), a0
 
 	.loop_next_xy_string_struct:
-		DSUB	print_xy_string_struct
+		DSUB	print_xys_string
 		tst.b	(a0)
 		bne	.loop_next_xy_string_struct
 
@@ -258,7 +258,7 @@ print_error_z80:
 		RSUB	print_hex_byte
 
 		lea	d_xys_z80_error_code, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		movea.l	a1, a0
 		moveq	#4, d0

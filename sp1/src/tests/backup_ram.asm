@@ -36,9 +36,9 @@ auto_backup_ram_tests:
 
 manual_backup_ram_tests:
 		lea	d_xys_passes,a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		moveq	#0, d6				; passes
 		move.b	d0, REG_SRAMUNLOCK

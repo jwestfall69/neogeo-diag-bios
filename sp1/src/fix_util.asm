@@ -22,8 +22,8 @@
 	global print_xy_char_dsub
 	global print_xy_string_dsub
 	global print_xy_string_clear_dsub
-	global print_xy_string_struct_dsub
-	global print_xy_string_struct_clear_dsub
+	global print_xys_string_dsub
+	global print_xys_string_clear_dsub
 	global print_xyp_string
 
 	section code
@@ -133,17 +133,17 @@ print_xyp_string:
 		bne	.loop_next_char
 		rts
 
-; clears the line that an xy string will be on, then falls through to print_xy_string_struct_dsub
+; clears the line that an xy string will be on, then falls through to print_xys_string_dsub
 ; params:
 ;  a0 = start of xy string struct
-print_xy_string_struct_clear_dsub:
+print_xys_string_clear_dsub:
 		move.b	(1, a0), d0
 		SSA3	fix_clear_line
 
 ; prints xy string at x,y
 ; params:
 ;  a0 - start of xy string struct
-print_xy_string_struct_dsub:
+print_xys_string_dsub:
 		move.b	(a0)+, d0
 		move.b	(a0)+, d1
 		SSA3	fix_seek_xy

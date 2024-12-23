@@ -30,14 +30,14 @@
 manual_memcard_tests:
 
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		move.b	REG_STATUS_B, d0
 		and.b	#$30, d0
 		beq	.memcard_inserted
 
 		lea	d_xys_not_detected, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		bra	.loop_wait_input_return_menu
 
 	.memcard_inserted:
@@ -46,16 +46,16 @@ manual_memcard_tests:
 		beq	.memcard_not_write_protect
 
 		lea	d_xys_write_protect, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		bra	.loop_wait_input_return_menu
 
 	.memcard_not_write_protect:
 		lea	d_xys_warning1, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_warning2, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_a_c_run_test, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 	.loop_wait_input_run_test:
 
@@ -82,7 +82,7 @@ manual_memcard_tests:
 		moveq	#27, d0
 		SSA3	fix_clear_line
 		lea	d_xys_running_tests, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		moveq	#$0, d0
 		move.b	d0, REG_CRDNORMAL
@@ -99,13 +99,13 @@ manual_memcard_tests:
 		bsr	memcard_get_size
 
 		lea	d_xys_detect, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		; add (BAD DATA) if we weren't able to detect
 		btst	#MEMCARD_FLAG_BAD_DATA, r_memcard_flags
 		beq	.skip_bad_data
 		lea	d_xys_bad_data, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 	.skip_bad_data:
 
@@ -115,17 +115,17 @@ manual_memcard_tests:
 		lea	d_xys_dbus_16bit, a0
 
 	.print_dbus_size:
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		; add (WIDE) if double wide bus
 		btst	#MEMCARD_FLAG_DBUS_WIDE, r_memcard_flags
 		beq	.print_size
 		lea	d_xys_dbus_wide, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 	.print_size:
 		lea	d_xys_size, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		moveq	#13, d0
 		moveq	#25, d1
@@ -142,7 +142,7 @@ manual_memcard_tests:
 	.print_size_bytes:
 		RSUB	print_5_digits
 		lea	d_xys_size_bytes, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 	.print_size_done:
 		bsr	memcard_we_tests
@@ -155,7 +155,7 @@ manual_memcard_tests:
 		bne	.test_failed_abort
 
 		lea	d_xys_tests_passed, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		bra	.wait_input_return_menu
 
@@ -169,7 +169,7 @@ manual_memcard_tests:
 		move.b  d0, REG_CRDLOCK2
 
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 	.loop_wait_input_return_menu:
 

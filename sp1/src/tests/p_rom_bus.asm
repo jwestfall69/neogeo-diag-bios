@@ -9,17 +9,17 @@
 
 manual_p_rom_bus_tests:
 		lea	d_xys_slot_num, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_tests_require, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_custom_cart, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		lea	d_xys_a_c_run_test, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		bsr	get_slot_count
 		move.b	d0, d6			; max slots
@@ -98,7 +98,7 @@ manual_p_rom_bus_tests:
 		SSA3	fix_clear_line
 
 		lea	d_xys_passes, a0
-		RSUB	print_xy_string_struct_clear
+		RSUB	print_xys_string_clear
 
 		moveq	#0, d6	; passes
 

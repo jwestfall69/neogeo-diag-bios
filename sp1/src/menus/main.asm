@@ -14,7 +14,7 @@ main_menu:
 
 	.loop_menu:
 		lea	d_xys_menu_title, a0
-		RSUB	print_xy_string_struct
+		RSUB	print_xys_string
 
 		lea	d_menu_list, a0
 		jsr	menu
