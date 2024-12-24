@@ -24,7 +24,7 @@
 	global print_xy_string_clear_dsub
 	global print_xys_string_dsub
 	global print_xys_string_clear_dsub
-	global print_xys_string_list_dsub
+	global print_xys_string_clear_list_dsub
 	global print_xyp_string
 
 	section code
@@ -159,12 +159,16 @@ print_xys_string_dsub:
 
 ; prints xy string at x,y
 ; params:
-;  a0 - start of xy string struct list
-print_xys_string_list_dsub:
-		move.b	(a0)+, d0
+;  a0 - start of xy string struct list with line clear
+print_xys_string_clear_list_dsub:
+		move.b	(a0), d0
 		cmp.b	#$ff, d0
 		beq	.list_end
 
+		move.b	(1, a0), d0
+		SSA3	fix_clear_line
+
+		move.b	(a0)+, d0
 		move.b	(a0)+, d1
 		SSA3	fix_seek_xy
 		move.w	#$20, (2,a6)
@@ -174,7 +178,7 @@ print_xys_string_list_dsub:
 		move.w	d2, (a6)
 		move.b	(a0)+, d2
 		bne	.loop_next_char
-		bra	print_xys_string_list_dsub
+		bra	print_xys_string_clear_list_dsub
 
 	.list_end:
 		DSUB_RETURN

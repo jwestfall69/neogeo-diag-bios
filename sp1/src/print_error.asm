@@ -192,7 +192,7 @@ print_error_mmio_dsub:
 
 	.reg_found:
 		movea.l	s_em_description_xys_list_ptr(a0), a0
-		DSUB	print_xys_string_list
+		DSUB	print_xys_string_clear_list
 
 	.not_found:
 		movea.l	a1, a0

@@ -109,14 +109,8 @@ slot_switch_ignored:
 		lea	d_xys_expected, a0
 		DSUB	print_xys_string
 
-		lea	d_xys_z80_sm1_ignored, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_z80_sm1_responsive, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_z80_mv1bc_hold_b, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_z80_press_start, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_slot_switch_ignored_list, a0
+		RSUB	print_xys_string_clear_list
 
 		bsr	print_hold_ss_to_reset
 
@@ -311,11 +305,6 @@ print_comm_error:
 		lea	d_xys_actual, a0
 		RSUB	print_xys_string_clear
 
-		lea	d_xys_z80_skip_test, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_z80_press_d_reset, a0
-		RSUB	print_xys_string_clear
-
 		move.w	(a7)+, d2
 		moveq	#14, d0
 		moveq	#12, d1
@@ -326,11 +315,8 @@ print_comm_error:
 		moveq	#10, d1
 		RSUB	print_hex_byte				; actual value
 
-		lea	d_xys_z80_make_sure, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_z80_cart_clean, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_comm_error_list, a0
+		RSUB	print_xys_string_clear_list
 
 		bsr	check_error
 		bra	loop_reset_check
@@ -370,18 +356,25 @@ d_slot_select_start:
 d_slot_select_end:
 	dc.b	$00, $01			; no match = slot 1
 
+d_xys_slot_switch_ignored_list:
+	XY_STRING (LEFT_MARGIN - 1),  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
+	XY_STRING (LEFT_MARGIN - 1),  7, "SM1 RESPONSE"
+	XY_STRING (LEFT_MARGIN - 1), 16, "PRESS START TO FORCE SLOT SWITCH"
+	XY_STRING (LEFT_MARGIN - 1), 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
+	XY_STRING_LIST_END
+
+d_xys_comm_error_list:
+	XY_STRING LEFT_MARGIN, 24, "TO SKIP Z80 TESTING, RELEASE"
+	XY_STRING LEFT_MARGIN, 25, "D BUTTON AND SOFT RESET."
+	XY_STRING LEFT_MARGIN, 21, "FOR Z80 TESTING, MAKE SURE TEST"
+	XY_STRING LEFT_MARGIN, 22, "CART IS CLEAN AND FUNCTIONAL."
+	XY_STRING_LIST_END
+
 d_xys_z80_switching_m1:		XY_STRING LEFT_MARGIN,  5, "SWITCHING TO CART M1..."
-d_xys_z80_sm1_ignored:		XY_STRING (LEFT_MARGIN - 1),  5, "SM1/Z80 PREPARE SLOT SWITCH IGNORED"
-d_xys_z80_sm1_responsive:	XY_STRING (LEFT_MARGIN - 1),  7, "SM1 RESPONSE"
-d_xys_z80_press_start:		XY_STRING (LEFT_MARGIN - 1), 16, "PRESS START TO FORCE SLOT SWITCH"
-d_xys_z80_mv1bc_hold_b:		XY_STRING (LEFT_MARGIN - 1), 18, "IF MV-1B/1C: SOFT RESET & HOLD B+D"
 d_xys_z80_testing_comm_port:	XY_STRING LEFT_MARGIN,  5, "TESTING Z80 COMM. PORT..."
 d_xys_z80_comm_no_hello:	XY_STRING LEFT_MARGIN,  5, "Z80->68k COMM ISSUE (HELLO)"
 d_xys_z80_comm_no_ack:		XY_STRING LEFT_MARGIN,  5, "Z80->68k COMM ISSUE (ACK)"
-d_xys_z80_skip_test:		XY_STRING LEFT_MARGIN, 24, "TO SKIP Z80 TESTING, RELEASE"
-d_xys_z80_press_d_reset:	XY_STRING LEFT_MARGIN, 25, "D BUTTON AND SOFT RESET."
-d_xys_z80_make_sure:		XY_STRING LEFT_MARGIN, 21, "FOR Z80 TESTING, MAKE SURE TEST"
-d_xys_z80_cart_clean:		XY_STRING LEFT_MARGIN, 22, "CART IS CLEAN AND FUNCTIONAL."
+
 d_xys_z80_m1_enabled:		XY_STRING 34,  4, "[M1]"
 d_xys_z80_slot_switch_num:	XY_STRING 29,  4, "[SS ]"
 d_xys_z80_sm1_tests:		XY_STRING 24,  4, "[SM1]"

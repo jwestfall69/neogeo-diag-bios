@@ -204,42 +204,11 @@ setup_palette_group:
 draw_main_screen:
 		SSA3	fix_clear
 
-		lea	d_str_video_dac_tests, a0
-		moveq	#13, d0
-		moveq	#3, d1
-		RSUB	print_xy_string
-
-		lea	d_xys_a_full_screen, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_b_toggle_db, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_c_toggle_shadow, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_screen_list, a0
+		RSUB	print_xys_string_clear_list
 
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
-
-		lea	d_xys_all, a0
-		RSUB	print_xys_string_clear
-
-		; print the B0 B1 ... B4 header (backwards)
-		moveq	#4, d5		; bits to print
-		moveq	#26, d4		; start X offset
-
-	.loop_next_print_header_bit:
-		move.b	d4, d0
-		moveq	#6, d1
-		SSA3	fix_seek_xy
-
-		moveq	#0, d1
-		move.l	d5, d2
-		RSUB	print_digits
-
-		move.w	#'B', (a6)
-		sub.b	#4, d4
-		dbra	d5, .loop_next_print_header_bit
 
 		; draw the red/green rows
 		moveq	#8, d0
@@ -311,10 +280,11 @@ draw_color_pair:
 ; full screen stuff
 d_fs_tile_offsets:		dc.w $0000, $0020, $6000, $6020
 
-d_str_video_dac_tests:		STRING "VIDEO DAC TESTS"
-
-d_xys_a_full_screen:		XY_STRING LEFT_MARGIN, 24, "A: Toggle Full Screen"
-d_xys_b_toggle_db:		XY_STRING LEFT_MARGIN, 25, "B: Toggle Darker Bit"
-d_xys_c_toggle_shadow:		XY_STRING LEFT_MARGIN, 26, "C: Toggle Shadow Register"
-d_xys_all:			XY_STRING 29,  6, "ALL"
+d_xys_screen_list:
+	XY_STRING (LEFT_MARGIN + 9), 3, "VIDEO DAC TESTS"
+	XY_STRING LEFT_MARGIN, 24, "A: Toggle Full Screen"
+	XY_STRING LEFT_MARGIN, 25, "B: Toggle Darker Bit"
+	XY_STRING LEFT_MARGIN, 26, "C: Toggle Shadow Register"
+	XY_STRING (LEFT_MARGIN + 5), 6, "B0  B1  B2  B3  B4  ALL"
+	XY_STRING_LIST_END
 

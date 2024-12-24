@@ -100,26 +100,14 @@ auto_tests:
 	.skip_z80_test:
 
 		bsr	auto_func_tests
-		lea	d_xys_all_tests_passed, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_abcd_main_menu, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_hold_ss_to_reset, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_all_tests_passed_list, a0
+		RSUB	print_xys_string_clear_list
 
 		tst.b	r_z80_test_flags
 		bne	.loop_user_input
 
-		lea	d_xys_z80_tests_skipped, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_z80_hold_d_and_soft, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_z80_reset_with_cart, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_z80_tests_skipped_list, a0
+		RSUB	print_xys_string_clear_list
 
 	.loop_user_input:
 		WATCHDOG
@@ -165,11 +153,16 @@ d_xys_actual:			XY_STRING LEFT_MARGIN, 10, "ACTUAL:"
 d_xys_expected:			XY_STRING LEFT_MARGIN, 12, "EXPECTED:"
 d_xys_passes:			XY_STRING LEFT_MARGIN, 14, "PASSES:"
 
-d_xys_all_tests_passed:		XY_STRING LEFT_MARGIN,  5, "ALL TESTS PASSED"
-d_xys_abcd_main_menu:		XY_STRING LEFT_MARGIN, 21, "PRESS ABCD FOR MAIN MENU"
-d_xys_hold_ss_to_reset:		XY_STRING LEFT_MARGIN, 27, "HOLD START/SELECT TO SOFT RESET"
-
 d_xys_z80_waiting:		XY_STRING LEFT_MARGIN,  5, "WAITING FOR Z80 TO FINISH TESTS..."
-d_xys_z80_tests_skipped:	XY_STRING LEFT_MARGIN, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
-d_xys_z80_hold_d_and_soft:	XY_STRING LEFT_MARGIN, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
-d_xys_z80_reset_with_cart:	XY_STRING LEFT_MARGIN, 25, "RESET WITH TEST CART INSERTED."
+
+d_xys_all_tests_passed_list:
+	XY_STRING LEFT_MARGIN,  5, "ALL TESTS PASSED"
+	XY_STRING LEFT_MARGIN, 21, "PRESS ABCD FOR MAIN MENU"
+	XY_STRING LEFT_MARGIN, 27, "HOLD START/SELECT TO SOFT RESET"
+	XY_STRING_LIST_END
+
+d_xys_z80_tests_skipped_list:
+	XY_STRING LEFT_MARGIN, 23, "NOTE: Z80 TESTING WAS SKIPPED. TO"
+	XY_STRING LEFT_MARGIN, 24, "TEST Z80, HOLD BUTTON D AND SOFT"
+	XY_STRING LEFT_MARGIN, 25, "RESET WITH TEST CART INSERTED."
+	XY_STRING_LIST_END

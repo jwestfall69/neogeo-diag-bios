@@ -8,16 +8,9 @@
 	section code
 
 manual_p_rom_bus_tests:
-		lea	d_xys_slot_num, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_screen_list, a0
+		RSUB	print_xys_string_clear_list
 
-		lea	d_xys_tests_require, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_custom_cart, a0
-		RSUB	print_xys_string_clear
-
-		lea	d_xys_a_c_run_test, a0
-		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
 
@@ -382,7 +375,8 @@ check_p2_rom_we:
 	section data
 	align 1
 
-d_xys_slot_num:			XY_STRING LEFT_MARGIN,  8, "SLOT NUMBER: "
-d_xys_tests_require:		XY_STRING LEFT_MARGIN, 20, "THESE TESTS REQUIRE A"
-d_xys_custom_cart:		XY_STRING LEFT_MARGIN, 21, "CUSTOM CART TO WORK"
-d_xys_a_c_run_test:		XY_STRING LEFT_MARGIN, 26, "A+C: Run Test"
+d_xys_screen_list:
+	XY_STRING LEFT_MARGIN,  8, "SLOT NUMBER: "
+	XY_STRING LEFT_MARGIN, 20, "THESE TESTS REQUIRE A"
+	XY_STRING LEFT_MARGIN, 21, "CUSTOM CART TO WORK"
+	XY_STRING LEFT_MARGIN, 26, "A+C: Run Test"

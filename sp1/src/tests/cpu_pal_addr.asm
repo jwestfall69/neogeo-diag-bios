@@ -8,12 +8,9 @@
 
 manual_cpu_pal_addr_test:
 
-		lea	d_xys_cpu_pal_line1, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_cpu_pal_line2, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_cpu_pal_line3, a0
-		RSUB	print_xys_string_clear
+		lea	d_xys_screen_list, a0
+		RSUB	print_xys_string_clear_list
+
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
 
@@ -36,6 +33,8 @@ manual_cpu_pal_addr_test:
 
 	section data
 
-d_xys_cpu_pal_line1:		XY_STRING LEFT_MARGIN, 13, "THIS SCREEN SHOULD REMAIN WHITE"
-d_xys_cpu_pal_line2:		XY_STRING LEFT_MARGIN, 15, "TEXT ON BLACK BACKGROUND, WITH"
-d_xys_cpu_pal_line3:		XY_STRING LEFT_MARGIN, 17, "COLORED SCROLLING DOTS"
+d_xys_screen_list:
+	XY_STRING LEFT_MARGIN, 13, "THIS SCREEN SHOULD REMAIN WHITE"
+	XY_STRING LEFT_MARGIN, 15, "TEXT ON BLACK BACKGROUND, WITH"
+	XY_STRING LEFT_MARGIN, 17, "COLORED SCROLLING DOTS"
+	XY_STRING_LIST_END

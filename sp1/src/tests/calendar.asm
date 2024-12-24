@@ -7,14 +7,9 @@
 	section code
 
 manual_calendar_tests:
-		lea	d_xys_a_1hz_pulse, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_b_64hz_pulse, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_c_4096hz_pulse, a0
-		RSUB	print_xys_string_clear
-		lea	d_xys_d_main_menu, a0
-		RSUB	print_xys_string_clear
+
+		lea	d_xys_screen_list, a0
+		RSUB	print_xys_string_clear_list
 
 		lea	d_xys_actual, a0
 		RSUB	print_xys_string_clear
@@ -22,7 +17,7 @@ manual_calendar_tests:
 		lea	d_xys_expected, a0
 		RSUB	print_xys_string_clear
 
-		lea	d_xys_4990_tp, a0
+		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
 
 		bsr	rtc_set_1_hz
@@ -174,13 +169,15 @@ rtc_check_pulse:
 
 	section data
 
-; strings for calender io screen
-d_xys_waiting_pulse:		XY_STRING LEFT_MARGIN, 20, "WAITING FOR CALENDAR PULSE..."
-d_xys_4990_tp:			XY_STRING LEFT_MARGIN, 14, "4990 TP:"
+d_xys_screen_list:
+	XY_STRING LEFT_MARGIN, 14, "4990 TP:"
+	XY_STRING LEFT_MARGIN, 24, "A: 1Hz pulse"
+	XY_STRING LEFT_MARGIN, 25, "B: 64Hz pulse"
+	XY_STRING LEFT_MARGIN, 26, "C: 4096Hz pulse"
+	XY_STRING_LIST_END
 
-d_xys_a_1hz_pulse:		XY_STRING LEFT_MARGIN, 24, "A: 1Hz pulse"
-d_xys_b_64hz_pulse:		XY_STRING LEFT_MARGIN, 25, "B: 64Hz pulse"
-d_xys_c_4096hz_pulse:		XY_STRING LEFT_MARGIN, 26, "C: 4096Hz pulse"
+d_xys_waiting_pulse:
+	XY_STRING LEFT_MARGIN, 20, "WAITING FOR CALENDAR PULSE..."
 
 	section bss
 	align 1
