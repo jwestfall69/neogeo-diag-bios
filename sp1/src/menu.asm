@@ -28,6 +28,11 @@ menu:
 		move.b	r_menu_cursor, d4	; current menu entry
 		move.b	d4, d5			; previous menu entry
 
+		; wait for user to release D button to void
+		; double menu exit
+		move.b	#80, d0
+		jsr	wait_p1_input
+
 	.update_cursor:
 		; clear old
 		moveq	#(MENU_X_OFFSET - 1), d0
@@ -73,6 +78,12 @@ menu:
 
 
 	.down_not_pressed:
+		btst	#D_BUTTON, r_p1_input_edge
+		beq	.d_not_pressed
+		moveq	#MENU_EXIT, d0
+		rts
+
+	.d_not_pressed:
 		btst	#A_BUTTON, r_p1_input_edge
 		bne	.a_pressed
 		bsr	wait_frame
@@ -108,6 +119,7 @@ menu:
 		move.b	(a7)+, r_menu_cursor
 
 		SSA3	fix_clear
+		moveq	#MENU_CONTINUE, d0
 		rts
 
 ; params

@@ -14,11 +14,16 @@ main_menu:
 		bsr	wait_frame
 
 	.loop_menu:
+		SSA3	fix_clear
+
 		lea	d_xys_menu_title, a0
 		RSUB	print_xys_string
 
 		lea	d_menu_list, a0
 		jsr	menu
+
+		cmp.b	#MENU_EXIT, d0
+		beq	main_menu
 		bra	.loop_menu
 
 	section data
@@ -39,6 +44,7 @@ d_menu_list:
 	MENU_ENTRY manual_cpu_pal_addr_test, d_str_cpu_pal_addr_test, 0
 	MENU_ENTRY manual_memcard_tests, d_str_memcard_tests, 0
 	MENU_ENTRY manual_p_rom_bus_tests, d_str_p_rom_bus_tests, 0
+	MENU_ENTRY memory_viewer_menu, d_str_memory_viewer, 0
 	MENU_LIST_END
 
 d_xys_menu_title:		XY_STRING LEFT_MARGIN, 5, "MAIN MENU"
@@ -50,6 +56,7 @@ d_str_color_bars_smpte:		STRING "COLOR BARS SMPTE"
 d_str_controller_tests:		STRING "CONTROLLER TESTS"
 d_str_cpu_pal_addr_test:	STRING "CPU/PAL ADDR TEST"
 d_str_memcard_tests:		STRING "MEMORY CARD TESTS"
+d_str_memory_viewer:		STRING "MEMORY VIEWER"
 d_str_misc_input_test:		STRING "MISC. INPUT TEST"
 d_str_p_rom_bus_tests:		STRING "P ROM BUS TESTS (CUSTOM CART)"
 d_str_pal_ram_tests:		STRING "PALETTE RAM TESTS"

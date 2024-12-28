@@ -1,3 +1,6 @@
+MENU_EXIT	equ $0
+MENU_CONTINUE	equ $1
+
 ; struct menu_entry {
 ;	long function_address;
 ;	long string_address;

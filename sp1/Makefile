@@ -15,11 +15,13 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/fix_util.o \
        $(OBJ_DIR)/footer.o \
        $(OBJ_DIR)/menu.o \
+       $(OBJ_DIR)/memory_viewer.o \
        $(OBJ_DIR)/print_error.o \
        $(OBJ_DIR)/sp1.o \
        $(OBJ_DIR)/util.o \
        $(OBJ_DIR)/vector_table.o \
        $(OBJ_DIR)/menus/main.o \
+       $(OBJ_DIR)/menus/memory_viewer.o \
        $(OBJ_DIR)/tests/backup_ram.o \
        $(OBJ_DIR)/tests/bios_crc32.o \
        $(OBJ_DIR)/tests/bios_mirror.o \
