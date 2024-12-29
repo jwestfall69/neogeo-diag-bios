@@ -9,12 +9,12 @@
 	section code
 
 auto_backup_ram_tests:
-		tst.b	REG_STATUS_B			; do test if MVS
-		bmi	.do_tests
+		tst.b	REG_STATUS_B			; skip test if AES
+		bmi	.mvs_system
 		moveq	#0, d0
 		rts
 
-	.do_tests:
+	.mvs_system:
 		move.b	d0, REG_SRAMUNLOCK		; unlock
 		RSUB	backup_ram_oe_tests
 		tst.b	d0
@@ -79,12 +79,6 @@ manual_backup_ram_tests:
 
 
 backup_ram_oe_tests_dsub:
-		tst.b	REG_STATUS_B			; skip test on AES unless C is pressed
-		bmi	.do_test
-		btst	#6, REG_P1CNT
-		bne	.test_passed
-
-	.do_test:
 		lea	BACKUP_RAM_START, a0
 		moveq	#0, d0
 		DSUB	check_ram_oe
@@ -109,14 +103,6 @@ backup_ram_oe_tests_dsub:
 		DSUB_RETURN
 
 backup_ram_we_tests_dsub:
-		tst.b	REG_STATUS_B
-		bmi	.do_test				; if MVS jump to bram test
-		btst	#6, REG_P1CNT
-		beq	.do_test
-		moveq	#0, d0
-		DSUB_RETURN
-
-	.do_test:
 		lea	BACKUP_RAM_START, a0
 		move.w	#$ff, d0
 		DSUB	check_ram_we
