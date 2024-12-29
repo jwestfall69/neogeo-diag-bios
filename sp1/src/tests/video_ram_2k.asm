@@ -53,7 +53,7 @@ manual_video_ram_2k_tests:
 
 		addq.l	#1, d6
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_run_test
 		rts
 

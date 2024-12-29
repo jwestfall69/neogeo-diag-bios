@@ -13,7 +13,7 @@ manual_color_bars_smpte_test:
 	.loop_run_test:
 		WATCHDOG
 		bsr	p1p2_input_update
-		btst	#D_BUTTON, r_p1_input_edge	; D pressed?
+		btst	#INPUT_D_BIT, r_p1_input_edge	; D pressed?
 		beq	.loop_run_test
 		rts
 

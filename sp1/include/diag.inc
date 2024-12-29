@@ -15,15 +15,23 @@ Z80_TEST_FLAG_ENABLED		equ $0
 Z80_TEST_FLAG_SLOT_SWITCH	equ $1
 Z80_TEST_FLAG_SKIP_SM1_TESTS	equ $2
 
-; bits for p1/2_input_edge
-UP				equ $0
-DOWN				equ $1
-LEFT				equ $2
-RIGHT				equ $3
-A_BUTTON			equ $4
-B_BUTTON			equ $5
-C_BUTTON			equ $6
-D_BUTTON			equ $7
+INPUT_UP_BIT			equ $0
+INPUT_DOWN_BIT			equ $1
+INPUT_LEFT_BIT			equ $2
+INPUT_RIGHT_BIT			equ $3
+INPUT_A_BIT			equ $4
+INPUT_B_BIT			equ $5
+INPUT_C_BIT			equ $6
+INPUT_D_BIT			equ $7
+
+INPUT_UP			equ $01
+INPUT_DOWN			equ $02
+INPUT_LEFT			equ $04
+INPUT_RIGHT			equ $08
+INPUT_A				equ $10
+INPUT_B				equ $20
+INPUT_C				equ $40
+INPUT_D				equ $80
 
 ; SMPTE colors
 SMPTE_BLACK			equ $0000	; #000000

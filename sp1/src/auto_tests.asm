@@ -50,7 +50,7 @@ auto_psub_tests_dsub:
 		DSUB	error_to_credit_leds
 
 	.skip_error_to_credit_leds:
-		btst	#4, REG_P1CNT			; if "A" held down, do error address
+		btst	#INPUT_A_BIT, REG_P1CNT		; if "A" held down, do error address
 		bne	.skip_error_address
 		move.b	d6, d0
 		DSUB	error_address
@@ -104,7 +104,7 @@ auto_func_tests:
 		RSUB	error_to_credit_leds
 
 	.skip_error_to_credit_leds:
-		btst	#4, REG_P1CNT			; if "A" held down, do error address
+		btst	#INPUT_A_BIT, REG_P1CNT		; if "A" held down, do error address
 		bne	.skip_error_address
 		move.b	d6, d0
 		DSUB	error_address

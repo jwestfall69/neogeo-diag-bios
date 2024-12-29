@@ -59,20 +59,20 @@ manual_palette_ram_tests:
 
 		addq.l	#1, d6
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		beq	.test_exit_restore
 
-		btst	#A_BUTTON, REG_P1CNT
+		btst	#INPUT_A_BIT, REG_P1CNT
 		bne	.loop_run_test				; 'a' not pressed, loop and do another test
 
 		bsr	palette_ram_restore
 
 	.loop_wait_a_release:
 		WATCHDOG
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		beq	.test_exit
 
-		btst	#A_BUTTON, REG_P1CNT
+		btst	#INPUT_A_BIT, REG_P1CNT
 		beq	.loop_wait_a_release
 
 		bsr	palette_ram_backup

@@ -95,39 +95,39 @@ memory_viewer:
 		bsr	p1_input_update
 		move.b	r_p1_input_edge, d0
 
-		btst	#UP, d0
+		btst	#INPUT_UP_BIT, d0
 		beq	.up_not_pressed
 		suba.l	#4, a0
 		bra	.loop_next_input
 
 	.up_not_pressed:
-		btst	#DOWN, d0
+		btst	#INPUT_DOWN_BIT, d0
 		beq	.down_not_pressed
 		adda.l	#4, a0
 		bra	.loop_next_input
 
 	.down_not_pressed:
-		btst	#LEFT, d0
+		btst	#INPUT_LEFT_BIT, d0
 		beq	.left_not_pressed
 		bsr	get_offset
 		suba.l	d0, a0
 		bra	.loop_next_input
 
 	.left_not_pressed:
-		btst	#RIGHT, d0
+		btst	#INPUT_RIGHT_BIT, d0
 		beq	.right_not_pressed
 		bsr	get_offset
 		adda.l	d0, a0
 		bra	.loop_next_input
 
 	.right_not_pressed:
-		btst	#A_BUTTON, d0
+		btst	#INPUT_A_BIT, d0
 		beq	.a_not_pressed
 		bsr	handle_slot_change
 		bra	.loop_next_input
 
 	.a_not_pressed:
-		btst	#D_BUTTON, d0
+		btst	#INPUT_D_BIT, d0
 		beq	.loop_next_input
 
 		; when exiting we need to we switch to the sm1 rom (where
@@ -234,20 +234,20 @@ read_data:
 ;  d0 = offset
 get_offset:
 		move.b	r_p1_input, d0
-		and.b	#$60, d0
-		cmp.b	#$60, d0
+		and.b	#(INPUT_B|INPUT_C), d0
+		cmp.b	#(INPUT_B|INPUT_C), d0
 		bne	.b_and_c_not_pressed
 		move.l	#$10000, d0
 		rts
 
 	.b_and_c_not_pressed:
-		cmp.b	#$20, d0
+		cmp.b	#INPUT_B, d0
 		bne	.b_not_pressed
 		move.l	#$100, d0
 		rts
 
 	.b_not_pressed:
-		cmp.b	#$40, d0
+		cmp.b	#INPUT_C, d0
 		bne	.c_not_pressed
 		move.l	#$1000, d0
 		rts

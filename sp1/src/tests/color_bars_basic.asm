@@ -34,7 +34,7 @@ manual_color_bars_basic_test:
 		move.b	d0, REG_PALBANK0
 
 		bsr	p1p2_input_update
-		btst	#D_BUTTON, r_p1_input_edge	; D pressed?
+		btst	#INPUT_D_BIT, r_p1_input_edge	; D pressed?
 		beq	.loop_run_test
 
 		; palette1 was clobbered, restore our gray on black

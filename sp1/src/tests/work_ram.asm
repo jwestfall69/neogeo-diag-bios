@@ -39,7 +39,7 @@ manual_work_ram_tests:
 
 		addq.l	#1, d6
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_run_test
 		bra	.test_exit
 
@@ -48,7 +48,7 @@ manual_work_ram_tests:
 
 	.loop_d_pressed:
 		WATCHDOG
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_d_pressed
 
 	.test_exit:

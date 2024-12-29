@@ -30,7 +30,7 @@ menu:
 
 		; wait for user to release D button to void
 		; double menu exit
-		move.b	#80, d0
+		move.b	#INPUT_D, d0
 		jsr	wait_p1_input
 
 	.update_cursor:
@@ -55,7 +55,7 @@ menu:
 		bsr	p1p2_input_update
 		move.b	r_p1_input_edge, d0
 
-		btst	#UP, d0
+		btst	#INPUT_UP_BIT, d0
 		beq	.up_not_pressed
 
 		move.b	d4, d5
@@ -66,7 +66,7 @@ menu:
 
 
 	.up_not_pressed:
-		btst	#DOWN, d0
+		btst	#INPUT_DOWN_BIT, d0
 		beq	.down_not_pressed
 
 		move.b	d4, d5
@@ -78,13 +78,13 @@ menu:
 
 
 	.down_not_pressed:
-		btst	#D_BUTTON, r_p1_input_edge
+		btst	#INPUT_D_BIT, r_p1_input_edge
 		beq	.d_not_pressed
 		moveq	#MENU_EXIT, d0
 		rts
 
 	.d_not_pressed:
-		btst	#A_BUTTON, r_p1_input_edge
+		btst	#INPUT_A_BIT, r_p1_input_edge
 		bne	.a_pressed
 		bsr	wait_frame
 		bra	.loop_menu_input

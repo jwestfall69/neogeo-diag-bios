@@ -65,7 +65,7 @@ manual_backup_ram_tests:
 		bclr	#$1f, d2
 		PSUB	print_hex_3_bytes
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_run_test
 
 		move.b	d0, REG_SRAMLOCK

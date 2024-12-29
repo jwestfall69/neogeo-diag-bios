@@ -63,7 +63,7 @@ manual_memcard_tests:
 		bsr	wait_frame
 
 		move.b	r_p1_input, d0
-		btst	#D_BUTTON, d0
+		btst	#INPUT_D_BIT, d0
 		bne	.dont_run_tests
 
 		and.b	#$50, d0			; a+c pressed, run test
@@ -176,7 +176,7 @@ manual_memcard_tests:
 		bsr	p1p2_input_update
 		bsr	wait_frame
 
-		btst	#D_BUTTON, r_p1_input_edge
+		btst	#INPUT_D_BIT, r_p1_input_edge
 		beq	.loop_wait_input_return_menu		; if d pressed, exit test
 
 		rts

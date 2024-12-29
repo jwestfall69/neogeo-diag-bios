@@ -28,10 +28,10 @@ manual_p_rom_bus_tests:
 		bsr	p1p2_input_update
 
 		move.b	r_p1_input_edge, d0
-		btst	#D_BUTTON, d0
+		btst	#INPUT_D_BIT, d0
 		bne	.dont_run_tests
 
-		btst	#LEFT, d0
+		btst	#INPUT_LEFT_BIT, d0
 		beq	.left_not_pressed
 		subq.b	#1, d5
 		cmp.b	#0, d5
@@ -39,7 +39,7 @@ manual_p_rom_bus_tests:
 		move.b	d6, d5
 
 	.left_not_pressed:
-		btst	#RIGHT, d0
+		btst	#INPUT_RIGHT_BIT, d0
 		beq	.right_not_pressed
 		addq.b	#1, d5
 		cmp.b	d6, d5
@@ -125,7 +125,7 @@ manual_p_rom_bus_tests:
 
 		addq.l	#1, d6
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_run_test
 		bra 	.test_exit
 
@@ -142,7 +142,7 @@ manual_p_rom_bus_tests:
 
 	.loop_wait_input_return_menu:
 		WATCHDOG
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_wait_input_return_menu
 		rts
 

@@ -53,10 +53,10 @@ manual_video_ram_32k_tests:
 
 		addq.l	#1, d6
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		beq	.test_exit_restore
 
-		btst	#A_BUTTON, REG_P1CNT
+		btst	#INPUT_A_BIT, REG_P1CNT
 		bne	.loop_run_test			; 'a' not pressed, loop and do another test
 
 		bsr	fix_restore
@@ -71,10 +71,10 @@ manual_video_ram_32k_tests:
 		bclr	#$1f, d2			; make sure signed bit is 0
 		RSUB	print_hex_3_bytes		; print pass number
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		beq	.test_exit
 
-		btst	#A_BUTTON, REG_P1CNT
+		btst	#INPUT_A_BIT, REG_P1CNT
 		beq	.loop_wait_a_release		; loop until either 'a' not pressed or 'a+b+c+d' pressed
 
 		bsr	fix_backup

@@ -43,7 +43,7 @@ delay_dsub:
 ; loop waiting for D to be pressed
 loop_d_pressed:
 		WATCHDOG
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	loop_d_pressed
 		rts
 

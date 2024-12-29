@@ -31,15 +31,14 @@ _start:
 		lea	REG_VRAMRW, a6					; a6 will always be REG_VRAMRW
 		moveq	#DSUB_INIT_PSEUDO, d7				; init dsub for pseudo subroutines
 		move.l	#$7fff0000, PALETTE_RAM_START+$2		; white on black for text
-		move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+$2	;  gray on black for text (disabled menu items)
+		move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+$2	; gray on black for text (disabled menu items)
 		clr.w	PALETTE_REFERENCE
 		clr.w	PALETTE_BACKDROP
 
 		SSA3	fix_clear
 
-		moveq	#-$10, d0
+		move.b	#(INPUT_A|INPUT_B|INPUT_C|INPUT_D), d0
 		and.b	REG_P1CNT, d0			; check for A+B+C+D being pressed, if not auto_tests
-
 		bne	auto_tests
 
 		movea.l	$0, a7				; re-init SP
@@ -62,7 +61,7 @@ auto_tests:
 		cmp.b	REG_SOUND, d1
 		beq	.z80_test_enabled
 
-		btst	#7, REG_P1CNT			; if P1 "D" was pressed at boot
+		btst	#INPUT_D_BIT, REG_P1CNT		; if P1 "D" was pressed at boot
 		beq	.z80_test_enabled
 
 	ifnd force_z80_tests
@@ -73,16 +72,16 @@ auto_tests:
 
 		bset.b	#Z80_TEST_FLAG_ENABLED, r_z80_test_flags
 
-		cmp.b	REG_SOUND, d1
-		beq	.skip_slot_switch		; skip slot switch if auto-detected m1
+		cmp.b	REG_SOUND, d1			; skip slot switch if auto-detected m1
+		beq	.skip_slot_switch
 
-		tst.b	REG_STATUS_B
-		bpl	.skip_slot_switch		; skip slot switch if AES
+		tst.b	REG_STATUS_B			; skip slot switch if AES
+		bpl	.skip_slot_switch
 
-		btst	#5, REG_P1CNT
-		beq	.skip_slot_switch		; skip slot switch if P1 "B" is pressed
+		btst	#INPUT_B_BIT, REG_P1CNT		; skip slot switch if P1 "B" is pressed
+		beq	.skip_slot_switch
 
-		btst	#6, REG_P1CNT			; if P1 "C", add flag to bypass SM1 OE/CRC tests
+		btst	#INPUT_C_BIT, REG_P1CNT		; if P1 "C", add flag to bypass SM1 OE/CRC tests
 		bne	.do_slot_switch
 
 		bset.b	#Z80_TEST_FLAG_SKIP_SM1_TESTS, r_z80_test_flags
@@ -113,7 +112,7 @@ auto_tests:
 		WATCHDOG
 		bsr	check_reset_request
 
-		moveq	#-$10, d0
+		move.b	#(INPUT_A|INPUT_B|INPUT_C|INPUT_D), d0
 		and.b	REG_P1CNT, d0		; ABCD pressed?
 		bne	.loop_user_input
 

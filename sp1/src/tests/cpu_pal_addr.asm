@@ -26,7 +26,7 @@ manual_cpu_pal_addr_test:
 		addq.w	#1, d1
 		move.w	d1, (a0)
 
-		btst	#D_BUTTON, REG_P1CNT
+		btst	#INPUT_D_BIT, REG_P1CNT
 		bne	.loop_run_test
 
 		rts
