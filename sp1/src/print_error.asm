@@ -378,8 +378,8 @@ d_ec_list:
 	EC_ENTRY EC_P2_245_DEAD_OUTPUT_UPPER, PRINT_ERROR_STRING, d_str_p2_245_dead_output_upper
 	EC_ENTRY EC_P2_UNWRITABLE_LOWER, PRINT_ERROR_STRING, d_str_p2_unwritable_lower
 	EC_ENTRY EC_P2_UNWRITABLE_UPPER, PRINT_ERROR_STRING, d_str_p2_unwritable_upper
-	EC_ENTRY EC_P_DATA_BUS, PRINT_ERROR_MEMORY, d_str_p_data_bus
-	EC_ENTRY EC_P_ADDRESS_BUS, PRINT_ERROR_MEMORY, d_str_p_address_bus
+	EC_ENTRY EC_PROG_DATA_BUS, PRINT_ERROR_MEMORY, d_str_prog_data_bus
+	EC_ENTRY EC_PROG_ADDRESS_BUS, PRINT_ERROR_MEMORY, d_str_prog_address_bus
 	EC_LIST_END
 
 d_str_invalid_error_code:		STRING "INVALID ERROR CODE"
@@ -505,8 +505,8 @@ d_str_p2_245_dead_output_lower:		STRING "P2 or 245/G0/BUF DEAD OUPUT (LOWER)"
 d_str_p2_245_dead_output_upper:		STRING "P2 or 245/G0/BUF DEAD OUPUT (UPPER)"
 d_str_p2_unwritable_lower:		STRING "P2 UNWRITABLE (LOWER)"
 d_str_p2_unwritable_upper:		STRING "P2 UNWRITABLE (UPPER)"
-d_str_p_data_bus:			STRING "P DATA BUS"
-d_str_p_address_bus:			STRING "P ADDRESS BUS"
+d_str_prog_data_bus:			STRING "PROG DATA BUS"
+d_str_prog_address_bus:			STRING "PROP ADDRESS BUS"
 
 	align 1
 

@@ -1,8 +1,8 @@
-# P ROM Output Tests
+# PROG ROM Output Tests
 
 This test requires a custom diag prog board.
 
-The purpose of these tests is to determine if the P roms are outputing data when asked.  Depending on which motherboard type you have the data path between the P roms and the CPU maybe direct or there could be ICs in between.
+The purpose of these tests is to determine if the PROG roms are outputing data when asked.  Depending on which motherboard type you have the data path between the PROG roms and the CPU maybe direct or there could be ICs in between.
 
 If an output issue is detected it will result in one of the follow errors:
 
@@ -19,6 +19,6 @@ If an output issue is detected it will result in one of the follow errors:
 
 The first 4 error messages are indicating whatever is directly connect to the CPU is not outputting any data.
 
-The latter 4 errors are for boards the have a single IC between the P roms and the CPU.  The test will detect when the P rom is not outputing any data.
+The latter 4 errors are for boards the have a single IC between the PROG roms and the CPU.  The test will detect when the PROG rom is not outputing any data.
 
-Additional failure testing is needed to fully understand what happens for boards with multiple IC's between the P roms and CPU.
+Additional failure testing is needed to fully understand what happens for boards with multiple IC's between the PROG roms and CPU.

@@ -50,9 +50,9 @@ check_ram_oe_dsub:
 		DSUB_RETURN
 
 
-; memcard and (on some boards) p rom there is a bus transceiver (74LS245,
+; memcard and (on some boards) prog rom there is a bus transceiver (74LS245,
 ; NEO-G0, NEO-BUF) between it and the CPU.  This test attempts to detect
-; when the memcard or p rom has dead output.  When this happens the most
+; when the memcard or prog rom has dead output.  When this happens the most
 ; common result is we will get the last writtn imm value to it.  Note for
 ; palette ram the result always seems to be $ff. I'm unclear why this is
 ; but palette ram has its own 245 check for this.

@@ -1,9 +1,13 @@
 # Change Log
 ---
-#### v0.19a02 (master)
+#### v0.19a03
+* SP1: Add memory viewer
+* SP1: Add support for multiple menus
+
+#### v0.19a02
 * SP1: Add error addresses
 * SP1: Continually print sound latch value during 68k/z80 comm test
-* SP1: P ROM Bus Tests (requires custom cart)
+* SP1: PROG ROM Bus Tests (requires custom cart)
 * SP1: Properly detect 1 slot vs 2 slot boards
 
 #### v0.19a01

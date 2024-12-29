@@ -1,12 +1,12 @@
-# P ROM Bus Tests
-The purpose of these tests is to validate the data and address bus between the main CPU and the P ROMs on the cart slot.  These tests require a custom PROG board where the P ROM has been replaced with static ram.
+# PROG ROM Bus Tests
+The purpose of these tests is to validate the data and address bus between the main CPU and the PROG ROMs on the cart slot.  These tests require a custom PROG board where the PROG ROM has been replaced with static ram.
 
 The details on the custom PROG boards can be found here:
 
 [AES Version](https://github.com/jwestfall69/neogeo-diag-aes-prog)<br>
 [MVS Version](https://github.com/jwestfall69/neogeo-diag-mvs-prog)
 
-The P ROMs are mapped into 2 addresses ranges on the 68K CPU.
+The PROG ROMs are mapped into 2 addresses ranges on the 68K CPU.
 
 | Start | End | Description | Notes |
 |:-----:|:---:|:------------|:------|
@@ -28,8 +28,8 @@ Read/Write signals (active low) on the slot for the ranges are:
 On MVS boards there is also a SLOTCS signal that will got low if the slot itself is active/selected.
 
 ## Address Paths
-These are the address paths between the P roms and the CPU.
-| Board   | P ROM Address Path from CPU |
+These are the address paths between the PROG roms and the CPU.
+| Board   | PROG ROM Address Path from CPU |
 |:--------|:-----------------------|
 | MV1<br>MV1-1<br>MV1T | SLOT <= CPU |
 | MV1A<br>MV1ACH<br>MV1ACHX<br>MV1AX    | SLOT <= CPU |
@@ -44,9 +44,9 @@ These are the address paths between the P roms and the CPU.
 | MV6     | TODO |
 
 ## Data Paths
-These are the data paths between the P roms on the slot to the CPU.
+These are the data paths between the PROG roms on the slot to the CPU.
 
-| Board   | P ROM Data Path to/from CPU |
+| Board   | PROG ROM Data Path to/from CPU |
 |:--------|:-----------------------|
 | MV1<br>MV1-1<br>MV1T | SLOT <=> CPU |
 | MV1A<br>MV1ACH<br>MV1ACHX<br>MV1AX    | SLOT <=> NEO-BUF (GA11) LEFT OF NEO-GRC <=> CPU |
@@ -61,9 +61,9 @@ These are the data paths between the P roms on the slot to the CPU.
 | MV6     | SLOT1 <=> 74LS245s @ L6/M6 <=> CN10 <=> CN10 <=> 74AS245s @ B7/B8 <=> CPU<br>SLOT2 <=> 74LS245s @ L10/M10 <=> CN10 <=> CN10 <=> 74AS245s @ B7/B8 <=> CPU<br>SLOT3 <=> 74LS245s @ L14/M14 <=> CN10 <=> CN10 <=> 74AS245s @ B7/B8 <=> CPU<br>SLOT4 <=> 74LS245s @ L18/M18 <=> CN10 <=> CN10 <=> 74AS245s @ B7/B8 <=> CPU<br>SLOT5 <=> 74LS245s @ L22/M22 <=> CN10 <=> CN10 <=> 74AS245s @ B7/B8 <=> CPU<br>SLOT6 <=> 74LS245s @ L26/M26 <=> CN10 <=> CN10 <=> 74AS245s @ B7/B8 <=> CPU |
 
 ## Enable/Write Paths
-These are the paths for the enable/write lines the P roms.
+These are the paths for the enable/write lines the PROG roms.
 
-| Board   | P ROM Enable/Write Paths |
+| Board   | PROG ROM Enable/Write Paths |
 |:--------|:-----------------------|
 | MV1<br>MV1-1<br>MV1T | SLOT <= PRO-C0 @ F4 |
 | MV1A<br>MV1ACH<br>MV1ACHX<br>MV1AX    |  SLOT <= 74HC32s @ U1/U2 <= PALCE20V8Hs @ PAL1/PAL2 |

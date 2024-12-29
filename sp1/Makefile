@@ -34,8 +34,8 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/tests/memory_common.o \
        $(OBJ_DIR)/tests/misc_input.o \
        $(OBJ_DIR)/tests/mmio.o \
-       $(OBJ_DIR)/tests/p_rom_bus.o \
        $(OBJ_DIR)/tests/palette_ram.o \
+       $(OBJ_DIR)/tests/prog_rom_bus.o \
        $(OBJ_DIR)/tests/video_dac.o \
        $(OBJ_DIR)/tests/video_ram_2k.o \
        $(OBJ_DIR)/tests/video_ram_32k.o \

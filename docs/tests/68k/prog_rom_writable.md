@@ -2,7 +2,7 @@
 
 This test requires a custom diag prog board.
 
-The purpose of this test is to verify the P2 ROM region is writable.  Writes to this region are often used for P ROM bank switching and/or communicating with custom chips on the prog board.
+The purpose of this test is to verify the P2 ROM region is writable.  Writes to this region are often used for PROG ROM bank switching and/or communicating with custom chips on the prog board.
 
 The test consists of reading from address 0x200000, writing the xor'd read data back to 0x200000, then re-reading 0x200000.  If the re-read data is the same as the originally read data it will trigger one of the following errors.
 

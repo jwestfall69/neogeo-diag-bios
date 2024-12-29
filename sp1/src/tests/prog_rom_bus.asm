@@ -3,11 +3,11 @@
 	include "diag.inc"
 	include "../common/error_codes.inc"
 
-	global manual_p_rom_bus_tests
+	global manual_prog_rom_bus_tests
 
 	section code
 
-manual_p_rom_bus_tests:
+manual_prog_rom_bus_tests:
 		lea	d_xys_screen_list, a0
 		RSUB	print_xys_string_clear_list
 
@@ -67,7 +67,7 @@ manual_p_rom_bus_tests:
 		; if z80 tests weren't run, make the sm1 stall
 		; by telling it to prepare for slot switch.  This
 		; should prevent the diag m1 from becoming active
-		; when we switch slots to do the p rom tests
+		; when we switch slots to do the prog rom tests
 		move.b	#$01, REG_SOUND
 		move.l	#$1388, d0
 		RSUB	delay
@@ -106,10 +106,10 @@ manual_p_rom_bus_tests:
 		RSUB	print_hex_3_bytes
 
 
-		bsr	p_rom_oe_tests
+		bsr	prog_rom_oe_tests
 		bne	.test_failed_abort
 
-		bsr	p_rom_to_245_oe_tests
+		bsr	prog_rom_to_245_oe_tests
 		bne	.test_failed_abort
 
 		bsr	p2_rom_we_tests
@@ -130,14 +130,14 @@ manual_p_rom_bus_tests:
 		bra 	.test_exit
 
 	.test_exit:
-		bsr	p_rom_fixup_z80_flags
+		bsr	prog_rom_fixup_z80_flags
 		move.b	d0, REG_BRDFIX
 		SSA3	fix_clear
 		rts
 
 	.test_failed_abort:
 		RSUB	print_error
-		bsr	p_rom_fixup_z80_flags
+		bsr	prog_rom_fixup_z80_flags
 		move.b	d0, REG_BRDFIX
 
 	.loop_wait_input_return_menu:
@@ -146,12 +146,12 @@ manual_p_rom_bus_tests:
 		bne	.loop_wait_input_return_menu
 		rts
 
-; On p rom bus test completing we switch to the sm1 rom (where
+; On prog rom bus test completing we switch to the sm1 rom (where
 ; valid).  If the user did the z80 tests on boot and a slot
 ; switch happened, we need to clear out the z80 flags.  This will
 ; cause us to send the sm1 stall code if the user were to run the
-; p rom bus test again, otherwise the diag m1 code we run.
-p_rom_fixup_z80_flags:
+; prog rom bus test again, otherwise the diag m1 code we run.
+prog_rom_fixup_z80_flags:
 		btst	#Z80_TEST_FLAG_SLOT_SWITCH, r_z80_test_flags
 		beq	.no_change
 		clr.b	r_z80_test_flags
@@ -159,12 +159,12 @@ p_rom_fixup_z80_flags:
 	.no_change:
 		rts
 
-; Some 1 slot boards have their p roms directly connected
+; Some 1 slot boards have their prog roms directly connected
 ; to the CPU while others (and multislot boards) are
 ; connected via some ic (245/NEO-G0/NEO-BUF).  These test
 ; are checking for output from whatever is directly connect
 ; to the CPU
-p_rom_oe_tests:
+prog_rom_oe_tests:
 		lea	P1_ROM_START+$200, a0
 		moveq	#1, d0
 		RSUB	check_ram_oe
@@ -208,7 +208,7 @@ p_rom_oe_tests:
 ; These tests are For boards that have an ic (245/NEO-G0/NEO-BUF)
 ; between the px roms and the CPU.  It attempts to detect when
 ; the px roms don't output anything to the ic
-p_rom_to_245_oe_tests:
+prog_rom_to_245_oe_tests:
 		lea	P1_ROM_START + $200, a0
 		move.w	#$ff, d0
 		RSUB	check_ram_to_245_oe
@@ -301,7 +301,7 @@ p2_rom_data_tests:
 		rts
 
 	.test_failed:
-		move.b	#EC_P_DATA_BUS, d0
+		move.b	#EC_PROG_DATA_BUS, d0
 		rts
 
 ; p1/p2 share the same address lines so we only need to test
@@ -346,7 +346,7 @@ p2_rom_address_tests:
 	.test_failed:
 		move.w	d2, d1
 		move.w	d4, d2
-		move.b	#EC_P_ADDRESS_BUS, d0
+		move.b	#EC_PROG_ADDRESS_BUS, d0
 		rts
 
 

@@ -1,8 +1,8 @@
-## P ROM Address Bus Test
+## PROG ROM Address Bus Test
 
 This test requires a custom diag prog board.
 
-The purpose of this test is to verify the address lines between the P roms and the CPU are working correctly.  This test consists of writing an incrementing word at each address line.  These values are then re-read to verify they are correct.
+The purpose of this test is to verify the address lines between the PROG roms and the CPU are working correctly.  This test consists of writing an incrementing word at each address line.  These values are then re-read to verify they are correct.
 
 |  Address |  Value | Address Line |
 | :------: | :-----:|:------------:|
@@ -22,10 +22,10 @@ In the event one of the re-read has the wrong data it will print out the followi
 
 |  Hex  | Number | Beep Code |  Credit Leds  | Error Text |
 | ----: | -----: | --------: | :-----------: | :--------- |
-|  0x94 |    148 |       N/A |           N/A | P ADDRESS BUS |
+|  0x94 |    148 |       N/A |           N/A | PROG ADDRESS BUS |
 
 ```
-P ADDRESS BUS
+PROG ADDRESS BUS
 
 ADDRESS:  200000
 ACTUAL:   0505
