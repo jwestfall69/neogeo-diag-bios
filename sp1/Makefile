@@ -12,6 +12,7 @@ DD = dd
 OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/dsub.o \
        $(OBJ_DIR)/error_address.o \
+       $(OBJ_DIR)/fix_tile_viewer.o \
        $(OBJ_DIR)/fix_util.o \
        $(OBJ_DIR)/footer.o \
        $(OBJ_DIR)/menu.o \

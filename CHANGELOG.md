@@ -3,6 +3,7 @@
 #### v0.19a03
 * SP1: Add memory viewer
 * SP1: Add support for multiple menus
+* SP1: Add Fix tile viewer
 
 #### v0.19a02
 * SP1: Add error addresses
