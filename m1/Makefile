@@ -9,7 +9,19 @@ WORK_DIR=$(BUILD_DIR)/work
 MKDIR = mkdir
 DD = dd
 
-OBJS = $(OBJ_DIR)/m1.o
+OBJS = $(OBJ_DIR)/error.o \
+       $(OBJ_DIR)/footer.o \
+       $(OBJ_DIR)/m1.o \
+       $(OBJ_DIR)/util.o \
+       $(OBJ_DIR)/psub.o \
+       $(OBJ_DIR)/vectors.o \
+       $(OBJ_DIR)/ym2610.o \
+       $(OBJ_DIR)/tests/comm.o \
+       $(OBJ_DIR)/tests/ram.o \
+       $(OBJ_DIR)/tests/rom_bank.o \
+       $(OBJ_DIR)/tests/rom_crc32.o \
+       $(OBJ_DIR)/tests/rom_mirror.o \
+       $(OBJ_DIR)/tests/ym2610.o
 
 INCS = $(wildcard include/*.inc) \
        $(wildcard ../common/*.inc)
@@ -25,7 +37,7 @@ $(WORK_DIR)/gen-crc-mirror-bank: util/gen-crc-mirror-bank.c $(WORK_DIR)
 	$(HOST_CC) util/gen-crc-mirror-bank.c -o $(WORK_DIR)/gen-crc-mirror-bank
 
 $(WORK_DIR):
-	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)
+	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests
 
 clean:
 	rm -rf $(BUILD_DIR)
