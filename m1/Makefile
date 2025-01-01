@@ -1,19 +1,32 @@
 HOST_CC = cc
 VASM = vasmz80_mot
-VASM_FLAGS = -Fbin -spaces -L debug/m1.asm.txt -chklabels
-ODIR = output
+VASM_FLAGS = -Fvobj -spaces -chklabels -Iinclude -quiet
+VLINK = vlink
+VLINK_FLAGS = -brawbin1 -Tm1.ld
+BUILD_DIR=build
+OBJ_DIR=$(BUILD_DIR)/obj
+WORK_DIR=$(BUILD_DIR)/work
 MKDIR = mkdir
+DD = dd
 
-${ODIR}/m1.bin: gen-crc-mirror-bank m1.asm m1.inc macros.inc neogeo.inc ${ODIR}
-	${VASM} ${VASM_FLAGS} -o ${ODIR}/m1.bin m1.asm
-	./gen-crc-mirror-bank ${ODIR}/m1.bin
+OBJS = $(OBJ_DIR)/m1.o
 
-gen-crc-mirror-bank: gen-crc-mirror-bank.c
-	${HOST_CC} gen-crc-mirror-bank.c -o gen-crc-mirror-bank
+INCS = $(wildcard include/*.inc) \
+       $(wildcard ../common/*.inc)
 
-${ODIR}:
-	${MKDIR} ${ODIR} debug
+$(BUILD_DIR)/m1.bin: $(WORK_DIR)/gen-crc-mirror-bank $(WORK_DIR) $(OBJS)
+	$(VLINK) $(VLINK_FLAGS) -o $(BUILD_DIR)/m1.bin $(OBJS)
+	$(WORK_DIR)/gen-crc-mirror-bank $(BUILD_DIR)/m1.bin
+
+$(OBJ_DIR)/%.o: src/%.asm $(INCS)
+	 $(VASM) $(VASM_FLAGS) -o $@ $<
+
+$(WORK_DIR)/gen-crc-mirror-bank: util/gen-crc-mirror-bank.c $(WORK_DIR)
+	$(HOST_CC) util/gen-crc-mirror-bank.c -o $(WORK_DIR)/gen-crc-mirror-bank
+
+$(WORK_DIR):
+	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)
 
 clean:
-	rm -f gen-crc-mirror-bank ${ODIR}/m1.bin debug/m1.asm.txt
+	rm -rf $(BUILD_DIR)
 

@@ -4,7 +4,7 @@
 	include "m1.inc"
 	include "macros.inc"
 
-	org 	$0000
+	section vectors
 
 	jp	_start
 
@@ -32,6 +32,8 @@
 	jr	z, .expected_interrupt
 	cp	YM2610_IRQ_UNEXPECTED
 	jr	z, .unexpected_interrupt
+
+	section code
 
 	; a' is in an unknown state, which implies we are not in our irq test
 	; functions.  This shouldn't happen if the _start function was run,
@@ -1159,7 +1161,8 @@ run_subroutine_tests:
 	jp	handle_68k_error_code
 	jr	.loop_wait_68k_error_code
 
-	rorg	$07fb, $ff
+	section footer
+
 ROM_MIRROR_OFFSET:
 	dc.b	$00
 ROM_CRC32_OFFSET:
