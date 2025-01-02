@@ -9,7 +9,8 @@ WORK_DIR=$(BUILD_DIR)/work
 MKDIR = mkdir
 DD = dd
 
-OBJS = $(OBJ_DIR)/error.o \
+OBJS = $(OBJ_DIR)/crc32.o \
+       $(OBJ_DIR)/error.o \
        $(OBJ_DIR)/footer.o \
        $(OBJ_DIR)/m1.o \
        $(OBJ_DIR)/util.o \
@@ -21,6 +22,7 @@ OBJS = $(OBJ_DIR)/error.o \
        $(OBJ_DIR)/tests/rom_bank.o \
        $(OBJ_DIR)/tests/rom_crc32.o \
        $(OBJ_DIR)/tests/rom_mirror.o \
+       $(OBJ_DIR)/tests/sm1.o \
        $(OBJ_DIR)/tests/ym2610.o
 
 INCS = $(wildcard include/*.inc) \

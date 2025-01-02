@@ -1,6 +1,6 @@
 MEMORY {
 	ROM: org=0x0000, len=0x800
-	RAM: org=0xf800, len=0x800
+	RAM: org=0xf800, len=0x20  /* limiting to $20; $f820+ is used by sm1 test code */
 }
 
 SECTIONS {
