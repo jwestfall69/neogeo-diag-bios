@@ -12,7 +12,7 @@ rom_crc32_test_psub:
 		exx
 		ld	bc, ROM_CRC32_OFFSET
 		exx
-		PSUB	calc_crc32
+		PSUB	crc32
 
 		cp	a
 		ld	hl, (ROM_CRC32_OFFSET)
