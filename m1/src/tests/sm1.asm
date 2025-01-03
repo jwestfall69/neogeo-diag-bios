@@ -8,16 +8,30 @@
 
 	section code
 
+; sm1 tests flow is
+;  - copy code to ram
+;  - jump to that code
+;  - have the 68k to switch to sm1
+;  - run sm1 tests
+;  - have the 68k switch back to the diag m1 rom
+;  - jump back to diag m1 rom code
 sm1_tests:
 		; copy the sm1 test code into ram
 		ld	de, SM1_TESTS_RAM_START
-		ld	hl, SM1_TEST_CODE_START
-		ld	bc, SM1_TEST_CODE_END - SM1_TEST_CODE_START
+		ld	hl, sm1_tests_start
+		ld	bc, sm1_tests_end - sm1_tests_start
 		ldir
 
 		; copy crc32 code into ram after the sm1 test code
-		ld	de, SM1_TESTS_RAM_START + (SM1_TEST_CODE_END - SM1_TEST_CODE_START)
-		ld	hl, CRC32_CODE_END
+		; couple notes:
+		;  - de will already be the correct address from
+		;    the previous ldir, so no need to set it up
+		;  - bc requires manual calculation because vasm
+		;    doesn't seem to do compile time size calculations
+		;    if labels aren't in the current source file. ie
+		;    this isn't possible
+		;      ld bc, crc32_psub_end - crc32_psub
+		ld	hl, crc32_psub_end
 		ld	bc, crc32_psub
 		sbc	hl, bc
 		ld	b, h
@@ -25,18 +39,18 @@ sm1_tests:
 		ld	hl, crc32_psub
 		ldir
 
-		; change the PSUB_RETURN at the end of crc32_psub to a ret ($c9) instruction
-		; so we can use it as a normal function instead of a psub.
-		ld	hl, SM1_TESTS_RAM_START + (SM1_TEST_CODE_END - SM1_TEST_CODE_START) - 1
-		ld	bc, CRC32_CODE_END
-		add	hl, bc
-		ld	bc, crc32_psub
-		sbc	hl, bc
+		; crc32 code ends with a PSUB_RETURN/rst $10 (opcode $d7),
+		; which won't work when running from ram.  We need to change
+		; it to be a normal ret ($c9).  The above ldir will leave
+		; de pointing at the memory address right after that PSUB_RETURN,
+		; so we just need to backup 1 address and write the ret opcode.
+		dec	de
+		ex	de, hl
 		ld	(hl), $c9
 
 		jp	SM1_TESTS_RAM_START
 
-SM1_TEST_CODE_START:
+sm1_tests_start:
 		; request bios switch to sm1 rom
 		ld	a, COMM_SM1_TEST_SWITCH_SM1
 		out	($00), a
@@ -155,8 +169,6 @@ sm1_oe_test:
 ; the crc32 function in ram and jump to it.  When crc32 does
 ; its ret it will return to the location of the RCALL
 crc32_jump:
-		ld	hl, SM1_TESTS_RAM_START + (SM1_TEST_CODE_END - SM1_TEST_CODE_START)
+		ld	hl, SM1_TESTS_RAM_START + (sm1_tests_end - sm1_tests_start)
 		jp	(hl)
-
-
-SM1_TEST_CODE_END:
+sm1_tests_end:

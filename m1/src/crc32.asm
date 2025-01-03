@@ -3,7 +3,7 @@
 	include "neogeo.inc"
 
 	global crc32_psub
-	global CRC32_CODE_END
+	global crc32_psub_end
 
 	section code
 
@@ -76,4 +76,5 @@ crc32_psub:
 		cpl
 		ld	d, a
 		PSUB_RETURN
-CRC32_CODE_END:
+; used by sm1 tests
+crc32_psub_end:

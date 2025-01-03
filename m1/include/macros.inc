@@ -19,7 +19,7 @@
 	; macro adjusts this address for functions that we copied
 	; into ram for sm1 tests.
 	macro RCALL
-		call SM1_TESTS_RAM_START + (\1 - SM1_TEST_CODE_START)
+		call SM1_TESTS_RAM_START + (\1 - sm1_tests_start)
 	endm
 
 	macro STALL
