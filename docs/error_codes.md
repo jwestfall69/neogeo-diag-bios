@@ -1,12 +1,12 @@
 
 # Error Codes
 
-This document contains a list of possible errors that may occur and how
-those error are communicated to the user.
+This document contains a list of possible errors that may occur and how those
+error are communicated to the user.
 
 ### Beep Codes:
-The diag m1 (when active) supports generating a beep code to help identify
-an error that may not be visible from a corrupt/bad video output.
+The diag m1 (when active) supports generating a beep code to help identify an
+error that may not be visible from a corrupt/bad video output.
 
 The diag m1 may generate a beep code by itself, if it detects an issue within
 the audio/Z80 subsystem, or it may play one on behalf of the diag bios.  An
@@ -33,18 +33,35 @@ it off/empty.  Error codes >= 0x80 will not display to the credit leds.
 In the tables below a value of 'x' in meant to represent the digit is off/empty.
 
 ### Error Addresses:
-Error addresses are an additional way to get the error code, specifically in the case
-where your screen/fix layer is messed up and don't have a diag cart or sound isn't working.
+Error addresses are an additional way to get the an error code and is supported
+by both the diag bios and diag m1.  The basic idea behind error addresses is the
+diag rom will stop at a specific address in the rom and go into a tight loop.
+You can then probe the address lines of the CPU to figure out where it stopped
+and from that get the error code.  This is mainly useful if the display is
+busted or if z80/sound subsystem is unable to produce beep codes or communicate
+with the 68k.
 
-To enable error addresses you need to press and hold down 'A' while automatic tests
-are running.  If an error is encountered during automatic testing, after printing
-the error, if the 'A' button is pressed it will cause the CPU to jump to specific
-addresses in the diag rom that are a tight loop. The address it jumps to (and stays
-near) will have the error code encoded into the address.
+The diag bios and diag m1 will only do error address for errors that are
+specific to that diag rom.  ie: diag m1 will only do error address for errors
+related to the z80/sound subsystem and likewise the diag bios will only do error
+address for errors related to the 68k/memory/etc.
+
+Error address are always enabled on the diag m1, but the diag bios requires you
+press and hold 'A' while automatic tests are running to enable them .  If
+enabled on the diag bios and triggers it should print the following near the
+bottom of the screen:
+
+```
+ERROR ADDRESS TRIGGERED
+```
+
+For 4 and 6 slot boards the z80/68k CPU will be covered by the slot board,
+making probing a bit annoying.  The best bet in the case is to have the board on
+its side and probe the CPU pins from the underside of the motherboard.
+
+**Error address for the 68K**
 
 68k CPU error address = `0xc06000 | (error_code << 5)`
-
-Using a logic probe you probe the 68k's address lines to figure out the error code.
 
 | ADDRESS LINE | MEANING | DIP CPU PIN | PLCC CPU PIN |
 |---|---|---|---|
@@ -69,13 +86,42 @@ Using a logic probe you probe the 68k's address lines to figure out the error co
 | A19 | None (low)| 47 | 50 |
 | A20 | None (low)| 48 | 51 |
 
-When probing the error code address lines, if its pulsing consider it a 1, if its 100%
-low its a 0. You should first verify that A12-A15 are low, pulsing, pulsing, low as shown
-in the table to confirm the diag bios successfully jumped to an error address.  Once you
-have the error code byte look it up in the 68k Error Codes table below.
+When probing the error code address lines, if its pulsing consider it a 1, if
+its 100% low its a 0. You should first verify that A12-A15 are low, pulsing,
+pulsing, low as shown in the table to confirm the diag bios successfully jumped
+to an error address.  Once you have the error code byte look it up in the 68k
+Error Codes table below.
 
-Additionally, if an error address is jumped to it should print "ERROR ADDRESS TRIGGERED"
-near the bottom of the screen.
+**Error address for Z80**
+
+Z80 CPU error address = `0xa000 | (error_code << 7)`
+
+diag m1 error codes are only 6 bits and thus there is only 6 bits encoded into
+the address used by the error address as seen below
+
+| ADDRESS LINE | MEANING | DIP CPU PIN |
+|---|---|---|
+| A0 | None (pulsing) | 30 |
+| A1 | None (pulsing) | 31 |
+| A2 | None (pulsing) | 32 |
+| A3 | None (pulsing) | 33 |
+| A4 | None (pulsing) | 34 |
+| A5 | None (pulsing) | 35 |
+| A6 | None (pulsing) | 36 |
+| A7 | Error Code Bit 0 | 37 |
+| A8 | Error Code Bit 1 | 38 |
+| A9 | Error Code Bit 2 | 39 |
+| A10 | Error Code Bit 3 | 40|
+| A11 | Error Code Bit 4 | 1 |
+| A12 | Error Code Bit 5 | 2 |
+| A13 | None (pulsing)| 3 |
+| A14 | None (always low)| 4 |
+| A15 | None (pulsing)| 5 |
+
+When probing the error code address lines, if its pulsing consider it a 1, if its 100%
+low its a 0. You should first verify that A13-A15 are pulsing, low, pulsing as shown
+in the table to confirm the diag m1 successfully jumped to an error address.  Once you
+have the error code byte look it up in the z80 Error Codes table below.
 
 ### Z80 Error Codes:
 

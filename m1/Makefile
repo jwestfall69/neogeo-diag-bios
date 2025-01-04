@@ -11,6 +11,7 @@ DD = dd
 
 OBJS = $(OBJ_DIR)/crc32.o \
        $(OBJ_DIR)/error.o \
+       $(OBJ_DIR)/error_address.o \
        $(OBJ_DIR)/footer.o \
        $(OBJ_DIR)/m1.o \
        $(OBJ_DIR)/util.o \

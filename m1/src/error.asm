@@ -30,17 +30,16 @@ handle_error_code:
 		out	($00), a
 		out	($0c), a	; send the error code to 68k
 
-
 		ld	a, $08
 		sub	b
 
 	.loop_bitshift:			; shift over so bit 8 is the
-		sla	c		; start of the error code
+		rlc	c		; start of the error code
 		dec	a
 		jr	nz, .loop_bitshift
 
 	.loop_next_bit:
-		sla	c
+		rlc	c
 		ld	a, $02		; bit is 0
 		jr	nc, .play_sound
 		ld	a, $01		; bit is 1
@@ -49,7 +48,7 @@ handle_error_code:
 		exx
 		ld	c, $01		; course tune register (cha)
 		ld	b, a
-		PSUB	ym2610_write_port0
+		PSUB_YMWP0
 
 		ld	bc, $0000	; fine tune register (cha)
 		PSUB_YMWP0
@@ -72,13 +71,42 @@ handle_error_code:
 		exx
 		djnz 	.loop_next_bit
 
+		; wait a reasonable amount of time for the 68k
+		; to ack our sent error, then move on
+		exx
+		ld	l, $32
 	.loop_wait_68k_input:
 		in	a, ($00)
 		or	a
-		jr	z, .loop_wait_68k_input
+		jr	nz, .got_68k_input
 
+
+		; doing a manual dely here because PSUB
+		; uses hl/de and we need a counter for
+		; the outer loop
+		ld	bc, $4000
+	.loop_delay:
+		dec	bc
+		ld	a, c
+		or	b
+		jr	nz, .loop_delay
+
+		dec	l
+		jr	nz, .loop_wait_68k_input
+		jr	.input_timeout
+
+	.got_68k_input:
 		cpl
 		out	($0c), a
 
-	.stall:
-		jr	.stall
+	.input_timeout:
+		exx
+
+		; because of the exx/rlc's above, 'c' will contain
+		; the original error code.  if its an error code
+		; from the diag m1 (less then $20) do error_address
+		ld	a, c
+		cp	$20
+		jr	c, error_address
+
+		STALL

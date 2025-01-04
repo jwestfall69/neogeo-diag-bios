@@ -82,6 +82,12 @@ int main(int argc, char **argv) {
 
   memset(buffer, 0xff, INPUT_SIZE);
 
+  // inject jp self instructions at every error_address location
+  for(i = 0; i < 0x800; i += 128) {
+    buffer[i] = 0x18;
+    buffer[i+1] = 0xfe;
+  }
+
   while(offset < 0x20000) {
 
     buffer[INPUT_SIZE - 4] = bank0;
