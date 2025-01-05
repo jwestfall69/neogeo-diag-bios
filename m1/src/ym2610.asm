@@ -14,11 +14,11 @@
 ;  de, d = data to write, e = ym2610 register
 ym2610_write_port0:
 		ld	a, e
-		out	(YM2610_PORT0_REGISTER), a
+		out	(IO_YM2610_PORT0_REGISTER), a
 
 		ld	b, $ff
 	.loop_busy_register_load:
-		in	a, (YM2610_PORT0_REGISTER)	; bit 8 will be 1 while ym is busy loading register
+		in	a, (IO_YM2610_PORT0_REGISTER)	; bit 8 will be 1 while ym is busy loading register
 		rlca
 		jr	nc, .register_loaded
 		djnz	.loop_busy_register_load
@@ -26,11 +26,11 @@ ym2610_write_port0:
 
 	.register_loaded:
 		ld	a, d
-		out	(YM2610_PORT0_DATA), a
+		out	(IO_YM2610_PORT0_DATA), a
 
 		ld	b, $ff
 	.loop_busy_data_load:
-		in	a, (YM2610_PORT0_REGISTER)
+		in	a, (IO_YM2610_PORT0_REGISTER)
 		rlca
 		jr	nc, .register_data_loaded
 		djnz	.loop_busy_data_load
@@ -47,17 +47,17 @@ ym2610_write_port0:
 ; never called
 ym2610_write_port1:
 		ld	a, e
-		out	(YM2610_PORT1_REGISTER), a
+		out	(IO_YM2610_PORT1_REGISTER), a
 	.loop_busy_register_load:
-		in	a, (YM2610_PORT0_REGISTER)	; bit 8 will be 1 while ym is busy loading register
+		in	a, (IO_YM2610_PORT0_REGISTER)	; bit 8 will be 1 while ym is busy loading register
 		rlca
 		jr	c, .loop_busy_register_load
 
 		ld	a, d
-		out	(YM2610_PORT1_DATA), a
+		out	(IO_YM2610_PORT1_DATA), a
 
 	.loop_busy_data_load:
-		in	a, (YM2610_PORT0_REGISTER)
+		in	a, (IO_YM2610_PORT0_REGISTER)
 		rlca
 		jr	c, .loop_busy_data_load
 		ret
@@ -70,13 +70,13 @@ ym2610_write_port1:
 ; we dont want to get stuck waiting for not-busy
 ym2610_write_port0_psub:
 		ld	a, c
-		out	(YM2610_PORT0_REGISTER), a
+		out	(IO_YM2610_PORT0_REGISTER), a
 		add	hl, hl			; delay a bit before next write to ym
 		add	hl, hl
 		add	hl, hl
 		add	hl, hl
 		ld	a, b
-		out	(YM2610_PORT0_DATA), a
+		out	(IO_YM2610_PORT0_DATA), a
 		PSUB_RETURN
 
 ; params:
@@ -84,11 +84,11 @@ ym2610_write_port0_psub:
 ; never called
 ym2610_write_port1_psub:
 		ld	a, c
-		out	(YM2610_PORT1_REGISTER), a
+		out	(IO_YM2610_PORT1_REGISTER), a
 		add	hl, hl			; delay a bit before next write to ym
 		add	hl, hl
 		add	hl, hl
 		add	hl, hl
 		ld	a, b
-		out	(YM2610_PORT1_DATA), a
+		out	(IO_YM2610_PORT1_DATA), a
 		PSUB_RETURN

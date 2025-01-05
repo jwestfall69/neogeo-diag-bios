@@ -53,12 +53,12 @@ sm1_tests:
 sm1_tests_start:
 		; request bios switch to sm1 rom
 		ld	a, COMM_SM1_TEST_SWITCH_SM1
-		out	($00), a
-		out	($0c), a
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 
 		ld	bc, $3000
 	.loop_wait_switch_sm1:
-		in	a, ($00)
+		in	a, (IO_FROM_68K)
 		cp	COMM_SM1_TEST_SWITCH_SM1_DENY
 		jr	z, .switch_sm1_fail
 		cp	COMM_SM1_TEST_SWITCH_SM1_DONE
@@ -72,14 +72,14 @@ sm1_tests_start:
 	; switch didn't happen, return no error
 	.switch_sm1_fail:
 		xor	a
-		out	($00), a
-		out	($0c), a
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 		ret
 
 	.switch_sm1_done:
 		ld	a, $0
-		out	($00), a
-		out	($0c), a
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 
 		RCALL	sm1_oe_test
 		jr	nz, .tests_end
@@ -90,19 +90,19 @@ sm1_tests_start:
 		ld	b, a
 
 		ld	a, COMM_SM1_TEST_SWITCH_M1
-		out	($00), a
-		out	($0c), a
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 
 	.loop_wait_switch_m1:
-		in	a, ($00)
+		in	a, (IO_FROM_68K)
 		cp	COMM_SM1_TEST_SWITCH_M1_DONE
 		jr	z, .switch_m1_done
 		jr	.loop_wait_switch_m1
 
 	.switch_m1_done:
 		ld	a, $0
-		out	($00), a
-		out	($0c), a
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 		ld	a, b
 		and	a
 		ret

@@ -10,8 +10,8 @@
 
 comm_test_psub:
 		ld	a, COMM_TEST_HELLO
-		out	($0c), a
-		out	($00), a
+		out	(IO_TO_68K), a
+		out	(IO_FROM_68K_CLEAR), a
 
 		; Wait up to 5 seconds (500 * 10ms) for a response to our hello.
 		; If we were started at boot (AES or MV-1B/C) we need to allow a bit
@@ -31,7 +31,7 @@ comm_test_psub:
 		PSUB	delay
 
 	.loop_start:
-		in	a, ($00)
+		in	a, (IO_FROM_68K)
 		cp	COMM_TEST_HANDSHAKE
 		jr	z, .got_handshake
 
@@ -48,8 +48,8 @@ comm_test_psub:
 		PSUB_RETURN
 
 	.got_handshake:
-		out	($00), a
-		in	a, ($00)
+		out	(IO_FROM_68K_CLEAR), a
+		in	a, (IO_FROM_68K)
 		and	a
 		jr	z, .test_passed
 		ld	a, EC_Z80_68K_COMM_NO_CLEAR
@@ -58,7 +58,7 @@ comm_test_psub:
 
 	.test_passed:
 		ld	a, COMM_TEST_ACK
-		out	($0c), a
+		out	(IO_TO_68K), a
 
 		; delay a little to avoid sending an error before the m68k has had
 		; time to consume our ACK

@@ -20,42 +20,46 @@
 ; The code below checks each possible bank location a bank can have
 ; within the 96k and makes sure those counters are correct.
 rom_bank_tests:
-		ld	bc, $020b		; bank3 (16k)
-		ld	hl, $bfff		; offset within each bank to test
-		ld	e, $06			; number of 16k banks within the 96k
+		ld	b, $02			; starting counter number
+		ld	c, IO_BANK_16K
+		ld	hl, $bfff		; offset within each bank with the counter
+		ld	e, $06			; number of banks in the 96k
 		call	test_rom_bank
-		jr	z, .test_passed_bank3
+		jr	z, .test_passed_bank_16k
 		ld	a, EC_Z80_M1_BANK_ERROR_16K
 		rst	RST_HANDLE_Z80_ERROR_CODE
 
-	.test_passed_bank3:
-		ld	bc, $040a		; bank2 (8k)
+	.test_passed_bank_16k:
+		ld	b, $04
+		ld	c, IO_BANK_8K
 		ld	hl, $dffe
 		ld	e, $0c
 		call	test_rom_bank
-		jr	z, .test_passed_bank2
+		jr	z, .test_passed_bank_8k
 		ld	a, EC_Z80_M1_BANK_ERROR_8K
 		rst	RST_HANDLE_Z80_ERROR_CODE
 
-	.test_passed_bank2:
-		ld	bc, $0809		; bank1 (4k)
+	.test_passed_bank_8k:
+		ld	b, $08
+		ld	c, IO_BANK_4K
 		ld	hl, $effd
 		ld	e, $18
 		call	test_rom_bank
-		jr	z, .test_passed_bank1
+		jr	z, .test_passed_bank_4k
 		ld	a, EC_Z80_M1_BANK_ERROR_4K
 		rst	RST_HANDLE_Z80_ERROR_CODE
 
-	.test_passed_bank1:
-		ld	bc, $1008		; bank0 (2k)
+	.test_passed_bank_4k:
+		ld	b, $10
+		ld	c, IO_BANK_2K
 		ld	hl, $f7fc
 		ld	e, $30
 		call	test_rom_bank
-		jr	z, .test_passed_bank0
+		jr	z, .test_passed_bank_2k
 		ld	a, EC_Z80_M1_BANK_ERROR_2K
 		rst	RST_HANDLE_Z80_ERROR_CODE
 
-	.test_passed_bank0:
+	.test_passed_bank_2k:
 		ret
 
 ; tests an individual bank

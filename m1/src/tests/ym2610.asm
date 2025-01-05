@@ -11,25 +11,25 @@
 	section code
 
 ym2610_io_tests_psub:
-		in	a, (YM2610_PORT0_REGISTER)
+		in	a, (IO_YM2610_PORT0_REGISTER)
 		rlca
 		jr	c, .test_failed			; ym2610 says its busy
 
 		ld	a, $27
-		out	(YM2610_PORT0_REGISTER), a	; irq/timer related register
+		out	(IO_YM2610_PORT0_REGISTER), a	; irq/timer related register
 		add	hl, hl				; delay
 		add	hl, hl
 		add	hl, hl
 		add	hl, hl
 
 		ld	a, $30
-		out	(YM2610_PORT0_DATA), a		; disable irqs
+		out	(IO_YM2610_PORT0_DATA), a	; disable irqs
 		add	hl, hl				; delay
 		add	hl, hl
 		add	hl, hl
 		add	hl, hl
 
-		in	a, (YM2610_PORT0_REGISTER)
+		in	a, (IO_YM2610_PORT0_REGISTER)
 		and	$30				; check we get back what we wrote
 		jr	nz, .test_failed
 
@@ -37,25 +37,25 @@ ym2610_io_tests_psub:
 		; re-reads it back to verify its the same
 		ld	bc, $0000
 		PSUB	ym2610_write_port0
-		in	a, (YM2610_PORT0_DATA)
+		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$00
 		jr	nz, .test_failed
 
 		ld	bc, $5500
 		PSUB	ym2610_write_port0
-		in	a, (YM2610_PORT0_DATA)
+		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$55
 		jr	nz, .test_failed
 
 		ld	bc, $aa00
 		PSUB	ym2610_write_port0
-		in	a, (YM2610_PORT0_DATA)
+		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$aa
 		jr	nz, .test_failed
 
 		ld	bc, $ff00
 		PSUB	ym2610_write_port0
-		in	a, (YM2610_PORT0_DATA)
+		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$ff
 		jr	nz, .test_failed
 		xor	a
@@ -92,7 +92,7 @@ ym2610_timer_flag_test:
 		ld	de, $4000
 
 	.loop_wait_timer_flag:
-		in	a, (YM2610_PORT0_REGISTER)
+		in	a, (IO_YM2610_PORT0_REGISTER)
 		rrca
 		jr	c, .timer_a_fired
 		inc	bc

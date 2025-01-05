@@ -11,7 +11,7 @@
 _start:
 		di
 		im	1
-		out	($18), a
+		out	(IO_NMI_DISABLE), a
 
 		PSUB	ym2610_make_noise
 
@@ -79,14 +79,14 @@ _start:
 		PSUB	ym2610_make_noise
 
 		ld	a, COMM_Z80_TESTS_COMPLETE	; tell 68k we are done with tests
-		out	($0c), a
+		out	(IO_TO_68K), a
 
 	.loop_wait_68k_error_code:
-		in	a, ($00)
+		in	a, (IO_FROM_68K)
 		and	a
 		jr	z, .loop_wait_68k_error_code
 		ld	c, a
-		in	a, ($00)
+		in	a, (IO_FROM_68K)
 		cp	c
 		jr	nz, .loop_wait_68k_error_code
 		jp	handle_68k_error_code

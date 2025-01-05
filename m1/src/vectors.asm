@@ -66,7 +66,7 @@
 		nop
 		nop
 		nop
-		in	a, ($00)
-		out	($00), a
-		out	($0c), a
+		in	a, (IO_FROM_68K)
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 		jp	_start

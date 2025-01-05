@@ -22,13 +22,13 @@ handle_68k_error_code:
 ;  a = error code
 ;  b = number of bits to play
 handle_error_code:
-		di			; disable ints
-		out	($18), a	; disable nmi
+		di
+		out	(IO_NMI_DISABLE), a
 
 		ld	c, a
 		or	$40		; flag to indicate z80 error
-		out	($00), a
-		out	($0c), a	; send the error code to 68k
+		out	(IO_FROM_68K_CLEAR), a
+		out	(IO_TO_68K), a
 
 		ld	a, $08
 		sub	b
@@ -76,7 +76,7 @@ handle_error_code:
 		exx
 		ld	l, $32
 	.loop_wait_68k_input:
-		in	a, ($00)
+		in	a, (IO_FROM_68K)
 		or	a
 		jr	nz, .got_68k_input
 
@@ -97,7 +97,7 @@ handle_error_code:
 
 	.got_68k_input:
 		cpl
-		out	($0c), a
+		out	(IO_TO_68K), a
 
 	.input_timeout:
 		exx
