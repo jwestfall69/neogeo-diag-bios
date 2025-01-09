@@ -47,6 +47,12 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
 INCS = $(wildcard include/*.inc) \
        $(wildcard ../common/*.inc)
 
+ifdef _DEBUG_BUILD_
+VASM_FLAGS += -D_DEBUG_BUILD_
+OBJS += $(OBJ_DIR)/debug/ec_dupe_check.o \
+        $(OBJ_DIR)/menus/debug.o
+endif
+
 $(BUILD_DIR)/sp1.bin: $(WORK_DIR)/sp1.raw
 	$(WORK_DIR)/gen-crc-mirror $(WORK_DIR)/sp1.raw
 	$(DD) if=$(WORK_DIR)/sp1.raw of=$(BUILD_DIR)/sp1.bin conv=swab
@@ -61,7 +67,7 @@ $(WORK_DIR)/gen-crc-mirror: util/gen-crc-mirror.c $(WORK_DIR)
 	$(HOST_CC) util/gen-crc-mirror.c -o $(WORK_DIR)/gen-crc-mirror
 
 $(WORK_DIR):
-	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests $(OBJ_DIR)/menus
+	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/debug $(OBJ_DIR)/menus $(OBJ_DIR)/tests
 
 clean:
 	rm -rf $(BUILD_DIR)

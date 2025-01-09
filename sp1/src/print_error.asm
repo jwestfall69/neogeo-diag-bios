@@ -4,6 +4,8 @@
 	include "diag.inc"
 	include "../common/error_codes.inc"
 
+	global d_ec_list
+
 	global error_code_lookup_dsub
 	global print_error_dsub
 	global print_error_z80
