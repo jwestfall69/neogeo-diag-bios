@@ -1,7 +1,7 @@
 	include "diag.inc"
 	include "macros.inc"
 	include "neogeo.inc"
-	include "../common/error_codes.inc"
+	include "../common/include/error_codes.inc"
 
 	global ram_address_tests_psub
 	global ram_data_tests_psub

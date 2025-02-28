@@ -1,8 +1,8 @@
 	include "neogeo.inc"
 	include "macros.inc"
 	include "diag.inc"
-	include "../common/error_codes.inc"
-	include "../common/comm.inc"
+	include "../common/include/error_codes.inc"
+	include "../common/include/comm.inc"
 
 	global _start
 	global print_header_dsub

@@ -2,7 +2,7 @@
 	include "macros.inc"
 	include "print_error.inc"
 	include "diag.inc"
-	include "../common/error_codes.inc"
+	include "../common/include/error_codes.inc"
 
 	global d_ec_list
 

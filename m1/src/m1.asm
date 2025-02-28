@@ -1,7 +1,7 @@
 	include "diag.inc"
 	include "neogeo.inc"
-	include "../common/error_codes.inc"
-	include "../common/comm.inc"
+	include "../common/include/error_codes.inc"
+	include "../common/include/comm.inc"
 	include "macros.inc"
 
 	global _start

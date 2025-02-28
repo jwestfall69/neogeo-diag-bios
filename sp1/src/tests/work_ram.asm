@@ -1,7 +1,7 @@
 	include "neogeo.inc"
 	include "macros.inc"
 	include "diag.inc"
-	include "../common/error_codes.inc"
+	include "../common/include/error_codes.inc"
 
 	global auto_work_ram_address_tests_dsub
 	global auto_work_ram_data_tests_dsub

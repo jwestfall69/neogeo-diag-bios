@@ -1,7 +1,7 @@
 	include "diag.inc"
 	include "macros.inc"
 	include "neogeo.inc"
-	include "../common/error_codes.inc"
+	include "../common/include/error_codes.inc"
 
 	global ym2610_io_tests_psub
 	global ym2610_stuck_irq_test

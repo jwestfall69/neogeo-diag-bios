@@ -1,7 +1,7 @@
 	include "diag.inc"
 	include "macros.inc"
 	include "neogeo.inc"
-	include "../common/error_codes.inc"
+	include "../common/include/error_codes.inc"
 
 	global rom_bank_tests
 

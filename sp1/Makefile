@@ -45,7 +45,7 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/tests/z80.o
 
 INCS = $(wildcard include/*.inc) \
-       $(wildcard ../common/*.inc)
+       $(wildcard ../common/include/*.inc)
 
 ifdef _DEBUG_BUILD_
 VASM_FLAGS += -D_DEBUG_BUILD_

@@ -1,7 +1,7 @@
 	include "neogeo.inc"
 	include "macros.inc"
 	include "diag.inc"
-	include "../common/error_codes.inc"
+	include "../common/include/error_codes.inc"
 
 	global auto_bios_crc32_test_dsub
 

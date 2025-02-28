@@ -27,7 +27,7 @@ OBJS = $(OBJ_DIR)/crc32.o \
        $(OBJ_DIR)/tests/ym2610.o
 
 INCS = $(wildcard include/*.inc) \
-       $(wildcard ../common/*.inc)
+       $(wildcard ../common/include/*.inc)
 
 $(BUILD_DIR)/m1.bin: $(WORK_DIR)/gen-crc-mirror-bank $(WORK_DIR) $(OBJS)
 	$(VLINK) $(VLINK_FLAGS) -o $(BUILD_DIR)/m1.bin $(OBJS)
