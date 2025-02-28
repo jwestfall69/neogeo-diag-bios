@@ -23,6 +23,7 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/vector_table.o \
        $(OBJ_DIR)/version.o \
        $(OBJ_DIR)/debug/ec_dupe_check.o \
+       $(OBJ_DIR)/debug/error_address_test.o \
        $(OBJ_DIR)/debug/git_hash.o \
        $(OBJ_DIR)/menus/debug.o \
        $(OBJ_DIR)/menus/main.o \
