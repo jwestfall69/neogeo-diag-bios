@@ -16,7 +16,7 @@ error_address_dsub:
 
 		; convert the error code into a error_address
 		; then jump to it.  jump address is $c06000 | (d0 << 5)
-		and.l	#$ff, d0
+		and.l	#$7f, d0
 		lsl.l	#5, d0
 		or.l	#$c06000, d0
 		move.l	d0, a1
@@ -24,14 +24,15 @@ error_address_dsub:
 		jmp	(a1)
 
 	section error_addresses
-	; $6000 to a little bit before $8000 of the rom is dedicated to
-	; error addresses.  This block of the rom is filled with
-	; .loop:
-	;	move.b d0, (a0)		; watchdog
-	;	bra .loop
-	; which translates into opcodes $1080 $60fc
-
-		blk.l ($1fe2 / 4), $108060fc
+	; The sp1.ld file is setup to put the error_addresses section
+	; starting at $c06000.  Below will fill $c06000 to $c07000.
+	rept $1000 / 4
+	inline
+	.loop:
+		move.b	d0, (a0)	; $1080 (watchdog)
+		bra	.loop		; $60fc
+	einline
+	endr
 
 	section data
 	align 1

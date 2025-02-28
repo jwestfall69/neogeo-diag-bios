@@ -30,3 +30,6 @@ error_address:
 		ld	r, a
 
 		jp	(hl)
+
+		; NOTE: the opcodes for error addresses are injected in the rom
+		; at the proper locations by gen-crc-mirror-bank.
