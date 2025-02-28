@@ -22,6 +22,9 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/util.o \
        $(OBJ_DIR)/vector_table.o \
        $(OBJ_DIR)/version.o \
+       $(OBJ_DIR)/debug/ec_dupe_check.o \
+       $(OBJ_DIR)/debug/git_hash.o \
+       $(OBJ_DIR)/menus/debug.o \
        $(OBJ_DIR)/menus/main.o \
        $(OBJ_DIR)/menus/memory_viewer.o \
        $(OBJ_DIR)/tests/backup_ram.o \
@@ -47,13 +50,6 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
 
 INCS = $(wildcard include/*.inc) \
        $(wildcard ../common/include/*.inc)
-
-ifdef _DEBUG_BUILD_
-VASM_FLAGS += -D_DEBUG_BUILD_
-OBJS += $(OBJ_DIR)/debug/ec_dupe_check.o \
-        $(OBJ_DIR)/debug/git_hash.o \
-        $(OBJ_DIR)/menus/debug.o
-endif
 
 $(BUILD_DIR)/sp1.bin: $(WORK_DIR)/sp1.raw
 	$(WORK_DIR)/gen-crc-mirror $(WORK_DIR)/sp1.raw
