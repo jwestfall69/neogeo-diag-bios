@@ -17,6 +17,7 @@ OBJS = $(OBJ_DIR)/crc32.o \
        $(OBJ_DIR)/util.o \
        $(OBJ_DIR)/psub.o \
        $(OBJ_DIR)/vectors.o \
+       $(OBJ_DIR)/version.o \
        $(OBJ_DIR)/ym2610.o \
        $(OBJ_DIR)/tests/comm.o \
        $(OBJ_DIR)/tests/ram.o \
@@ -36,11 +37,16 @@ $(BUILD_DIR)/m1.bin: $(WORK_DIR)/gen-crc-mirror-bank $(WORK_DIR) $(OBJS)
 $(OBJ_DIR)/%.o: src/%.asm $(INCS)
 	 $(VASM) $(VASM_FLAGS) -o $@ $<
 
+src/version.asm:
+	../common/util/gen-version-asm-file -i ../common/src/version.asm.in -o src/version.asm
+
 $(WORK_DIR)/gen-crc-mirror-bank: util/gen-crc-mirror-bank.c $(WORK_DIR)
 	$(HOST_CC) util/gen-crc-mirror-bank.c -o $(WORK_DIR)/gen-crc-mirror-bank
 
 $(WORK_DIR):
 	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests
+
+PHONY: src/version.asm
 
 clean:
 	rm -rf $(BUILD_DIR)

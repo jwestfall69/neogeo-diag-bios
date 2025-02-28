@@ -1,2 +1,4 @@
 */build/
 */build.sh
+# gets generated each build
+*/src/version.asm

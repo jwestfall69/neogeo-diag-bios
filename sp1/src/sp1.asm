@@ -123,7 +123,7 @@ auto_tests:
 		bra	main_menu
 
 ; prints headers
-; NEO DIAGNOSTICS v0.19aXX - SMKDAN/ACK
+; NEO DIAG SMKDAN/ACK - <git commit date>
 ; ---------------------------------
 print_header_dsub:
 		moveq	#0, d0
@@ -135,14 +135,12 @@ print_header_dsub:
 
 		moveq	#2, d0
 		moveq	#3, d1
-		lea	d_str_version_header, a0
+		lea	d_str_version, a0
 		DSUB	print_xy_string_clear
 		DSUB_RETURN
 
 	section data
 	align 1
-
-d_str_version_header:		STRING "NEO DIAGNOSTICS v0.19a03 - SMKDAN/ACK"
 
 d_xys_a_to_resume:		XY_STRING LEFT_MARGIN, 26, "A: Release to Resume"
 d_xys_d_main_menu:		XY_STRING LEFT_MARGIN, 27, "D: Return to menu"

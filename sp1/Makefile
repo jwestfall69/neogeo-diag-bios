@@ -21,6 +21,7 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/sp1.o \
        $(OBJ_DIR)/util.o \
        $(OBJ_DIR)/vector_table.o \
+       $(OBJ_DIR)/version.o \
        $(OBJ_DIR)/menus/main.o \
        $(OBJ_DIR)/menus/memory_viewer.o \
        $(OBJ_DIR)/tests/backup_ram.o \
@@ -50,6 +51,7 @@ INCS = $(wildcard include/*.inc) \
 ifdef _DEBUG_BUILD_
 VASM_FLAGS += -D_DEBUG_BUILD_
 OBJS += $(OBJ_DIR)/debug/ec_dupe_check.o \
+        $(OBJ_DIR)/debug/git_hash.o \
         $(OBJ_DIR)/menus/debug.o
 endif
 
@@ -63,11 +65,16 @@ $(WORK_DIR)/sp1.raw: $(WORK_DIR)/gen-crc-mirror $(WORK_DIR) $(OBJS)
 $(OBJ_DIR)/%.o: src/%.asm $(INCS)
 	 $(VASM) $(VASM_FLAGS) -o $@ $<
 
+src/version.asm:
+	../common/util/gen-version-asm-file -i ../common/src/version.asm.in -o src/version.asm
+
 $(WORK_DIR)/gen-crc-mirror: util/gen-crc-mirror.c $(WORK_DIR)
 	$(HOST_CC) util/gen-crc-mirror.c -o $(WORK_DIR)/gen-crc-mirror
 
 $(WORK_DIR):
 	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/debug $(OBJ_DIR)/menus $(OBJ_DIR)/tests
+
+.PHONY: src/version.asm
 
 clean:
 	rm -rf $(BUILD_DIR)

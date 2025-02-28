@@ -1,0 +1,7 @@
+	global d_str_git_hash
+	global d_str_version
+
+	section data
+
+d_str_git_hash:		dc.b "%GIT_HASH% %GIT_DIRTY_LONG%", $0
+d_str_version:		dc.b "NEO DIAG - SMKDAN/ACK - %GIT_DATE%%GIT_DIRTY%", $0
