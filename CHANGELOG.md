@@ -1,11 +1,15 @@
 # Change Log
 ---
-#### v0.19a03
-* SP1: Add memory viewer
-* SP1: Add support for multiple menus
-* SP1: Add Fix tile viewer
-* M1: Split into multiple source files
-* M1: Add error addresses
+#### master
+* SP1: Add error address test to debug menu [2025-02-27]
+* SP1: Add git version/hash to debug menu [2025-02-27]
+* Change how versioning works [2025-02-27]
+* SP1: Add debug menu w/ec dupe check [2025-01-08]
+* M1: Add error addresses [2025-01-04]
+* M1: Split into multiple source files [2025-01-01]
+* SP1: Add Fix tile viewer [2024-12-29]
+* SP1: Add memory viewer [2024-12-28]
+* SP1: Add support for multiple menus [2024-12-22]
 
 #### v0.19a02
 * SP1: Add error addresses
