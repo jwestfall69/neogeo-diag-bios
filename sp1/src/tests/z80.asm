@@ -25,6 +25,7 @@ auto_z80_tests:
 
 	.loop_try_again:
 		WATCHDOG
+		bsr	print_reg_sound
 		bsr	check_error
 		bsr	check_sm1_test
 		bsr	check_done
@@ -263,7 +264,6 @@ start_comm_test:
 		RSUB	delay
 
 		bsr	print_reg_sound
-
 	.loop_start_wait_ack:
 		cmp.b	REG_SOUND, d1
 		dbeq	d2, .loop_wait_ack
