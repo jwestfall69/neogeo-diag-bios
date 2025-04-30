@@ -255,8 +255,10 @@ print_error_z80:
 		moveq	#12, d1
 		RSUB	print_hex_byte
 
-		lea	d_xys_z80_error_code, a0
-		RSUB	print_xys_string
+		lea	d_str_z80_error_code, a0
+		moveq	#LEFT_MARGIN, d0
+		moveq	#12, d1
+		RSUB	print_xy_string
 
 		movea.l	a1, a0
 		moveq	#LEFT_MARGIN, d0
@@ -310,6 +312,12 @@ d_ec_list:
 	EC_ENTRY EC_Z80_M1_BANK_ERROR_8K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_8k
 	EC_ENTRY EC_Z80_M1_BANK_ERROR_4K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_4k
 	EC_ENTRY EC_Z80_M1_BANK_ERROR_2K, PRINT_ERROR_INVALID, d_str_z80_m1_bank_error_2k
+	EC_ENTRY EC_YM2610_BUSY_BIT, PRINT_ERROR_INVALID, d_str_ym2610_busy_bit
+	EC_ENTRY EC_YM2610_TIMER_RESET, PRINT_ERROR_INVALID, d_str_ym2610_timer_reset
+	EC_ENTRY EC_YM2610_DATA_00, PRINT_ERROR_INVALID, d_str_ym2610_data_00
+	EC_ENTRY EC_YM2610_DATA_55, PRINT_ERROR_INVALID, d_str_ym2610_data_55
+	EC_ENTRY EC_YM2610_DATA_AA, PRINT_ERROR_INVALID, d_str_ym2610_data_aa
+	EC_ENTRY EC_YM2610_DATA_FF, PRINT_ERROR_INVALID, d_str_ym2610_data_ff
 	EC_ENTRY EC_BIOS_MIRROR, PRINT_ERROR_HEX_BYTE, d_str_bios_mirror
 	EC_ENTRY EC_BIOS_CRC32, PRINT_ERROR_BIOS_CRC32, d_str_bios_crc32
 	EC_ENTRY EC_WRAM_DEAD_OUTPUT_LOWER, PRINT_ERROR_STRING, d_str_wram_dead_output_lower
@@ -404,7 +412,7 @@ d_str_z80_68k_comm_no_clear:		STRING "68K->Z80 COMM ISSUE (CLEAR)"
 d_str_z80_sm1_oe:			STRING "SM1 DEAD OUTPUT"
 d_str_z80_sm1_crc:			STRING "SM1 CRC ERROR"
 
-d_xys_z80_error_code:			XY_STRING LEFT_MARGIN, 12, "Z80 REPORTED ERROR CODE: "
+d_str_z80_error_code:			STRING "Z80 REPORTED ERROR CODE: "
 
 d_str_ym2610_io_error:			STRING "YM2610 I/O ERROR"
 d_str_ym2610_timer_timing_flag:		STRING "YM2610 TIMER TIMING (FLAG)"
@@ -412,6 +420,12 @@ d_str_ym2610_timer_timing_irq:		STRING "YM2610 TIMER TIMING (IRQ)"
 d_str_ym2610_irq_unexpected:		STRING "YM2610 UNEXPECTED IRQ"
 d_str_ym2610_timer_init_flag:		STRING "YM2610 TIMER INIT (FLAG)"
 d_str_ym2610_timer_init_irq:		STRING "YM2610 TIMER INIT (IRQ)"
+d_str_ym2610_busy_bit:			STRING "YM2610 BUSY BIT"
+d_str_ym2610_timer_reset:		STRING "YM2610 TIMER RESET"
+d_str_ym2610_data_00:			STRING "YM2610 DATA (00)"
+d_str_ym2610_data_55:			STRING "YM2610 DATA (55)"
+d_str_ym2610_data_aa:			STRING "YM2610 DATA (AA)"
+d_str_ym2610_data_ff:			STRING "YM2610 DATA (FF)"
 
 d_str_z80_m1_bank_error_16k:		STRING "M1 BANK ERROR (16K)"
 d_str_z80_m1_bank_error_8k:		STRING "M1 BANK ERROR (8K)"

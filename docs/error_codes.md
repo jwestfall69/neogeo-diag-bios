@@ -151,6 +151,12 @@ have the error code byte look it up in the z80 Error Codes table below.
 |  0x17 |     23 |    010111 |       x0 / 23 | [M1 BANK ERROR (2K)](tests/z80/m1_bank.md) |
 |  0x18 |     24 |    011000 |       x0 / 24 | [YM2610 TIMER INIT (FLAG)](tests/z80/ym2610_timer_flag.md) |
 |  0x19 |     25 |    011001 |       x0 / 25 | [YM2610 TIMER INIT (IRQ)](tests/z80/ym2610_timer_irq.md) |
+|  0x1a |     26 |    011010 |       x0 / 26 | [YM2610 BUSY BIT](tests/z80/ym2610_busy_bit.md) |
+|  0x1b |     27 |    011011 |       x0 / 27 | [YM2610 TIMER RESET](tests/z80/ym2610_timer_reset.md) |
+|  0x1c |     28 |    011100 |       x0 / 28 | [YM2610 DATA (00)](tests/z80/ym2610_data.md) |
+|  0x1d |     29 |    011101 |       x0 / 29 | [YM2610 DATA (55)](tests/z80/ym2610_data.md) |
+|  0x1e |     30 |    011110 |       x0 / 30 | [YM2610 DATA (AA)](tests/z80/ym2610_data.md) |
+|  0x1f |     31 |    011111 |       x0 / 31 | [YM2610 DATA (FF)](tests/z80/ym2610_data.md) |
 
 ### 68k Error Codes:
 

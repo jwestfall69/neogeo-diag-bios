@@ -1,6 +1,7 @@
 # Change Log
 ---
 #### master
+* SP1+M1: split up ym2610 io tests [2025-04-29]
 * SP1: Add error address test to debug menu [2025-02-27]
 * SP1: Add git version/hash to debug menu [2025-02-27]
 * Change how versioning works [2025-02-27]

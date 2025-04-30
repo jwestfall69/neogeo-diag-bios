@@ -45,11 +45,21 @@ _start:
 		rst	RST_HANDLE_Z80_ERROR_CODE
 
 	.test_passed_ram_address:
-		PSUB	ym2610_io_tests
-		jr	z, .test_passed_ym2610_io
+		PSUB	ym2610_busy_bit_test
+		jr	z, .test_passed_ym2610_busy_bit
 		rst	RST_HANDLE_Z80_ERROR_CODE
 
-	.test_passed_ym2610_io:
+	.test_passed_ym2610_busy_bit:
+		PSUB	ym2610_timer_reset_test
+		jr	z, .test_passed_ym2610_timer_reset
+		rst	RST_HANDLE_Z80_ERROR_CODE
+
+	.test_passed_ym2610_timer_reset:
+		PSUB	ym2610_data_tests
+		jr	z, .test_passed_ym2610_data
+		rst	RST_HANDLE_Z80_ERROR_CODE
+
+	.test_passed_ym2610_data:
 		PSUB	comm_test
 		jr	z, .test_passed_comm_test
 		rst	RST_HANDLE_Z80_ERROR_CODE

@@ -3,18 +3,29 @@
 	include "neogeo.inc"
 	include "../common/include/error_codes.inc"
 
-	global ym2610_io_tests_psub
+	global ym2610_busy_bit_test_psub
+	global ym2610_timer_reset_test_psub
+	global ym2610_data_tests_psub
 	global ym2610_stuck_irq_test
 	global ym2610_timer_flag_test
 	global ym2610_timer_irq_test
 
 	section code
 
-ym2610_io_tests_psub:
+; verify busy bit isn't already set
+ym2610_busy_bit_test_psub:
 		in	a, (IO_YM2610_PORT0_REGISTER)
 		rlca
-		jr	c, .test_failed			; ym2610 says its busy
+		jr	c, .test_failed
+		xor	a
+		PSUB_RETURN
 
+	.test_failed:
+		ld	a, EC_YM2610_BUSY_BIT
+		or	a
+		PSUB_RETURN
+
+ym2610_timer_reset_test_psub:
 		ld	a, $27
 		out	(IO_YM2610_PORT0_REGISTER), a	; irq/timer related register
 		add	hl, hl				; delay
@@ -32,37 +43,58 @@ ym2610_io_tests_psub:
 		in	a, (IO_YM2610_PORT0_REGISTER)
 		and	$30				; check we get back what we wrote
 		jr	nz, .test_failed
+		xor	a
+		PSUB_RETURN
 
-		; this next chunk of code writes $00/$55/$aa/$ff to reg $0 or ym2610 and
-		; re-reads it back to verify its the same
+	.test_failed:
+		ld	a, EC_YM2610_TIMER_RESET
+		or	a
+		PSUB_RETURN
+
+
+ym2610_data_tests_psub:
 		ld	bc, $0000
 		PSUB	ym2610_write_port0
 		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$00
-		jr	nz, .test_failed
+		jr	nz, .test_failed_00
 
 		ld	bc, $5500
 		PSUB	ym2610_write_port0
 		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$55
-		jr	nz, .test_failed
+		jr	nz, .test_failed_55
 
 		ld	bc, $aa00
 		PSUB	ym2610_write_port0
 		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$aa
-		jr	nz, .test_failed
+		jr	nz, .test_failed_aa
 
 		ld	bc, $ff00
 		PSUB	ym2610_write_port0
 		in	a, (IO_YM2610_PORT0_DATA)
 		cp	$ff
-		jr	nz, .test_failed
+		jr	nz, .test_failed_ff
 		xor	a
 		PSUB_RETURN
 
-	.test_failed:
-		ld	a, EC_YM2610_IO_ERROR
+	.test_failed_00:
+		ld	a, EC_YM2610_DATA_00
+		jr	.test_failed_exit
+
+	.test_failed_55:
+		ld	a, EC_YM2610_DATA_55
+		jr	.test_failed_exit
+
+	.test_failed_aa:
+		ld	a, EC_YM2610_DATA_AA
+		jr	.test_failed_exit
+
+	.test_failed_ff:
+		ld	a, EC_YM2610_DATA_FF
+
+	.test_failed_exit:
 		or	a
 		PSUB_RETURN
 
