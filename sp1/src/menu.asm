@@ -25,6 +25,9 @@ menu:
 
 		RSUB	print_header
 
+		lea	d_xys_d_exit_menu, a0
+		RSUB	print_xys_string_clear
+
 		move.b	r_menu_cursor, d4	; current menu entry
 		move.b	d4, d5			; previous menu entry
 
@@ -159,6 +162,11 @@ print_menu_list:
 	.list_end:
 		move.b	d4, d0
 		rts
+
+	section data
+	align 1
+
+d_xys_d_exit_menu:	XY_STRING LEFT_MARGIN, 27, "D: EXIT MENU"
 
 	section bss
 	align 1
