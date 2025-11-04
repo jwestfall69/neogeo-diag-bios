@@ -26,8 +26,12 @@ OBJS = $(OBJ_DIR)/auto_tests.o \
        $(OBJ_DIR)/debug/error_address_test.o \
        $(OBJ_DIR)/debug/git_hash.o \
        $(OBJ_DIR)/menus/debug.o \
+       $(OBJ_DIR)/menus/graphics_viewer.o \
        $(OBJ_DIR)/menus/main.o \
        $(OBJ_DIR)/menus/memory_viewer.o \
+       $(OBJ_DIR)/menus/misc_tests.o \
+       $(OBJ_DIR)/menus/ram_tests.o \
+       $(OBJ_DIR)/menus/video_tests.o \
        $(OBJ_DIR)/tests/backup_ram.o \
        $(OBJ_DIR)/tests/bios_crc32.o \
        $(OBJ_DIR)/tests/bios_mirror.o \
