@@ -11,8 +11,7 @@
 	global loop_reset_check_dsub
 	global p1_input_update
 	global p1p2_input_update
-	global palette_ram_backup
-	global palette_ram_restore
+	global palette_init_dsub
 	global print_hold_ss_to_reset
 	global send_p1p2_controller
 	global wait_frame
@@ -106,49 +105,17 @@ check_reset_request:
 		move.w	(a7)+, d0
 		rts
 
-PALETTE_BACKUP_SIZE	equ $2000		; in bytes
-; backup palette ram to PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
-palette_ram_backup:
-		movem.l	d0/a0-a1, -(a7)
+palette_init_dsub:
 		lea	PALETTE_RAM_START, a0
-		lea	r_palette_backup, a1
-		move.w	#PALETTE_BACKUP_SIZE, d0
-		bsr	copy_memory
-		movem.l	(a7)+, d0/a0-a1
-		rts
+		move.l	#(PALETTE_RAM_SIZE / 2) - 1, d0
 
-; restore palette ram from PALETTE_RAM_BACKUP_LOCATION (wram $10001c)
-palette_ram_restore:
-		movem.l	d0/a0-a1, -(a7)
-		lea	r_palette_backup, a0
-		lea	PALETTE_RAM_START, a1
-		move.w	#PALETTE_BACKUP_SIZE, d0
-		bsr	copy_memory
-		movem.l	(a7)+, d0/a0-a1
-		rts
-
-; params:
-;  a0 = source address
-;  a1 = dest address
-;  d0 = length
-copy_memory:
-		swap	d0
-		clr.w	d0
-		swap	d0
-		lea	(-$20,a0,d0.l), a0
-		lea	(a1,d0.l), a1
-		lsr.w	#5, d0
-		subq.w	#1, d0
-		movem.l	d1-d7/a2, -(a7)
 	.loop_next_address:
-		movem.l	(a0), d1-d7/a2
-		movem.l	d1-d7/a2, -(a1)
-		lea	(-$20,a0), a0
+		move.w	#$0, (a0)+
 		dbra	d0, .loop_next_address
-		movem.l	(a7)+, d1-d7/a2
 
-		WATCHDOG
-		rts
+		move.l	#$7fff0000, PALETTE_RAM_START + $2			; white on black for text
+		move.l	#$07770000, PALETTE_RAM_START + PALETTE_SIZE + $2	; gray on black for text (disabled menu items)
+		DSUB_RETURN
 
 ; params:
 ;  none
@@ -365,5 +332,3 @@ r_p2_input:			dc.b $0
 r_p2_input_edge:		dc.b $0
 r_p2_input_aux:			dc.b $0
 r_p2_input_aux_edge:		dc.b $0
-
-r_palette_backup:		dcb.b PALETTE_BACKUP_SIZE

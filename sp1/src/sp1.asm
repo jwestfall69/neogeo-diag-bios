@@ -30,11 +30,7 @@ _start:
 		move.w	#$4000, REG_LSPCMODE
 		lea	REG_VRAMRW, a6					; a6 will always be REG_VRAMRW
 		moveq	#DSUB_INIT_PSEUDO, d7				; init dsub for pseudo subroutines
-		move.l	#$7fff0000, PALETTE_RAM_START+$2		; white on black for text
-		move.l	#$07770000, PALETTE_RAM_START+PALETTE_SIZE+$2	; gray on black for text (disabled menu items)
-		clr.w	PALETTE_REFERENCE
-		clr.w	PALETTE_BACKDROP
-
+		DSUB	palette_init
 		SSA3	fix_clear
 
 		move.b	#(INPUT_A|INPUT_B|INPUT_C|INPUT_D), d0

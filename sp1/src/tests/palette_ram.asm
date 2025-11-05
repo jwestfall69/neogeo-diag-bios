@@ -9,8 +9,6 @@
 	section code
 
 auto_palette_ram_tests:
-		bsr	palette_ram_backup
-
 		bsr	palette_ram_output_tests
 		bne	.test_failed_abort
 
@@ -25,9 +23,9 @@ auto_palette_ram_tests:
 	.test_failed_abort:
 		move.b	d0, REG_PALBANK0
 
-		movem.l d0-d2/a0, -(a7)
-		bsr	palette_ram_restore
-		movem.l	(a7)+, d0-d2/a0
+		movem.l d0/a0, -(a7)
+		RSUB	palette_init
+		movem.l	(a7)+, d0/a0
 
 		rts
 
@@ -38,8 +36,6 @@ manual_palette_ram_tests:
 		RSUB	print_xys_string_clear
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
-
-		bsr	palette_ram_backup
 
 		moveq	#0, d6					; init pass count to 0
 
@@ -60,12 +56,12 @@ manual_palette_ram_tests:
 		addq.l	#1, d6
 
 		btst	#INPUT_D_BIT, REG_P1CNT
-		beq	.test_exit_restore
+		beq	.test_exit
 
 		btst	#INPUT_A_BIT, REG_P1CNT
 		bne	.loop_run_test				; 'a' not pressed, loop and do another test
 
-		bsr	palette_ram_restore
+		RSUB	palette_init
 
 	.loop_wait_a_release:
 		WATCHDOG
@@ -75,24 +71,24 @@ manual_palette_ram_tests:
 		btst	#INPUT_A_BIT, REG_P1CNT
 		beq	.loop_wait_a_release
 
-		bsr	palette_ram_backup
 		bra	.loop_run_test
 
 	.test_failed_abort:					; error occured, print info
 		move.b	d0, REG_PALBANK0
-		bsr	palette_ram_restore
+
+		movem.l d0/a0, -(a7)
+		RSUB	palette_init
+		movem.l	(a7)+, d0/a0
 
 		RSUB	print_error
 
-		moveq	#25, d0					; remove A TO RESUME line
+		moveq	#26, d0					; remove A TO RESUME line
 		SSA3	fix_clear_line
 
 		bra	loop_d_pressed
 
-	.test_exit_restore:
-		bsr	palette_ram_restore
-
 	.test_exit:
+		RSUB	palette_init
 		rts
 
 palette_ram_we_tests:
