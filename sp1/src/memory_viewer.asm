@@ -215,10 +215,17 @@ read_data:
 		beq	.normal_ram
 		move.l	a0, d1
 		move.w	d1, (-2, a6)
+		nop
+		nop
+		nop
+		addq.w	#1, d1
 		move.w 	(a6), d0
 		swap	d0
-		addq.w	#1, d1
 		move.w	d1, (-2, a6)
+		nop
+		nop
+		nop
+		nop
 		move.w	(a6), d0
 		rts
 
