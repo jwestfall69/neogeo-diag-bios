@@ -166,7 +166,7 @@ print_menu_list:
 	section data
 	align 1
 
-d_xys_d_exit_menu:	XY_STRING LEFT_MARGIN, 27, "D: EXIT MENU"
+d_xys_d_exit_menu:	XY_STRING LEFT_MARGIN, 27, "D: Exit menu"
 
 	section bss
 	align 1
