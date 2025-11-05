@@ -2,11 +2,11 @@
 	include "neogeo.inc"
 	include "macros.inc"
 
-	global manual_cpu_pal_addr_test
+	global cpu_pal_addr_test
 
 	section code
 
-manual_cpu_pal_addr_test:
+cpu_pal_addr_test:
 
 		lea	d_xys_screen_list, a0
 		RSUB	print_xys_string_clear_list

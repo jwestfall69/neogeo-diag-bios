@@ -2,11 +2,11 @@
 	include "macros.inc"
 	include "diag.inc"
 
-	global manual_color_bars_smpte_test
+	global color_bars_smpte_test
 
 	section code
 
-manual_color_bars_smpte_test:
+color_bars_smpte_test:
 		bsr	setup_palettes
 		bsr	draw_sections
 

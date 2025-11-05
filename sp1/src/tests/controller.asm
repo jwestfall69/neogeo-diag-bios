@@ -2,11 +2,11 @@
 	include "macros.inc"
 	include "diag.inc"
 
-	global manual_controller_tests
+	global controller_tests
 
 	section code
 
-	manual_controller_tests:
+	controller_tests:
 		moveq	#$5, d0
 		SSA3	fix_clear_line
 		bsr	print_labels

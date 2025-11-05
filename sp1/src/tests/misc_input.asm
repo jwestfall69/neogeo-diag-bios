@@ -2,11 +2,11 @@
 	include "macros.inc"
 	include "diag.inc"
 
-	global manual_misc_input_tests
+	global misc_input_tests
 
 	section code
 
-manual_misc_input_tests:
+misc_input_tests:
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
 		bsr	misc_input_print_static

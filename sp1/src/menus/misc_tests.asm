@@ -30,9 +30,9 @@ misc_tests_menu:
 	align 1
 
 d_menu_list:
-	MENU_ENTRY manual_calendar_tests, d_str_calendar_io, 1
-	MENU_ENTRY manual_misc_input_tests, d_str_misc_input_test, 0
-	MENU_ENTRY manual_cpu_pal_addr_test, d_str_cpu_pal_addr_test, 0
+	MENU_ENTRY calendar_tests, d_str_calendar_io, 1
+	MENU_ENTRY misc_input_tests, d_str_misc_input_test, 0
+	MENU_ENTRY cpu_pal_addr_test, d_str_cpu_pal_addr_test, 0
 	MENU_LIST_END
 
 d_xys_menu_title:		XY_STRING LEFT_MARGIN, 5, "MISC TESTS"

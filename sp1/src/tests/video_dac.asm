@@ -2,7 +2,7 @@
 	include "macros.inc"
 	include "diag.inc"
 
-	global manual_video_dac_tests
+	global video_dac_tests
 
 	section code
 
@@ -10,7 +10,7 @@
 ; B button = toggle darker bit
 ; C button = toggle shadow register
 ; D button = return to main menu
-manual_video_dac_tests:
+video_dac_tests:
 
 		moveq	#0, d6			; will use d6 to track shadow toggle
 		move.b	d0, REG_NOSHADOW
@@ -26,7 +26,7 @@ manual_video_dac_tests:
 		btst	#INPUT_A_BIT, r_p1_input_edge
 		beq	.a_not_pressed
 		bsr	draw_fullscreen
-		bra	manual_video_dac_tests		; jump to the top so we clear shadow/darker bit
+		bra	video_dac_tests		; jump to the top so we clear shadow/darker bit
 	.a_not_pressed:
 
 		btst	#INPUT_B_BIT, r_p1_input_edge

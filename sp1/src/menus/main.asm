@@ -30,12 +30,12 @@ main_menu:
 	align 1
 
 d_menu_list:
-	MENU_ENTRY manual_controller_tests, d_str_controller_tests, 0
+	MENU_ENTRY controller_tests, d_str_controller_tests, 0
 	MENU_ENTRY graphics_viewer_menu, d_str_graphics_viewer, 0
-	MENU_ENTRY manual_memcard_tests, d_str_memcard_tests, 0
+	MENU_ENTRY memcard_tests, d_str_memcard_tests, 0
 	MENU_ENTRY memory_viewer_menu, d_str_memory_viewer, 0
 	MENU_ENTRY misc_tests_menu, d_str_misc_tests, 0
-	MENU_ENTRY manual_prog_rom_bus_tests, d_str_prog_rom_bus_tests, 0
+	MENU_ENTRY prog_rom_bus_tests, d_str_prog_rom_bus_tests, 0
 	MENU_ENTRY ram_tests_menu, d_str_ram_tests, 0
 	MENU_ENTRY video_tests_menu, d_str_video_tests, 0
 	MENU_ENTRY debug_menu, d_str_debug_menu, 0

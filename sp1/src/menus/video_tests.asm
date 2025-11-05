@@ -30,9 +30,9 @@ video_tests_menu:
 	align 1
 
 d_menu_list:
-	MENU_ENTRY manual_color_bars_basic_test, d_str_color_bars_basic, 0
-	MENU_ENTRY manual_color_bars_smpte_test, d_str_color_bars_smpte, 0
-	MENU_ENTRY manual_video_dac_tests, d_str_video_dac_tests, 0
+	MENU_ENTRY color_bars_basic_test, d_str_color_bars_basic, 0
+	MENU_ENTRY color_bars_smpte_test, d_str_color_bars_smpte, 0
+	MENU_ENTRY video_dac_tests, d_str_video_dac_tests, 0
 	MENU_LIST_END
 
 d_xys_menu_title:		XY_STRING LEFT_MARGIN, 5, "VIDEO TESTS"

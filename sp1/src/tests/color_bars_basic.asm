@@ -2,7 +2,7 @@
 	include "macros.inc"
 	include "diag.inc"
 
-	global manual_color_bars_basic_test
+	global color_bars_basic_test
 
 	section code
 
@@ -18,7 +18,7 @@
 ; green = tile 0x20, palette bank0
 ; blue  = tile 0x00, palette bank1
 ; white = tile 0x20, palette bank1
-manual_color_bars_basic_test:
+color_bars_basic_test:
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear
 		bsr	setup_palettes

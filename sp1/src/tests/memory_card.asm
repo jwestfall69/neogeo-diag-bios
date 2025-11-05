@@ -3,7 +3,7 @@
 	include "diag.inc"
 	include "../common/include/error_codes.inc"
 
-	global manual_memcard_tests
+	global memcard_tests
 
 	section code
 
@@ -27,7 +27,7 @@
 ;       800002         000000         1122
 ;       800004         000002         3344
 ;       800006         000002         3344
-manual_memcard_tests:
+memcard_tests:
 
 		lea	d_xys_d_main_menu, a0
 		RSUB	print_xys_string_clear

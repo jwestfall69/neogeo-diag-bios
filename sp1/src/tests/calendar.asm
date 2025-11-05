@@ -2,11 +2,11 @@
 	include "macros.inc"
 	include "diag.inc"
 
-	global manual_calendar_tests
+	global calendar_tests
 
 	section code
 
-manual_calendar_tests:
+calendar_tests:
 
 		lea	d_xys_screen_list, a0
 		RSUB	print_xys_string_clear_list

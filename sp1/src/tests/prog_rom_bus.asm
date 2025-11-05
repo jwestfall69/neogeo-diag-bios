@@ -3,11 +3,11 @@
 	include "diag.inc"
 	include "../common/include/error_codes.inc"
 
-	global manual_prog_rom_bus_tests
+	global prog_rom_bus_tests
 
 	section code
 
-manual_prog_rom_bus_tests:
+prog_rom_bus_tests:
 		lea	d_xys_screen_list, a0
 		RSUB	print_xys_string_clear_list
 
