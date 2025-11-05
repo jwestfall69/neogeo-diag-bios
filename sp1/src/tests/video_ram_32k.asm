@@ -93,7 +93,7 @@ manual_video_ram_32k_tests:
 
 		RSUB	print_error
 
-		moveq	#25, d0
+		moveq	#26, d0
 		SSA3	fix_clear_line			; remove A TO RESUME line
 
 		bra	loop_d_pressed
