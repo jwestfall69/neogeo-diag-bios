@@ -28,6 +28,9 @@ menu:
 		lea	d_xys_d_exit_menu, a0
 		RSUB	print_xys_string_clear
 
+		lea	d_xys_hold_ss_to_reset, a0
+		RSUB	print_xys_string_clear
+
 		move.b	r_menu_cursor, d4	; current menu entry
 		move.b	d4, d5			; previous menu entry
 
@@ -166,7 +169,7 @@ print_menu_list:
 	section data
 	align 1
 
-d_xys_d_exit_menu:	XY_STRING LEFT_MARGIN, 27, "D: Exit menu"
+d_xys_d_exit_menu:	XY_STRING LEFT_MARGIN, 26, "D: Exit menu"
 
 	section bss
 	align 1

@@ -18,6 +18,8 @@
 	global wait_p1_input
 	global wait_scanline
 
+	global d_xys_hold_ss_to_reset
+
 	global r_p1_input
 	global r_p1_input_edge
 	global r_p1_input_aux
