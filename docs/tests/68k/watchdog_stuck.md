@@ -21,3 +21,6 @@ actually kicking the watchdog it will trigger a reset.  This will repeat over
 and over allowing you to see the above text.  This test happens fast enough
 that if it isn't an issue you likely won't even see the above text as it gets
 cleared soon as the test is done.
+
+This condition can be caused by the 1uf electrolytic capacitor near the NEO-B1
+chip being bad/missing.
