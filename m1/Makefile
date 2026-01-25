@@ -46,7 +46,7 @@ $(WORK_DIR)/gen-crc-mirror-bank: util/gen-crc-mirror-bank.c $(WORK_DIR)
 $(WORK_DIR):
 	$(MKDIR) -p $(WORK_DIR) $(OBJ_DIR)/tests
 
-PHONY: src/version.asm
+.PHONY: src/version.asm
 
 clean:
 	rm -rf $(BUILD_DIR)
